@@ -4,7 +4,9 @@
   "seo": {
     "title": "Geography Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Geography tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Geography Tutors UAE"],
+    "primaryKeywords": [
+      "Geography Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Geography Tutors UAE",
       "IGCSE Geography Tutors UAE",
@@ -31,8 +33,14 @@
         "name": "Hannah Clarke",
         "photo": "https://randomuser.me/api/portraits/women/41.jpg",
         "qualification": "MA Geography, University of Manchester",
-        "subjects": ["Geography"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Geography"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 79,
         "yearsExperience": 8,
@@ -43,8 +51,15 @@
         "name": "Omar Al Suwaidi",
         "photo": "https://randomuser.me/api/portraits/men/56.jpg",
         "qualification": "BSc Environmental Science, UAE University",
-        "subjects": ["Geography", "Science"],
-        "curricula": ["IGCSE", "CBSE", "American Curriculum"],
+        "subjects": [
+          "Geography",
+          "Science"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 66,
         "yearsExperience": 6,
@@ -55,8 +70,14 @@
         "name": "Isabelle Dubois",
         "photo": "https://randomuser.me/api/portraits/women/52.jpg",
         "qualification": "MSc Human Geography, Sorbonne University",
-        "subjects": ["Geography"],
-        "curricula": ["IB", "A-Level", "IGCSE"],
+        "subjects": [
+          "Geography"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 58,
         "yearsExperience": 7,
@@ -67,8 +88,13 @@
         "name": "James Mitchell",
         "photo": "https://randomuser.me/api/portraits/men/33.jpg",
         "qualification": "PGCE Geography, University of Exeter",
-        "subjects": ["Geography"],
-        "curricula": ["IGCSE", "A-Level"],
+        "subjects": [
+          "Geography"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 54,
         "yearsExperience": 9,
@@ -79,8 +105,15 @@
         "name": "Priya Desai",
         "photo": "https://randomuser.me/api/portraits/women/64.jpg",
         "qualification": "BEd Geography, University of Delhi",
-        "subjects": ["Geography", "Economics"],
-        "curricula": ["CBSE", "IGCSE", "IB"],
+        "subjects": [
+          "Geography",
+          "Economics"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 47,
         "yearsExperience": 5,
@@ -91,9 +124,16 @@
         "name": "Thomas Eriksson",
         "photo": "https://randomuser.me/api/portraits/men/69.jpg",
         "qualification": "MSc Physical Geography, University of Oslo",
-        "subjects": ["Geography", "Science"],
-        "curricula": ["IB", "IGCSE", "American Curriculum"],
-        "rating": 5.0,
+        "subjects": [
+          "Geography",
+          "Science"
+        ],
+        "curricula": [
+          "IB",
+          "IGCSE",
+          "American Curriculum"
+        ],
+        "rating": 5,
         "reviewCount": 42,
         "yearsExperience": 10,
         "profileHref": "/tutors/thomas-eriksson"
@@ -186,21 +226,21 @@
     "items": [
       {
         "content": "Our daughter struggled with case studies and data interpretation in IGCSE Geography. Her CoachAcadem tutor helped her structure answers more effectively and her exam confidence improved significantly.",
-        "author": "Mariam Al Zaabi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Amna Al-Suwaidi",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/51.jpg"
       },
       {
         "content": "IB Geography fieldwork and internal assessments were challenging until I found a tutor through CoachAcadem. Clear guidance on investigations and essay structure made a real difference.",
-        "author": "Lucas Bergmann",
+        "author": "Jack Morrison",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/men/56.jpg"
       },
       {
         "content": "We compared several Geography tutors and read verified reviews before booking. The tutor we chose was excellent at connecting physical and human geography topics in a way our son could understand.",
-        "author": "Catherine Moore",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Liam O'Brien",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/men/46.jpg"
       }
     ]
   },

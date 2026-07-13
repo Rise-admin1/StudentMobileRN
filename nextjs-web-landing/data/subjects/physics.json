@@ -4,7 +4,9 @@
   "seo": {
     "title": "Physics Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Physics tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Physics Tutors UAE"],
+    "primaryKeywords": [
+      "Physics Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Physics Tutors UAE",
       "IGCSE Physics Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "James Okafor",
         "photo": "https://randomuser.me/api/portraits/men/32.jpg",
         "qualification": "BSc Physics, Imperial College London",
-        "subjects": ["Physics", "Science"],
-        "curricula": ["IGCSE", "IB", "American Curriculum"],
+        "subjects": [
+          "Physics",
+          "Science"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 96,
         "yearsExperience": 6,
@@ -41,8 +50,14 @@
         "name": "Layla Hamdan",
         "photo": "https://randomuser.me/api/portraits/women/26.jpg",
         "qualification": "MSc Physics, Khalifa University",
-        "subjects": ["Physics"],
-        "curricula": ["IGCSE", "A-Level", "CBSE"],
+        "subjects": [
+          "Physics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 88,
         "yearsExperience": 7,
@@ -53,9 +68,15 @@
         "name": "Marcus Chen",
         "photo": "https://randomuser.me/api/portraits/men/67.jpg",
         "qualification": "PhD Physics, University of Edinburgh",
-        "subjects": ["Physics", "Further Physics"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Physics",
+          "Further Physics"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 72,
         "yearsExperience": 9,
         "profileHref": "/tutors/marcus-chen"
@@ -65,8 +86,14 @@
         "name": "Nadia Rahman",
         "photo": "https://randomuser.me/api/portraits/women/55.jpg",
         "qualification": "BSc Physics, American University of Sharjah",
-        "subjects": ["Physics", "Science"],
-        "curricula": ["American Curriculum", "IGCSE"],
+        "subjects": [
+          "Physics",
+          "Science"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 65,
         "yearsExperience": 5,
@@ -77,8 +104,14 @@
         "name": "Thomas Brennan",
         "photo": "https://randomuser.me/api/portraits/men/22.jpg",
         "qualification": "MSc Theoretical Physics, Trinity College Dublin",
-        "subjects": ["Physics"],
-        "curricula": ["A-Level", "IB", "IGCSE"],
+        "subjects": [
+          "Physics"
+        ],
+        "curricula": [
+          "A-Level",
+          "IB",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 81,
         "yearsExperience": 8,
@@ -89,8 +122,15 @@
         "name": "Anita Desai",
         "photo": "https://randomuser.me/api/portraits/women/72.jpg",
         "qualification": "BSc Physics, IIT Delhi",
-        "subjects": ["Physics", "Science"],
-        "curricula": ["CBSE", "IGCSE", "IB"],
+        "subjects": [
+          "Physics",
+          "Science"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.8,
         "reviewCount": 59,
         "yearsExperience": 6,
@@ -184,21 +224,21 @@
     "items": [
       {
         "content": "Our son was struggling with mechanics and electricity in IGCSE Physics. His CoachAcadem tutor explained concepts clearly and his confidence improved within weeks.",
-        "author": "Khalid Al Nuaimi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Noor Al-Attiyah",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/51.jpg"
       },
       {
         "content": "IB Physics HL felt overwhelming until I started working with a tutor through CoachAcadem. The step-by-step approach to problem-solving made a huge difference before my exams.",
-        "author": "Maya Kapoor",
+        "author": "Maha Al-Marri",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/12.jpg"
       },
       {
         "content": "We compared several Physics tutors on CoachAcadem before booking. The reviews were honest and helped us find someone who matched our daughter's learning style perfectly.",
-        "author": "Helen Brooks",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Layla Al-Mansoori",
+        "role": "Parent, Abu Dhabi",
+        "avatar": "https://randomuser.me/api/portraits/med/women/25.jpg"
       }
     ]
   },

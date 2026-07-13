@@ -4,7 +4,9 @@
   "seo": {
     "title": "English Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified English tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["English Tutors UAE"],
+    "primaryKeywords": [
+      "English Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online English Tutors UAE",
       "IGCSE English Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Fatima Al Zaabi",
         "photo": "https://randomuser.me/api/portraits/women/68.jpg",
         "qualification": "BA English Literature, UAE University",
-        "subjects": ["English", "Creative Writing"],
-        "curricula": ["IGCSE", "CBSE", "A-Level"],
+        "subjects": [
+          "English",
+          "Creative Writing"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 84,
         "yearsExperience": 5,
@@ -41,8 +50,15 @@
         "name": "Oliver Hughes",
         "photo": "https://randomuser.me/api/portraits/men/28.jpg",
         "qualification": "MA English Literature, University of Oxford",
-        "subjects": ["English", "English Literature"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "English",
+          "English Literature"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 102,
         "yearsExperience": 8,
@@ -53,8 +69,15 @@
         "name": "Priya Nair",
         "photo": "https://randomuser.me/api/portraits/women/42.jpg",
         "qualification": "MEd English Education, University of Melbourne",
-        "subjects": ["English", "Creative Writing"],
-        "curricula": ["IB", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "English",
+          "Creative Writing"
+        ],
+        "curricula": [
+          "IB",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 76,
         "yearsExperience": 7,
@@ -65,8 +88,13 @@
         "name": "William Carter",
         "photo": "https://randomuser.me/api/portraits/men/54.jpg",
         "qualification": "BA English & Drama, University of Bristol",
-        "subjects": ["English"],
-        "curricula": ["A-Level", "IGCSE"],
+        "subjects": [
+          "English"
+        ],
+        "curricula": [
+          "A-Level",
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 68,
         "yearsExperience": 6,
@@ -77,8 +105,15 @@
         "name": "Aisha Mohammed",
         "photo": "https://randomuser.me/api/portraits/women/74.jpg",
         "qualification": "MA Applied Linguistics, American University of Sharjah",
-        "subjects": ["English", "ESL"],
-        "curricula": ["American Curriculum", "CBSE", "IGCSE"],
+        "subjects": [
+          "English",
+          "ESL"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "CBSE",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 91,
         "yearsExperience": 9,
@@ -89,9 +124,16 @@
         "name": "Charlotte Evans",
         "photo": "https://randomuser.me/api/portraits/women/19.jpg",
         "qualification": "PGCE English, University of Cambridge",
-        "subjects": ["English", "English Literature"],
-        "curricula": ["IB", "A-Level", "IGCSE"],
-        "rating": 5.0,
+        "subjects": [
+          "English",
+          "English Literature"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level",
+          "IGCSE"
+        ],
+        "rating": 5,
         "reviewCount": 58,
         "yearsExperience": 10,
         "profileHref": "/tutors/charlotte-evans"
@@ -184,21 +226,21 @@
     "items": [
       {
         "content": "Our son's essay writing improved dramatically after working with an English tutor through CoachAcadem. The structured feedback on structure and analysis made a real difference to his IGCSE results.",
-        "author": "Rashid Al Maktoum",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Fatima Al-Kuwari",
+        "role": "Parent, Ras Al Khaimah",
+        "avatar": "https://randomuser.me/api/portraits/med/women/12.jpg"
       },
       {
         "content": "IB English Language and Literature felt overwhelming until I found a tutor on CoachAcadem. Clear guidance on textual analysis and oral assessments helped me feel prepared for my exams.",
-        "author": "Zara Khan",
-        "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Maha Al-Marri",
+        "role": "IGCSE Student",
+        "avatar": "https://randomuser.me/api/portraits/med/women/25.jpg"
       },
       {
         "content": "We compared several English tutors and read honest reviews before booking. The tutor we chose was excellent at building our daughter's confidence in reading and writing.",
-        "author": "Jennifer Walsh",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Priya Sharma",
+        "role": "Parent, Fujairah",
+        "avatar": "https://randomuser.me/api/portraits/med/women/61.jpg"
       }
     ]
   },

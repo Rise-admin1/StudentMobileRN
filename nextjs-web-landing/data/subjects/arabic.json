@@ -4,7 +4,9 @@
   "seo": {
     "title": "Arabic Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Arabic tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Arabic Tutors UAE"],
+    "primaryKeywords": [
+      "Arabic Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Arabic Tutors UAE",
       "IGCSE Arabic Tutors UAE",
@@ -29,8 +31,14 @@
         "name": "Mariam Al Hashimi",
         "photo": "https://randomuser.me/api/portraits/women/47.jpg",
         "qualification": "MA Arabic Language & Literature, UAE University",
-        "subjects": ["Arabic"],
-        "curricula": ["IGCSE", "CBSE", "Ministry Curriculum"],
+        "subjects": [
+          "Arabic"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "Ministry Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 98,
         "yearsExperience": 9,
@@ -41,8 +49,15 @@
         "name": "Khalid Benali",
         "photo": "https://randomuser.me/api/portraits/men/39.jpg",
         "qualification": "BA Arabic Studies, American University of Cairo",
-        "subjects": ["Arabic", "Islamic Studies"],
-        "curricula": ["IB", "IGCSE", "A-Level"],
+        "subjects": [
+          "Arabic",
+          "Islamic Studies"
+        ],
+        "curricula": [
+          "IB",
+          "IGCSE",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 74,
         "yearsExperience": 7,
@@ -53,8 +68,14 @@
         "name": "Layla Abbas",
         "photo": "https://randomuser.me/api/portraits/women/61.jpg",
         "qualification": "MEd Arabic Education, Zayed University",
-        "subjects": ["Arabic"],
-        "curricula": ["American Curriculum", "Ministry Curriculum", "IGCSE"],
+        "subjects": [
+          "Arabic"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "Ministry Curriculum",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 86,
         "yearsExperience": 8,
@@ -65,8 +86,14 @@
         "name": "Omar Said",
         "photo": "https://randomuser.me/api/portraits/men/76.jpg",
         "qualification": "BA Arabic Language, Sorbonne University",
-        "subjects": ["Arabic"],
-        "curricula": ["IB", "A-Level", "IGCSE"],
+        "subjects": [
+          "Arabic"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level",
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 62,
         "yearsExperience": 6,
@@ -77,9 +104,16 @@
         "name": "Noor Al Dhaheri",
         "photo": "https://randomuser.me/api/portraits/women/35.jpg",
         "qualification": "PGCE Arabic, University of Exeter",
-        "subjects": ["Arabic", "ESL"],
-        "curricula": ["IGCSE", "CBSE", "American Curriculum"],
-        "rating": 5.0,
+        "subjects": [
+          "Arabic",
+          "ESL"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "American Curriculum"
+        ],
+        "rating": 5,
         "reviewCount": 53,
         "yearsExperience": 5,
         "profileHref": "/tutors/noor-al-dhaheri"
@@ -89,8 +123,14 @@
         "name": "Hassan Rahimi",
         "photo": "https://randomuser.me/api/portraits/men/64.jpg",
         "qualification": "MA Applied Linguistics, King Saud University",
-        "subjects": ["Arabic"],
-        "curricula": ["Ministry Curriculum", "IGCSE", "IB"],
+        "subjects": [
+          "Arabic"
+        ],
+        "curricula": [
+          "Ministry Curriculum",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 71,
         "yearsExperience": 10,
@@ -184,21 +224,21 @@
     "items": [
       {
         "content": "Our daughter's Arabic reading and writing improved significantly with her CoachAcadem tutor. The structured approach to grammar and vocabulary made the subject feel much more manageable.",
-        "author": "Salma Al Qasimi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Mariam Al-Thani",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/25.jpg"
       },
       {
         "content": "I was struggling with IGCSE Arabic comprehension and essay writing. My tutor helped me build confidence and develop a clearer approach to exam questions.",
-        "author": "Yusuf Ahmed",
+        "author": "Anika Verma",
         "role": "IGCSE Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/35.jpg"
       },
       {
         "content": "We appreciated being able to find a tutor experienced with UAE curriculum requirements. The lessons were well structured and our son looked forward to each session.",
-        "author": "Hana Al Suwaidi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Ananya Patel",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/74.jpg"
       }
     ]
   },

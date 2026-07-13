@@ -4,7 +4,9 @@
   "seo": {
     "title": "Accounting Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Accounting tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Accounting Tutors UAE"],
+    "primaryKeywords": [
+      "Accounting Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Accounting Tutors UAE",
       "IGCSE Accounting Tutors UAE",
@@ -31,8 +33,15 @@
         "name": "Richard Hayes",
         "photo": "https://randomuser.me/api/portraits/men/51.jpg",
         "qualification": "ACCA, BSc Accounting, University of Warwick",
-        "subjects": ["Accounting", "Business Studies"],
-        "curricula": ["IGCSE", "A-Level", "CBSE"],
+        "subjects": [
+          "Accounting",
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 88,
         "yearsExperience": 10,
@@ -43,8 +52,13 @@
         "name": "Anita Sharma",
         "photo": "https://randomuser.me/api/portraits/women/45.jpg",
         "qualification": "MCom, Chartered Accountant",
-        "subjects": ["Accounting"],
-        "curricula": ["CBSE", "IGCSE"],
+        "subjects": [
+          "Accounting"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 76,
         "yearsExperience": 8,
@@ -55,8 +69,15 @@
         "name": "Mark Stevens",
         "photo": "https://randomuser.me/api/portraits/men/62.jpg",
         "qualification": "BSc Accounting & Finance, LSE",
-        "subjects": ["Accounting", "Economics"],
-        "curricula": ["A-Level", "IB", "IGCSE"],
+        "subjects": [
+          "Accounting",
+          "Economics"
+        ],
+        "curricula": [
+          "A-Level",
+          "IB",
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 64,
         "yearsExperience": 7,
@@ -67,8 +88,14 @@
         "name": "Layla Hassan",
         "photo": "https://randomuser.me/api/portraits/women/59.jpg",
         "qualification": "BBA Accounting, American University of Sharjah",
-        "subjects": ["Accounting"],
-        "curricula": ["American Curriculum", "IGCSE", "CBSE"],
+        "subjects": [
+          "Accounting"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE",
+          "CBSE"
+        ],
         "rating": 4.8,
         "reviewCount": 55,
         "yearsExperience": 6,
@@ -79,9 +106,15 @@
         "name": "Peter Nguyen",
         "photo": "https://randomuser.me/api/portraits/men/44.jpg",
         "qualification": "CPA, MSc Finance, NUS",
-        "subjects": ["Accounting", "Business Studies"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Accounting",
+          "Business Studies"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 49,
         "yearsExperience": 9,
         "profileHref": "/tutors/peter-nguyen"
@@ -91,8 +124,14 @@
         "name": "Sophie Martin",
         "photo": "https://randomuser.me/api/portraits/women/37.jpg",
         "qualification": "PGCE Business & Accounting, University of Nottingham",
-        "subjects": ["Accounting"],
-        "curricula": ["IGCSE", "A-Level", "American Curriculum"],
+        "subjects": [
+          "Accounting"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 43,
         "yearsExperience": 5,
@@ -186,21 +225,21 @@
     "items": [
       {
         "content": "Our son was making repeated errors in ledger accounts and financial statements. His CoachAcadem tutor helped him build accuracy step by step and his IGCSE Accounting grade improved significantly.",
-        "author": "Khalid Al Mansoori",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Khalid Al-Kaabi",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/men/76.jpg"
       },
       {
         "content": "A-Level Accounting ratio analysis and financial reporting felt overwhelming. My tutor explained concepts clearly and helped me avoid the common mistakes that were costing me marks.",
-        "author": "Emily Hart",
+        "author": "Yousef Al-Kuwari",
         "role": "A-Level Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/men/32.jpg"
       },
       {
         "content": "We read verified reviews before choosing an Accounting tutor. The tutor we booked was patient, thorough, and excellent at preparing our daughter for her CBSE examinations.",
-        "author": "Raj Malhotra",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Abdullah Al-Mahmoud",
+        "role": "Parent, Abu Dhabi",
+        "avatar": "https://randomuser.me/api/portraits/med/men/52.jpg"
       }
     ]
   },

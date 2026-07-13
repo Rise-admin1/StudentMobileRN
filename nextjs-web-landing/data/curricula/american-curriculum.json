@@ -4,7 +4,9 @@
   "seo": {
     "title": "American Curriculum Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified American Curriculum tutors across the UAE. Compare qualifications, reviews, experience, and subject expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["American Curriculum Tutors UAE"],
+    "primaryKeywords": [
+      "American Curriculum Tutors UAE"
+    ],
     "secondaryKeywords": [
       "American Curriculum Tutors UAE",
       "Online American Curriculum Tutors UAE",
@@ -31,8 +33,13 @@
         "name": "Ahmed Khan",
         "photo": "https://randomuser.me/api/portraits/men/75.jpg",
         "qualification": "BSc Mathematics, American University of Sharjah",
-        "subjects": ["Mathematics", "Statistics"],
-        "curricula": ["American Curriculum"],
+        "subjects": [
+          "Mathematics",
+          "Statistics"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 112,
         "yearsExperience": 7,
@@ -43,8 +50,13 @@
         "name": "Omar Al Mansoori",
         "photo": "https://randomuser.me/api/portraits/men/52.jpg",
         "qualification": "BSc Physics, UAE University",
-        "subjects": ["Physics", "Science"],
-        "curricula": ["American Curriculum"],
+        "subjects": [
+          "Physics",
+          "Science"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 87,
         "yearsExperience": 5,
@@ -55,8 +67,13 @@
         "name": "Maria Santos",
         "photo": "https://randomuser.me/api/portraits/women/28.jpg",
         "qualification": "MSc Chemistry, University of Edinburgh",
-        "subjects": ["Chemistry", "Biology"],
-        "curricula": ["American Curriculum"],
+        "subjects": [
+          "Chemistry",
+          "Biology"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 88,
         "yearsExperience": 8,
@@ -67,8 +84,13 @@
         "name": "Sarah Hassan",
         "photo": "https://randomuser.me/api/portraits/women/44.jpg",
         "qualification": "MA English Literature, University of Oxford",
-        "subjects": ["English", "History"],
-        "curricula": ["American Curriculum"],
+        "subjects": [
+          "English",
+          "History"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 128,
         "yearsExperience": 8,
@@ -79,8 +101,13 @@
         "name": "David Wong",
         "photo": "https://randomuser.me/api/portraits/men/41.jpg",
         "qualification": "BSc Computer Science, NUS",
-        "subjects": ["Computer Science", "Mathematics"],
-        "curricula": ["American Curriculum"],
+        "subjects": [
+          "Computer Science",
+          "Mathematics"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 103,
         "yearsExperience": 9,
@@ -91,9 +118,14 @@
         "name": "Elena Petrov",
         "photo": "https://randomuser.me/api/portraits/women/33.jpg",
         "qualification": "BSc Economics, London School of Economics",
-        "subjects": ["Economics", "Business Studies"],
-        "curricula": ["American Curriculum"],
-        "rating": 5.0,
+        "subjects": [
+          "Economics",
+          "Business Studies"
+        ],
+        "curricula": [
+          "American Curriculum"
+        ],
+        "rating": 5,
         "reviewCount": 76,
         "yearsExperience": 10,
         "profileHref": "/tutors/elena-petrov"
@@ -221,21 +253,21 @@
     "items": [
       {
         "content": "Our daughter's Mathematics and Science grades improved after working with a CoachAcadem tutor. The support aligned perfectly with her American Curriculum coursework and assessment requirements.",
-        "author": "Fatima Al Rashid",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Fatima Al-Kuwari",
+        "role": "Parent, Al Ain",
+        "avatar": "https://randomuser.me/api/portraits/med/women/44.jpg"
       },
       {
         "content": "I was struggling with AP-level Chemistry until I found a tutor through CoachAcadem. Clear explanations and consistent practice helped me maintain strong grades throughout the year.",
-        "author": "Arjun Mehta",
+        "author": "Emily Foster",
         "role": "Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/42.jpg"
       },
       {
         "content": "Being able to read reviews and compare American Curriculum tutors before booking gave us peace of mind. The tutor we chose was professional and genuinely invested in our son's academic progress.",
-        "author": "Sarah Mitchell",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Thomas Bennett",
+        "role": "Parent, Ajman",
+        "avatar": "https://randomuser.me/api/portraits/med/men/73.jpg"
       }
     ]
   },

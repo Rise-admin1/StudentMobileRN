@@ -4,7 +4,9 @@
   "seo": {
     "title": "CBSE Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified CBSE tutors across the UAE. Compare qualifications, reviews, experience, and subject expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["CBSE Tutors UAE"],
+    "primaryKeywords": [
+      "CBSE Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online CBSE Tutors UAE",
       "CBSE Tuition UAE",
@@ -30,8 +32,13 @@
         "name": "Ahmed Khan",
         "photo": "https://randomuser.me/api/portraits/men/75.jpg",
         "qualification": "BSc Mathematics, American University of Sharjah",
-        "subjects": ["Mathematics", "Statistics"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "Mathematics",
+          "Statistics"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 112,
         "yearsExperience": 7,
@@ -42,8 +49,13 @@
         "name": "Vikram Patel",
         "photo": "https://randomuser.me/api/portraits/men/58.jpg",
         "qualification": "MSc Chemistry, IIT Bombay",
-        "subjects": ["Chemistry", "Science"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "Chemistry",
+          "Science"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 85,
         "yearsExperience": 8,
@@ -54,8 +66,13 @@
         "name": "Amit Verma",
         "photo": "https://randomuser.me/api/portraits/men/48.jpg",
         "qualification": "MSc Life Sciences, IIT Delhi",
-        "subjects": ["Biology", "Science"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "Biology",
+          "Science"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 77,
         "yearsExperience": 8,
@@ -66,8 +83,12 @@
         "name": "Anita Sharma",
         "photo": "https://randomuser.me/api/portraits/women/45.jpg",
         "qualification": "MCom, Chartered Accountant",
-        "subjects": ["Accounting"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "Accounting"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 76,
         "yearsExperience": 8,
@@ -78,8 +99,13 @@
         "name": "Aisha Mohammed",
         "photo": "https://randomuser.me/api/portraits/women/74.jpg",
         "qualification": "MA Applied Linguistics, American University of Sharjah",
-        "subjects": ["English", "ESL"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "English",
+          "ESL"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 91,
         "yearsExperience": 9,
@@ -90,8 +116,12 @@
         "name": "Sana Kapoor",
         "photo": "https://randomuser.me/api/portraits/women/53.jpg",
         "qualification": "BSc Software Engineering, BITS Pilani",
-        "subjects": ["Computer Science"],
-        "curricula": ["CBSE"],
+        "subjects": [
+          "Computer Science"
+        ],
+        "curricula": [
+          "CBSE"
+        ],
         "rating": 4.8,
         "reviewCount": 73,
         "yearsExperience": 6,
@@ -227,21 +257,21 @@
     "items": [
       {
         "content": "Our daughter's CBSE Mathematics and Science grades improved significantly after working with a CoachAcadem tutor. The structured approach to board examination preparation made a real difference.",
-        "author": "Rajesh Pillai",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Aisha Al-Marri",
+        "role": "Parent, Ras Al Khaimah",
+        "avatar": "https://randomuser.me/api/portraits/med/women/68.jpg"
       },
       {
         "content": "I was struggling with CBSE Physics numerical problems until I found a tutor through CoachAcadem. Step-by-step guidance helped me build confidence before my board exams.",
-        "author": "Priya Nair",
+        "author": "Olivia Reed",
         "role": "CBSE Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/35.jpg"
       },
       {
         "content": "We compared several CBSE tutors and read verified reviews before booking. The tutor we chose was excellent at reinforcing classroom learning and preparing our son for his examinations.",
-        "author": "Meera Shah",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "David Parker",
+        "role": "Parent, Fujairah",
+        "avatar": "https://randomuser.me/api/portraits/med/men/46.jpg"
       }
     ]
   },

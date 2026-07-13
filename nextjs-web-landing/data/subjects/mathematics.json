@@ -4,7 +4,9 @@
   "seo": {
     "title": "Mathematics Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Mathematics tutors across the UAE. Compare qualifications, reviews, experience, and curricula expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Mathematics Tutors UAE"],
+    "primaryKeywords": [
+      "Mathematics Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Mathematics Tutors UAE",
       "IGCSE Mathematics Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Sarah Hassan",
         "photo": "https://randomuser.me/api/portraits/women/44.jpg",
         "qualification": "MSc Mathematics, University of Oxford",
-        "subjects": ["Mathematics", "Further Mathematics"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Mathematics",
+          "Further Mathematics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 128,
         "yearsExperience": 8,
@@ -41,8 +50,15 @@
         "name": "Ahmed Khan",
         "photo": "https://randomuser.me/api/portraits/men/75.jpg",
         "qualification": "BSc Mathematics, American University of Sharjah",
-        "subjects": ["Mathematics", "Statistics"],
-        "curricula": ["IGCSE", "CBSE", "American Curriculum"],
+        "subjects": [
+          "Mathematics",
+          "Statistics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 112,
         "yearsExperience": 7,
@@ -53,8 +69,15 @@
         "name": "Priya Sharma",
         "photo": "https://randomuser.me/api/portraits/women/65.jpg",
         "qualification": "MSc Applied Mathematics, Imperial College London",
-        "subjects": ["Mathematics", "Further Mathematics"],
-        "curricula": ["IB", "A-Level", "IGCSE"],
+        "subjects": [
+          "Mathematics",
+          "Further Mathematics"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level",
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 94,
         "yearsExperience": 6,
@@ -65,8 +88,14 @@
         "name": "Omar Al Mansoori",
         "photo": "https://randomuser.me/api/portraits/men/52.jpg",
         "qualification": "BSc Mathematics, UAE University",
-        "subjects": ["Mathematics"],
-        "curricula": ["CBSE", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "Mathematics"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 87,
         "yearsExperience": 5,
@@ -77,9 +106,15 @@
         "name": "Elena Petrov",
         "photo": "https://randomuser.me/api/portraits/women/33.jpg",
         "qualification": "PhD Mathematics Education, University of Cambridge",
-        "subjects": ["Mathematics", "Statistics"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Mathematics",
+          "Statistics"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 76,
         "yearsExperience": 10,
         "profileHref": "/tutors/elena-petrov"
@@ -89,8 +124,15 @@
         "name": "David Wong",
         "photo": "https://randomuser.me/api/portraits/men/41.jpg",
         "qualification": "MEng Engineering Mathematics, NUS",
-        "subjects": ["Mathematics", "Further Mathematics"],
-        "curricula": ["IGCSE", "IB", "A-Level"],
+        "subjects": [
+          "Mathematics",
+          "Further Mathematics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.9,
         "reviewCount": 103,
         "yearsExperience": 9,
@@ -183,21 +225,21 @@
     "items": [
       {
         "content": "Our daughter's Mathematics grades improved significantly after working with a CoachAcadem tutor. The structured approach to problem-solving and exam preparation made a real difference.",
-        "author": "Fatima Al Rashid",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Fatima Al-Kuwari",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/68.jpg"
       },
       {
         "content": "I was struggling with IB Mathematics Analysis & Approaches until I found a tutor through CoachAcadem. Clear explanations and consistent practice helped me gain confidence before my exams.",
-        "author": "Arjun Mehta",
+        "author": "Maha Al-Marri",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/74.jpg"
       },
       {
         "content": "Being able to read reviews and compare Mathematics tutors before booking gave us peace of mind. The tutor we chose was professional, punctual, and genuinely invested in our son's progress.",
-        "author": "Sarah Mitchell",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Mariam Al-Thani",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/78.jpg"
       }
     ]
   },

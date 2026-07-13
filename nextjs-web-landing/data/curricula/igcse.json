@@ -4,7 +4,9 @@
   "seo": {
     "title": "IGCSE Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified IGCSE tutors across the UAE. Compare qualifications, reviews, experience, and subject expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["IGCSE Tutors UAE"],
+    "primaryKeywords": [
+      "IGCSE Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online IGCSE Tutors UAE",
       "IGCSE Tuition UAE",
@@ -30,8 +32,13 @@
         "name": "Sarah Hassan",
         "photo": "https://randomuser.me/api/portraits/women/44.jpg",
         "qualification": "MSc Mathematics, University of Oxford",
-        "subjects": ["Mathematics", "Further Mathematics"],
-        "curricula": ["IGCSE"],
+        "subjects": [
+          "Mathematics",
+          "Further Mathematics"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 128,
         "yearsExperience": 8,
@@ -42,8 +49,13 @@
         "name": "James Okafor",
         "photo": "https://randomuser.me/api/portraits/men/32.jpg",
         "qualification": "BSc Physics, Imperial College London",
-        "subjects": ["Physics", "Science"],
-        "curricula": ["IGCSE"],
+        "subjects": [
+          "Physics",
+          "Science"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 96,
         "yearsExperience": 7,
@@ -54,8 +66,13 @@
         "name": "Priya Sharma",
         "photo": "https://randomuser.me/api/portraits/women/65.jpg",
         "qualification": "MSc Chemistry, University of Manchester",
-        "subjects": ["Chemistry", "Biology"],
-        "curricula": ["IGCSE"],
+        "subjects": [
+          "Chemistry",
+          "Biology"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 94,
         "yearsExperience": 6,
@@ -66,8 +83,13 @@
         "name": "Omar Al Mansoori",
         "photo": "https://randomuser.me/api/portraits/men/52.jpg",
         "qualification": "BA English Literature, UAE University",
-        "subjects": ["English", "History"],
-        "curricula": ["IGCSE"],
+        "subjects": [
+          "English",
+          "History"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
         "rating": 4.8,
         "reviewCount": 87,
         "yearsExperience": 5,
@@ -78,9 +100,14 @@
         "name": "Elena Petrov",
         "photo": "https://randomuser.me/api/portraits/women/33.jpg",
         "qualification": "BSc Economics, London School of Economics",
-        "subjects": ["Economics", "Business Studies"],
-        "curricula": ["IGCSE"],
-        "rating": 5.0,
+        "subjects": [
+          "Economics",
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
+        "rating": 5,
         "reviewCount": 76,
         "yearsExperience": 10,
         "profileHref": "/tutors/elena-petrov"
@@ -90,8 +117,13 @@
         "name": "David Wong",
         "photo": "https://randomuser.me/api/portraits/men/41.jpg",
         "qualification": "BSc Computer Science, NUS",
-        "subjects": ["Computer Science", "Mathematics"],
-        "curricula": ["IGCSE"],
+        "subjects": [
+          "Computer Science",
+          "Mathematics"
+        ],
+        "curricula": [
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 103,
         "yearsExperience": 9,
@@ -227,21 +259,21 @@
     "items": [
       {
         "content": "Our son's IGCSE Mathematics and Physics grades improved significantly after working with a CoachAcadem tutor. The structured approach to examination preparation made a real difference before his final exams.",
-        "author": "Fatima Al Rashid",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Khalid Al-Kaabi",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/men/48.jpg"
       },
       {
         "content": "I was struggling with IGCSE Chemistry until I found a tutor through CoachAcadem. Clear explanations and consistent practice helped me gain confidence before my examinations.",
-        "author": "Arjun Mehta",
+        "author": "Yousef Al-Kuwari",
         "role": "IGCSE Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/men/76.jpg"
       },
       {
         "content": "Being able to read reviews and compare IGCSE tutors before booking gave us peace of mind. The tutor we chose was professional, punctual, and genuinely invested in our daughter's progress.",
-        "author": "Sarah Mitchell",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Vikram Menon",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/men/48.jpg"
       }
     ]
   },

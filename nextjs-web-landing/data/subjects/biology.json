@@ -4,7 +4,9 @@
   "seo": {
     "title": "Biology Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Biology tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Biology Tutors UAE"],
+    "primaryKeywords": [
+      "Biology Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Biology Tutors UAE",
       "IGCSE Biology Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Emma Walsh",
         "photo": "https://randomuser.me/api/portraits/women/29.jpg",
         "qualification": "MSc Biology, University of Edinburgh",
-        "subjects": ["Biology", "Science"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Biology",
+          "Science"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 94,
         "yearsExperience": 7,
@@ -41,8 +50,14 @@
         "name": "Youssef Ibrahim",
         "photo": "https://randomuser.me/api/portraits/men/63.jpg",
         "qualification": "BSc Biological Sciences, UAE University",
-        "subjects": ["Biology"],
-        "curricula": ["CBSE", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "Biology"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 82,
         "yearsExperience": 6,
@@ -53,9 +68,15 @@
         "name": "Lucia Fernandez",
         "photo": "https://randomuser.me/api/portraits/women/57.jpg",
         "qualification": "PhD Molecular Biology, University of Barcelona",
-        "subjects": ["Biology", "Chemistry"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Biology",
+          "Chemistry"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 68,
         "yearsExperience": 9,
         "profileHref": "/tutors/lucia-fernandez"
@@ -65,8 +86,14 @@
         "name": "Amit Verma",
         "photo": "https://randomuser.me/api/portraits/men/48.jpg",
         "qualification": "MSc Life Sciences, IIT Delhi",
-        "subjects": ["Biology", "Science"],
-        "curricula": ["CBSE", "IGCSE"],
+        "subjects": [
+          "Biology",
+          "Science"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 77,
         "yearsExperience": 8,
@@ -77,8 +104,14 @@
         "name": "Grace O'Connor",
         "photo": "https://randomuser.me/api/portraits/women/38.jpg",
         "qualification": "BSc Biomedical Science, Trinity College Dublin",
-        "subjects": ["Biology"],
-        "curricula": ["IGCSE", "IB", "A-Level"],
+        "subjects": [
+          "Biology"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 61,
         "yearsExperience": 5,
@@ -89,8 +122,15 @@
         "name": "Kenji Tanaka",
         "photo": "https://randomuser.me/api/portraits/men/71.jpg",
         "qualification": "MSc Ecology & Evolution, University of Tokyo",
-        "subjects": ["Biology", "Science"],
-        "curricula": ["IB", "American Curriculum", "IGCSE"],
+        "subjects": [
+          "Biology",
+          "Science"
+        ],
+        "curricula": [
+          "IB",
+          "American Curriculum",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 55,
         "yearsExperience": 6,
@@ -184,21 +224,21 @@
     "items": [
       {
         "content": "Our daughter was overwhelmed by the volume of IGCSE Biology content. Her CoachAcadem tutor helped her organise topics into clear revision plans and her exam results improved significantly.",
-        "author": "Noura Al Ketbi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Mohammed Al-Emadi",
+        "role": "Parent, Al Ain",
+        "avatar": "https://randomuser.me/api/portraits/med/men/32.jpg"
       },
       {
         "content": "IB Biology HL required so much more than memorisation. My tutor helped me understand how topics connected and how to structure longer exam answers effectively.",
-        "author": "Leo Fernandes",
-        "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Maha Al-Marri",
+        "role": "IGCSE Student",
+        "avatar": "https://randomuser.me/api/portraits/med/women/51.jpg"
       },
       {
         "content": "Being able to read verified reviews before booking gave us confidence. The Biology tutor we chose was patient, well prepared, and genuinely invested in our son's progress.",
-        "author": "Michelle Grant",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Hassan Al-Dosari",
+        "role": "Parent, Ajman",
+        "avatar": "https://randomuser.me/api/portraits/med/men/75.jpg"
       }
     ]
   },

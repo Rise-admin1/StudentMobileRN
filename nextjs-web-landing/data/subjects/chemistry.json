@@ -4,7 +4,9 @@
   "seo": {
     "title": "Chemistry Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Chemistry tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Chemistry Tutors UAE"],
+    "primaryKeywords": [
+      "Chemistry Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Chemistry Tutors UAE",
       "IGCSE Chemistry Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Rachel Nguyen",
         "photo": "https://randomuser.me/api/portraits/women/31.jpg",
         "qualification": "MSc Chemistry, University of Manchester",
-        "subjects": ["Chemistry", "Science"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Chemistry",
+          "Science"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 91,
         "yearsExperience": 7,
@@ -41,8 +50,14 @@
         "name": "Hassan Malik",
         "photo": "https://randomuser.me/api/portraits/men/45.jpg",
         "qualification": "BSc Chemistry, UAE University",
-        "subjects": ["Chemistry"],
-        "curricula": ["CBSE", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "Chemistry"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 78,
         "yearsExperience": 6,
@@ -53,9 +68,15 @@
         "name": "Isabelle Martin",
         "photo": "https://randomuser.me/api/portraits/women/48.jpg",
         "qualification": "PhD Organic Chemistry, Sorbonne University",
-        "subjects": ["Chemistry", "Biology"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Chemistry",
+          "Biology"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 64,
         "yearsExperience": 10,
         "profileHref": "/tutors/isabelle-martin"
@@ -65,8 +86,14 @@
         "name": "Vikram Patel",
         "photo": "https://randomuser.me/api/portraits/men/58.jpg",
         "qualification": "MSc Chemistry, IIT Bombay",
-        "subjects": ["Chemistry", "Science"],
-        "curricula": ["CBSE", "IGCSE"],
+        "subjects": [
+          "Chemistry",
+          "Science"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 85,
         "yearsExperience": 8,
@@ -77,8 +104,14 @@
         "name": "Sophie Laurent",
         "photo": "https://randomuser.me/api/portraits/women/62.jpg",
         "qualification": "BSc Chemistry, King's College London",
-        "subjects": ["Chemistry"],
-        "curricula": ["IGCSE", "IB", "A-Level"],
+        "subjects": [
+          "Chemistry"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 70,
         "yearsExperience": 5,
@@ -89,8 +122,15 @@
         "name": "Daniel Osei",
         "photo": "https://randomuser.me/api/portraits/men/36.jpg",
         "qualification": "MSc Chemical Sciences, University of Cape Town",
-        "subjects": ["Chemistry", "Science"],
-        "curricula": ["American Curriculum", "IGCSE", "IB"],
+        "subjects": [
+          "Chemistry",
+          "Science"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 56,
         "yearsExperience": 6,
@@ -184,21 +224,21 @@
     "items": [
       {
         "content": "Our daughter was struggling with organic chemistry and stoichiometry. Her CoachAcadem tutor broke down complex topics into manageable steps and her exam results improved significantly.",
-        "author": "Amira Al Farsi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Sara Al-Hajri",
+        "role": "Parent, Abu Dhabi",
+        "avatar": "https://randomuser.me/api/portraits/med/women/44.jpg"
       },
       {
         "content": "IB Chemistry HL was one of my toughest subjects. My tutor helped me understand practical investigations and internal assessment requirements, which made a real difference to my final grade.",
-        "author": "Rohan Singh",
+        "author": "Maha Al-Marri",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/women/68.jpg"
       },
       {
         "content": "We appreciated being able to read verified reviews before choosing a Chemistry tutor. The tutor we selected was patient, knowledgeable, and always well prepared for each lesson.",
-        "author": "Claire Morrison",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Khalid Al-Kaabi",
+        "role": "Parent, Sharjah",
+        "avatar": "https://randomuser.me/api/portraits/med/men/76.jpg"
       }
     ]
   },

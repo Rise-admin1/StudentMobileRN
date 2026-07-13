@@ -1,4 +1,4 @@
-import { APP_STORE_URL, S3_BASE } from '@/lib/constants';
+import { APP_STORE_URL, PLAY_STORE_URL, S3_BASE } from '@/lib/constants';
 
 const storeButtons = [
   {
@@ -9,7 +9,7 @@ const storeButtons = [
   {
     img: '/assets/download_coach_android.svg',
     label: 'Google Play',
-    href: '#download-play-store',
+    href: PLAY_STORE_URL,
   },
 ];
 

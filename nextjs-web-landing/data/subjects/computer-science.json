@@ -4,7 +4,9 @@
   "seo": {
     "title": "Computer Science Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Computer Science tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Computer Science Tutors UAE"],
+    "primaryKeywords": [
+      "Computer Science Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Computer Science Tutors UAE",
       "IGCSE Computer Science Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Alex Rivera",
         "photo": "https://randomuser.me/api/portraits/men/46.jpg",
         "qualification": "MSc Computer Science, Stanford University",
-        "subjects": ["Computer Science", "Programming"],
-        "curricula": ["IGCSE", "IB", "A-Level"],
+        "subjects": [
+          "Computer Science",
+          "Programming"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.9,
         "reviewCount": 89,
         "yearsExperience": 7,
@@ -41,8 +50,14 @@
         "name": "Sana Kapoor",
         "photo": "https://randomuser.me/api/portraits/women/53.jpg",
         "qualification": "BSc Software Engineering, BITS Pilani",
-        "subjects": ["Computer Science"],
-        "curricula": ["CBSE", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "Computer Science"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 73,
         "yearsExperience": 6,
@@ -53,9 +68,16 @@
         "name": "Michael Stone",
         "photo": "https://randomuser.me/api/portraits/men/59.jpg",
         "qualification": "MEng Computing, Imperial College London",
-        "subjects": ["Computer Science", "Mathematics"],
-        "curricula": ["A-Level", "IB", "IGCSE"],
-        "rating": 5.0,
+        "subjects": [
+          "Computer Science",
+          "Mathematics"
+        ],
+        "curricula": [
+          "A-Level",
+          "IB",
+          "IGCSE"
+        ],
+        "rating": 5,
         "reviewCount": 67,
         "yearsExperience": 9,
         "profileHref": "/tutors/michael-stone"
@@ -65,8 +87,15 @@
         "name": "Fatima Yousef",
         "photo": "https://randomuser.me/api/portraits/women/40.jpg",
         "qualification": "BSc Computer Science, Khalifa University",
-        "subjects": ["Computer Science", "Programming"],
-        "curricula": ["American Curriculum", "IGCSE", "CBSE"],
+        "subjects": [
+          "Computer Science",
+          "Programming"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE",
+          "CBSE"
+        ],
         "rating": 4.9,
         "reviewCount": 58,
         "yearsExperience": 5,
@@ -77,8 +106,13 @@
         "name": "Liam O'Brien",
         "photo": "https://randomuser.me/api/portraits/men/34.jpg",
         "qualification": "MSc Artificial Intelligence, University of Edinburgh",
-        "subjects": ["Computer Science"],
-        "curricula": ["IB", "A-Level"],
+        "subjects": [
+          "Computer Science"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 52,
         "yearsExperience": 8,
@@ -89,8 +123,15 @@
         "name": "Nadia Hassan",
         "photo": "https://randomuser.me/api/portraits/women/66.jpg",
         "qualification": "BSc Information Technology, American University of Sharjah",
-        "subjects": ["Computer Science", "Programming"],
-        "curricula": ["IGCSE", "IB", "American Curriculum"],
+        "subjects": [
+          "Computer Science",
+          "Programming"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 64,
         "yearsExperience": 6,
@@ -184,21 +225,21 @@
     "items": [
       {
         "content": "Our son was struggling with algorithms and programming logic in IGCSE Computer Science. His CoachAcadem tutor broke concepts down clearly and his confidence improved within weeks.",
-        "author": "Rajesh Pillai",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Noor Al-Attiyah",
+        "role": "Parent, Dubai",
+        "avatar": "https://randomuser.me/api/portraits/med/women/44.jpg"
       },
       {
         "content": "IB Computer Science coursework felt overwhelming until I found a tutor through CoachAcadem. Step-by-step guidance on programming and internal assessments made a huge difference.",
-        "author": "Ethan Brooks",
+        "author": "Rohan Singh",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/men/55.jpg"
       },
       {
         "content": "We compared several Computer Science tutors and read verified reviews before booking. The tutor we chose was patient, knowledgeable, and excellent at explaining complex topics simply.",
-        "author": "Anna Kowalski",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Catherine Moore",
+        "role": "Parent, Abu Dhabi",
+        "avatar": "https://randomuser.me/api/portraits/med/women/42.jpg"
       }
     ]
   },

@@ -4,7 +4,9 @@
   "seo": {
     "title": "Economics Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Economics tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Economics Tutors UAE"],
+    "primaryKeywords": [
+      "Economics Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Economics Tutors UAE",
       "IGCSE Economics Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Andrew Clarke",
         "photo": "https://randomuser.me/api/portraits/men/49.jpg",
         "qualification": "MSc Economics, London School of Economics",
-        "subjects": ["Economics", "Business Studies"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Economics",
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 93,
         "yearsExperience": 9,
@@ -41,8 +50,14 @@
         "name": "Meera Shah",
         "photo": "https://randomuser.me/api/portraits/women/51.jpg",
         "qualification": "BA Economics, University of Delhi",
-        "subjects": ["Economics"],
-        "curricula": ["CBSE", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "Economics"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 76,
         "yearsExperience": 7,
@@ -53,9 +68,14 @@
         "name": "Thomas Wright",
         "photo": "https://randomuser.me/api/portraits/men/55.jpg",
         "qualification": "PhD Economics, University of Cambridge",
-        "subjects": ["Economics"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "Economics"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 61,
         "yearsExperience": 11,
         "profileHref": "/tutors/thomas-wright"
@@ -65,8 +85,15 @@
         "name": "Fatima Al Ansari",
         "photo": "https://randomuser.me/api/portraits/women/63.jpg",
         "qualification": "MSc Applied Economics, UAE University",
-        "subjects": ["Economics", "Business Studies"],
-        "curricula": ["IGCSE", "CBSE", "IB"],
+        "subjects": [
+          "Economics",
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 68,
         "yearsExperience": 6,
@@ -77,8 +104,14 @@
         "name": "Benjamin Ross",
         "photo": "https://randomuser.me/api/portraits/men/27.jpg",
         "qualification": "PGCE Economics, University of Oxford",
-        "subjects": ["Economics"],
-        "curricula": ["A-Level", "IGCSE", "IB"],
+        "subjects": [
+          "Economics"
+        ],
+        "curricula": [
+          "A-Level",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.8,
         "reviewCount": 55,
         "yearsExperience": 8,
@@ -89,8 +122,14 @@
         "name": "Nisha Patel",
         "photo": "https://randomuser.me/api/portraits/women/39.jpg",
         "qualification": "BSc Economics, American University of Sharjah",
-        "subjects": ["Economics", "Business Studies"],
-        "curricula": ["American Curriculum", "IGCSE"],
+        "subjects": [
+          "Economics",
+          "Business Studies"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE"
+        ],
         "rating": 4.9,
         "reviewCount": 47,
         "yearsExperience": 5,
@@ -184,21 +223,21 @@
     "items": [
       {
         "content": "Our daughter was losing marks on evaluation questions in A-Level Economics. Her CoachAcadem tutor helped her structure arguments and use diagrams more effectively, which made a real difference to her results.",
-        "author": "David Morrison",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Layla Al-Mansoori",
+        "role": "Parent, Al Ain",
+        "avatar": "https://randomuser.me/api/portraits/med/women/74.jpg"
       },
       {
         "content": "IB Economics data-response questions were my biggest challenge. My tutor helped me interpret graphs and build clearer, more analytical answers under exam conditions.",
-        "author": "Aisha Rahman",
+        "author": "Ethan Brooks",
         "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "avatar": "https://randomuser.me/api/portraits/med/men/34.jpg"
       },
       {
         "content": "Being able to compare Economics tutors and read honest reviews gave us confidence before booking. The tutor we chose was knowledgeable, patient, and excellent at explaining complex concepts.",
-        "author": "James Liu",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Michael Stevens",
+        "role": "Parent, Ajman",
+        "avatar": "https://randomuser.me/api/portraits/med/men/27.jpg"
       }
     ]
   },

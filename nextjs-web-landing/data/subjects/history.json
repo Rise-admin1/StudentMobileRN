@@ -4,7 +4,9 @@
   "seo": {
     "title": "History Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified History tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["History Tutors UAE"],
+    "primaryKeywords": [
+      "History Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online History Tutors UAE",
       "IGCSE History Tutors UAE",
@@ -29,8 +31,14 @@
         "name": "Catherine Moore",
         "photo": "https://randomuser.me/api/portraits/women/46.jpg",
         "qualification": "MA History, University of Edinburgh",
-        "subjects": ["History"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "History"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 84,
         "yearsExperience": 9,
@@ -41,8 +49,15 @@
         "name": "Hassan Al Omari",
         "photo": "https://randomuser.me/api/portraits/men/68.jpg",
         "qualification": "BA History, American University of Cairo",
-        "subjects": ["History", "Islamic Studies"],
-        "curricula": ["IGCSE", "CBSE", "American Curriculum"],
+        "subjects": [
+          "History",
+          "Islamic Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "American Curriculum"
+        ],
         "rating": 4.8,
         "reviewCount": 71,
         "yearsExperience": 7,
@@ -53,9 +68,14 @@
         "name": "Emily Hart",
         "photo": "https://randomuser.me/api/portraits/women/32.jpg",
         "qualification": "PhD Modern History, University of Oxford",
-        "subjects": ["History"],
-        "curricula": ["IB", "A-Level"],
-        "rating": 5.0,
+        "subjects": [
+          "History"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level"
+        ],
+        "rating": 5,
         "reviewCount": 58,
         "yearsExperience": 10,
         "profileHref": "/tutors/emily-hart"
@@ -65,8 +85,14 @@
         "name": "Raj Malhotra",
         "photo": "https://randomuser.me/api/portraits/men/73.jpg",
         "qualification": "MEd History Education, University of Melbourne",
-        "subjects": ["History"],
-        "curricula": ["CBSE", "IGCSE", "IB"],
+        "subjects": [
+          "History"
+        ],
+        "curricula": [
+          "CBSE",
+          "IGCSE",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 63,
         "yearsExperience": 8,
@@ -77,8 +103,15 @@
         "name": "Sophie Laurent",
         "photo": "https://randomuser.me/api/portraits/women/56.jpg",
         "qualification": "BA History & Politics, Sciences Po Paris",
-        "subjects": ["History", "Economics"],
-        "curricula": ["IGCSE", "IB", "A-Level"],
+        "subjects": [
+          "History",
+          "Economics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "IB",
+          "A-Level"
+        ],
         "rating": 4.8,
         "reviewCount": 52,
         "yearsExperience": 6,
@@ -89,8 +122,14 @@
         "name": "Michael Davies",
         "photo": "https://randomuser.me/api/portraits/men/40.jpg",
         "qualification": "PGCE History, University of Bristol",
-        "subjects": ["History"],
-        "curricula": ["A-Level", "IGCSE", "American Curriculum"],
+        "subjects": [
+          "History"
+        ],
+        "curricula": [
+          "A-Level",
+          "IGCSE",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 46,
         "yearsExperience": 5,
@@ -184,21 +223,21 @@
     "items": [
       {
         "content": "Our son was struggling with source analysis and essay structure in IGCSE History. His CoachAcadem tutor helped him develop a clearer approach to exam questions and his grades improved noticeably.",
-        "author": "Layla Al Shamsi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Sara Al-Hajri",
+        "role": "Parent, Ras Al Khaimah",
+        "avatar": "https://randomuser.me/api/portraits/med/women/78.jpg"
       },
       {
         "content": "IB History required much more than memorising dates. My tutor helped me connect topics, evaluate sources more effectively, and write stronger historical investigations.",
-        "author": "Noah Williams",
-        "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Noah Tremblay",
+        "role": "IGCSE Student",
+        "avatar": "https://randomuser.me/api/portraits/med/men/49.jpg"
       },
       {
         "content": "We appreciated being able to read verified reviews before choosing a History tutor. The tutor we booked was excellent at building our daughter's confidence in analytical writing.",
-        "author": "Patricia O'Brien",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "David Chen",
+        "role": "Parent, Fujairah",
+        "avatar": "https://randomuser.me/api/portraits/med/men/51.jpg"
       }
     ]
   },

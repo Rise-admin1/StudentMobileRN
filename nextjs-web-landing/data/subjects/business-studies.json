@@ -4,7 +4,9 @@
   "seo": {
     "title": "Business Studies Tutors in the UAE | Verified Online Tutors | CoachAcadem",
     "description": "Browse verified Business Studies tutors across the UAE. Compare qualifications, reviews, experience, and curriculum expertise before booking lessons through CoachAcadem.",
-    "primaryKeywords": ["Business Studies Tutors UAE"],
+    "primaryKeywords": [
+      "Business Studies Tutors UAE"
+    ],
     "secondaryKeywords": [
       "Online Business Studies Tutors UAE",
       "IGCSE Business Studies Tutors UAE",
@@ -29,8 +31,15 @@
         "name": "Daniel Foster",
         "photo": "https://randomuser.me/api/portraits/men/43.jpg",
         "qualification": "MBA, London Business School",
-        "subjects": ["Business Studies", "Economics"],
-        "curricula": ["IGCSE", "A-Level", "IB"],
+        "subjects": [
+          "Business Studies",
+          "Economics"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level",
+          "IB"
+        ],
         "rating": 4.9,
         "reviewCount": 87,
         "yearsExperience": 8,
@@ -41,8 +50,15 @@
         "name": "Sara Al Mazrouei",
         "photo": "https://randomuser.me/api/portraits/women/50.jpg",
         "qualification": "BBA, American University of Sharjah",
-        "subjects": ["Business Studies", "Business Management"],
-        "curricula": ["American Curriculum", "IGCSE", "CBSE"],
+        "subjects": [
+          "Business Studies",
+          "Business Management"
+        ],
+        "curricula": [
+          "American Curriculum",
+          "IGCSE",
+          "CBSE"
+        ],
         "rating": 4.8,
         "reviewCount": 72,
         "yearsExperience": 6,
@@ -53,8 +69,13 @@
         "name": "James Patterson",
         "photo": "https://randomuser.me/api/portraits/men/61.jpg",
         "qualification": "MSc Management, University of Warwick",
-        "subjects": ["Business Studies"],
-        "curricula": ["IGCSE", "A-Level"],
+        "subjects": [
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "A-Level"
+        ],
         "rating": 4.9,
         "reviewCount": 65,
         "yearsExperience": 7,
@@ -65,8 +86,15 @@
         "name": "Amira Hassan",
         "photo": "https://randomuser.me/api/portraits/women/44.jpg",
         "qualification": "BA Business Administration, UAE University",
-        "subjects": ["Business Studies", "Business Management"],
-        "curricula": ["IB", "IGCSE", "CBSE"],
+        "subjects": [
+          "Business Studies",
+          "Business Management"
+        ],
+        "curricula": [
+          "IB",
+          "IGCSE",
+          "CBSE"
+        ],
         "rating": 4.8,
         "reviewCount": 58,
         "yearsExperience": 5,
@@ -77,9 +105,16 @@
         "name": "Lucas Bergmann",
         "photo": "https://randomuser.me/api/portraits/men/37.jpg",
         "qualification": "MSc International Business, INSEAD",
-        "subjects": ["Business Studies", "Economics"],
-        "curricula": ["IB", "A-Level", "IGCSE"],
-        "rating": 5.0,
+        "subjects": [
+          "Business Studies",
+          "Economics"
+        ],
+        "curricula": [
+          "IB",
+          "A-Level",
+          "IGCSE"
+        ],
+        "rating": 5,
         "reviewCount": 49,
         "yearsExperience": 9,
         "profileHref": "/tutors/lucas-bergmann"
@@ -89,8 +124,14 @@
         "name": "Priya Menon",
         "photo": "https://randomuser.me/api/portraits/women/58.jpg",
         "qualification": "PGCE Business Studies, University of Nottingham",
-        "subjects": ["Business Studies"],
-        "curricula": ["IGCSE", "CBSE", "American Curriculum"],
+        "subjects": [
+          "Business Studies"
+        ],
+        "curricula": [
+          "IGCSE",
+          "CBSE",
+          "American Curriculum"
+        ],
         "rating": 4.9,
         "reviewCount": 54,
         "yearsExperience": 6,
@@ -184,21 +225,21 @@
     "items": [
       {
         "content": "Our son struggled with case-study analysis in IGCSE Business Studies. His CoachAcadem tutor helped him structure answers and apply theory to real scenarios, which improved his exam performance significantly.",
-        "author": "Omar Al Falasi",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Hessa Al-Naimi",
+        "role": "Parent, Abu Dhabi",
+        "avatar": "https://randomuser.me/api/portraits/med/women/68.jpg"
       },
       {
         "content": "IB Business Management required so much more than memorising definitions. My tutor helped me develop stronger evaluation skills and confidence with internal assessments.",
-        "author": "Chloe Anderson",
-        "role": "IB Student",
-        "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Emily Foster",
+        "role": "A-Level Student",
+        "avatar": "https://randomuser.me/api/portraits/med/women/33.jpg"
       },
       {
         "content": "We compared several Business Studies tutors and read verified reviews before booking. The tutor we chose was excellent at explaining concepts clearly and preparing our daughter for her exams.",
-        "author": "Rebecca Turner",
-        "role": "Parent",
-        "avatar": "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        "author": "Helen Brooks",
+        "role": "Parent, Sharjah",
+        "avatar": "https://randomuser.me/api/portraits/med/women/46.jpg"
       }
     ]
   },
