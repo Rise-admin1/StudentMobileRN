@@ -4,7 +4,7 @@ import { CANONICAL_SITE_URL } from "../site";
 /** Home page SEO — edit title, description, and keywords here */
 export const homePageSeo = definePageSeo({
   title:
-    "Find Online Tutors in the UAE | IGCSE, IB, A-Level & More | CoachAcadem - Coach Academ",
+    "Find Online Tutors in the UAE | IGCSE, IB, A-Level & More | CoachAcadem",
   description:
     "Coach Academ is an online tutoring platform that helps students find and connect the best online tutors in the UAE. Learn from the comfort of your home.",
   primaryKeywords: [
