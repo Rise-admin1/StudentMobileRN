@@ -6,7 +6,7 @@ export const homePageSeo = definePageSeo({
   title:
     "Find Online Tutors in the UAE | IGCSE, IB, A-Level & More | CoachAcadem",
   description:
-    "Coach Academ is an online tutoring platform that helps students find and connect the best online tutors in the UAE. Learn from the comfort of your home.",
+    "Find qualified online tutors across the UAE for IGCSE, IB, A-Level, American Curriculum, CBSE and more. Compare tutor profiles, book lessons, and learn with confidence through CoachAcadem.",
   primaryKeywords: [
     "Online Tutors UAE"
   ],
