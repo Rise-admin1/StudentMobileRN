@@ -447,7 +447,7 @@ export const childSafeguardingPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'General safeguarding inbox: safeguarding@coachacadem.com',
+        text: 'General safeguarding inbox: safeguarding@coachacadem.ae',
       },
       {
         type: 'paragraph',

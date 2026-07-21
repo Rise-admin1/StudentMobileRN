@@ -524,7 +524,7 @@ export const termsOfUseSections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'Email: legal@coachacadem.com',
+        text: 'Email: legal@coachacadem.ae',
       },
       {
         type: 'paragraph',

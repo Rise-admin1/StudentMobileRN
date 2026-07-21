@@ -79,7 +79,7 @@ export const privacyPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'Privacy contact: privacy@coachacadem.com — for any question, concern, or request relating to this Policy or your personal data.',
+        text: 'Privacy contact: privacy@coachacadem.ae — for any question, concern, or request relating to this Policy or your personal data.',
       },
       {
         type: 'paragraph',
@@ -275,7 +275,7 @@ export const privacyPolicySections: LegalSection[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: 'Parents/guardians can, at any time, through their account dashboard or by contacting privacy@coachacadem.com:',
+            text: 'Parents/guardians can, at any time, through their account dashboard or by contacting privacy@coachacadem.ae:',
           },
           {
             type: 'bullets',
@@ -515,7 +515,7 @@ export const privacyPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'To exercise any of these rights, contact us at privacy@coachacadem.com. We will respond within one month of a verified request, extendable by a further two months for complex requests, in which case we will explain the reason for the extension.',
+        text: 'To exercise any of these rights, contact us at privacy@coachacadem.ae. We will respond within one month of a verified request, extendable by a further two months for complex requests, in which case we will explain the reason for the extension.',
       },
     ],
   },
@@ -536,7 +536,7 @@ export const privacyPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'We encourage you to contact us first at privacy@coachacadem.com so we can try to resolve your concern directly.',
+        text: 'We encourage you to contact us first at privacy@coachacadem.ae so we can try to resolve your concern directly.',
       },
     ],
   },
@@ -570,7 +570,7 @@ export const privacyPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'Email: privacy@coachacadem.com',
+        text: 'Email: privacy@coachacadem.ae',
       },
       {
         type: 'paragraph',
