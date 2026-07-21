@@ -9,6 +9,13 @@ const routes: {
   priority: number;
 }[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
+  { path: "/privacy-policy", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/terms-of-use", changeFrequency: "monthly", priority: 0.5 },
+  {
+    path: "/child-safeguarding-policy",
+    changeFrequency: "monthly",
+    priority: 0.5,
+  },
   ...getAllSubjectSlugs().map((slug) => ({
     path: `/${slug}`,
     changeFrequency: "weekly" as const,

@@ -168,9 +168,9 @@ export default function Footer() {
                   className="hidden sm:block h-4 w-px bg-gray-600 flex-shrink-0"
                   aria-hidden
                 />
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2">
                   <a
-                    href="https://www.coachacadem.ae/terms-of-use"
+                    href="/terms-of-use"
                     className="hover:text-gray-300 transition-colors"
                   >
                     Terms of Use
@@ -179,10 +179,19 @@ export default function Footer() {
                     |
                   </span>
                   <a
-                    href="https://www.coachacadem.ae/privacy-policy"
+                    href="/privacy-policy"
                     className="hover:text-gray-300 transition-colors"
                   >
                     Privacy Policy
+                  </a>
+                  <span className="text-gray-600" aria-hidden>
+                    |
+                  </span>
+                  <a
+                    href="/child-safeguarding-policy"
+                    className="hover:text-gray-300 transition-colors"
+                  >
+                    Child Safeguarding Policy
                   </a>
                 </div>
               </div>
