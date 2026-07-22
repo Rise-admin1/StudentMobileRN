@@ -30,7 +30,7 @@ export default function ComingSoon({ slug }: ComingSoonProps) {
             Back to Home
           </Link>
           <Link
-            href="/#download-app"
+            href="https://apps.apple.com/us/app/coach-academ/id6745173635"
             className="text-center border-2 border-[#205072] text-[#205072] hover:bg-[#205072] hover:text-white px-6 py-3 rounded-lg font-medium transition-colors text-base sm:text-lg"
           >
             Get the App
