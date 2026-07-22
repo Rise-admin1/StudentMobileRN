@@ -67,7 +67,7 @@ export const termsOfUseSections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'These Terms should be read together with our Privacy Policy and our Child Safeguarding Policy, both of which are incorporated by reference and available at [insert links].',
+        text: 'These Terms should be read together with our Privacy Policy and our Child Safeguarding Policy, both of which are incorporated by reference and available at https://coachacadem.ae/legal/privacy-policy and https://coachacadem.ae/legal/child-safeguarding-policy.',
       },
     ],
   },
@@ -256,7 +256,7 @@ export const termsOfUseSections: LegalSection[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: "Refunds are considered in accordance with CoachAcadem's refund policy [insert link/detail], and in all cases in accordance with the UAE Federal Consumer Protection Law No. 15 of 2020 and its Executive Regulations, to the extent applicable to the transaction.",
+            text: "Refunds are considered in accordance with CoachAcadem's refund policy https://coachacadem.ae/legal/refund-policy, and in all cases in accordance with the UAE Federal Consumer Protection Law No. 15 of 2020 and its Executive Regulations, to the extent applicable to the transaction.",
           },
         ],
       },

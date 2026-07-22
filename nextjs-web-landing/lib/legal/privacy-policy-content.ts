@@ -83,7 +83,7 @@ export const privacyPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: "Data Protection Officer / Privacy Lead: [Insert name/role if appointed — recommended given CoachAcadem processes children's data and sensitive personal data at scale, which typically triggers a DPO obligation under DIFC Law No. 5 of 2020.]",
+        text: "Data Protection Officer / Privacy Lead: privacy@coachacadem.ae — recommended given CoachAcadem processes children's data and sensitive personal data at scale, which typically triggers a DPO obligation under DIFC Law No. 5 of 2020.",
       },
     ],
   },
@@ -546,7 +546,7 @@ export const privacyPolicySections: LegalSection[] = [
     blocks: [
       {
         type: 'paragraph',
-        text: 'CoachAcadem is committed to the safety and wellbeing of every student on our platform. This Policy operates alongside our separate Child Safeguarding Policy [insert link/reference], which governs how we prevent, identify, and respond to child-safety concerns, including tutor conduct standards and reporting procedures.',
+        text: 'CoachAcadem is committed to the safety and wellbeing of every student on our platform. This Policy operates alongside our separate Child Safeguarding Policy https://coachacadem.ae/legal/child-safeguarding-policy, which governs how we prevent, identify, and respond to child-safety concerns, including tutor conduct standards and reporting procedures.',
       },
     ],
   },

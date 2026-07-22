@@ -169,11 +169,11 @@ export const childSafeguardingPolicySections: LegalSection[] = [
           },
           {
             type: 'paragraph',
-            text: '*Designated Safeguarding Lead: [Insert name/role] — Contact: [Insert email/phone]',
+            text: '*Designated Safeguarding Lead: safeguarding@coachacadem.ae',
           },
           {
             type: 'paragraph',
-            text: '*Deputy Designated Safeguarding Lead: [Insert name/role] — Contact: [Insert email/phone] (to ensure cover when the DSL is unavailable)',
+            text: '*Designated Safeguarding Lead: safeguarding@coachacadem.ae',
           },
         ],
       },
@@ -313,7 +313,7 @@ export const childSafeguardingPolicySections: LegalSection[] = [
         blocks: [
           {
             type: 'paragraph',
-            text: 'Any tutor, staff member, parent, or student who has a safeguarding concern should report it immediately to the Designated Safeguarding Lead using [Insert reporting channel — email/phone/in-app report button]. Reports can be made confidentially, and CoachAcadem will not disclose the identity of the person reporting beyond what is necessary to act on the concern.',
+            text: 'Any tutor, staff member, parent, or student who has a safeguarding concern should report it immediately to the Designated Safeguarding Lead using safeguarding@coachacadem.ae. Reports can be made confidentially, and CoachAcadem will not disclose the identity of the person reporting beyond what is necessary to act on the concern.',
           },
         ],
       },
@@ -443,7 +443,7 @@ export const childSafeguardingPolicySections: LegalSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'Designated Safeguarding Lead: [Insert name/role] — [Insert email/phone]',
+        text: 'Designated Safeguarding Lead: safeguarding@coachacadem.ae',
       },
       {
         type: 'paragraph',
