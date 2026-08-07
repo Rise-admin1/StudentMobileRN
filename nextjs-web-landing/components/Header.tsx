@@ -28,7 +28,7 @@ const mainNav: NavItem[] = [
     ],
   },
   {
-    label: 'Cirricula',
+    label: 'Curricula',
     type: 'dropdown',
     items: [
       { label: 'IGCSE Tutors', href: '/igcse-tutors' },
@@ -48,9 +48,9 @@ const mainNav: NavItem[] = [
     label: 'Resources',
     type: 'dropdown',
     items: [
-      { label: 'Parent Guides', href: '/resources/parent-guides' },
-      { label: 'Study Tips', href: '/resources/study-tips' },
-      { label: 'Exam Preparation', href: '/resources/exam-preparation' },
+      { label: 'Parent Guides', href: '/parent-guides' },
+      { label: 'Study Tips', href: '/study-tips' },
+      { label: 'Exam Preparation', href: '/exam-preparation' },
       { label: 'Blog', href: '/blog' },
     ],
   },

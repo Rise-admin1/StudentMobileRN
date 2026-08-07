@@ -9,14 +9,17 @@ import WhyParentsChooseCA from '@/components/WhyParentsChooseCA';
 import Testimonials from '@/components/Testimonials';
 import DownloadApp from '@/components/DownloadApp';
 import FAQ from '@/components/FAQ';
+import FaqJsonLd from '@/components/FaqJsonLd';
 import QRCodeFloater from '@/components/QRCodeFloater';
 import { homeMetadata } from '@/lib/seo/pages/home';
+import { homeFaqs } from '@/lib/seo/pages/home-faqs';
 
 export const metadata = homeMetadata;
 
 export default function Home() {
   return (
     <>
+      <FaqJsonLd faqs={homeFaqs} />
       <Hero />
       <TrustScore />
       <SearchSubjectCirricula />
@@ -27,7 +30,7 @@ export default function Home() {
       <WhyParentsChooseCA />
       <Testimonials />
       <DownloadApp />
-      <FAQ />
+      <FAQ faqs={homeFaqs} />
       <QRCodeFloater />
     </>
   );

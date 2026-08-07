@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { canonicalUrl } from "@/lib/seo/site";
 import { getAllCurriculumSlugs } from "@/lib/curricula/get-curriculum";
 import { getAllSubjectSlugs } from "@/lib/subjects/get-subject";
+import { getAllExamPreparationSlugs } from "@/lib/resources/exam-preparation";
 
 const routes: {
   path: string;
@@ -16,6 +17,12 @@ const routes: {
     changeFrequency: "monthly",
     priority: 0.5,
   },
+  { path: "/exam-preparation", changeFrequency: "weekly", priority: 0.7 },
+  ...getAllExamPreparationSlugs().map((slug) => ({
+    path: `/exam-preparation/${slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  })),
   ...getAllSubjectSlugs().map((slug) => ({
     path: `/${slug}`,
     changeFrequency: "weekly" as const,

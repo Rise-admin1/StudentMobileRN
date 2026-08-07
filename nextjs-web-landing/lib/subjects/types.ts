@@ -23,7 +23,7 @@ export type Review = {
   content: string;
   author: string;
   role: string;
-  avatar: string;
+  avatar?: string;
 };
 
 export type FaqItem = {

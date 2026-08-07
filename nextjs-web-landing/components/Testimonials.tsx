@@ -4,27 +4,21 @@ import type { Review } from '@/lib/subjects/types';
 const defaultTestimonials: Review[] = [
   {
     content:
-      'Coach Academ transformed my learning experience completely. The live Zoom sessions and interactive content made complex topics approachable and engaging.',
-    author: 'Emma Thompson',
-    role: 'UX Designer',
-    avatar:
-      'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      "My daughter's IGCSE Chemistry grade went from a 6 to a 9 in one term. Her tutor explained every topic clearly and made revision feel manageable before exams.",
+    author: 'Sara Al Maktoum',
+    role: 'Parent in Dubai · IGCSE Chemistry',
   },
   {
     content:
-      "As someone with a busy schedule, the flexibility of Coach Academ's platform has been a game-changer. I can learn at my own pace while still benefiting from expert instruction.",
-    author: 'David Chen',
-    role: 'Software Engineer',
-    avatar:
-      'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      'We needed an IB Math tutor who understood the pressure of Predicted Grades. CoachAcadem matched us quickly, and my son finally feels confident going into assessments.',
+    author: 'James Whitfield',
+    role: 'Parent in Abu Dhabi · IB Mathematics',
   },
   {
     content:
-      'The community aspect of Coach Academ sets it apart. Connecting with other learners and getting direct feedback from instructors has accelerated my growth tremendously.',
-    author: 'Sophia Rodriguez',
-    role: 'Marketing Specialist',
-    avatar:
-      'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      'Booking A-Level Physics support for my teenager took minutes. The tutor is verified, patient, and sends clear progress updates after every lesson.',
+    author: 'Fatima Rahman',
+    role: 'Parent in Sharjah · A-Level Physics',
   },
 ];
 
@@ -36,19 +30,12 @@ const TestimonialCard = ({ testimonial }: { testimonial: Review }) => (
       &ldquo;{testimonial.content}&rdquo;
     </blockquote>
 
-    <div className="flex items-center mt-auto min-w-0">
-      <img
-        src={testimonial.avatar}
-        alt={testimonial.author}
-        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover mr-3 sm:mr-4 flex-shrink-0"
-      />
-      <div className="min-w-0">
-        <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-          {testimonial.author}
-        </div>
-        <div className="text-gray-500 text-xs sm:text-sm leading-snug">
-          {testimonial.role}
-        </div>
+    <div className="mt-auto min-w-0">
+      <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+        {testimonial.author}
+      </div>
+      <div className="text-gray-500 text-xs sm:text-sm leading-snug">
+        {testimonial.role}
       </div>
     </div>
   </div>

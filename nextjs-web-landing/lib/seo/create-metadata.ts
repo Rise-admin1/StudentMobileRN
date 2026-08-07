@@ -65,7 +65,7 @@ export function definePageSeo(input: PageSeoInput): Metadata {
       },
     },
     robots: config.noIndex
-      ? { index: false, follow: false }
+      ? { index: false, follow: true }
       : { index: true, follow: true },
     openGraph: {
       type: "website",
