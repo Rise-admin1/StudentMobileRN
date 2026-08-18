@@ -12,11 +12,7 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-const NOINDEX_RESOURCE_SLUGS = new Set([
-  'parent-guides',
-  'study-tips',
-  'blog',
-]);
+const NOINDEX_RESOURCE_SLUGS = new Set(['study-tips', 'blog']);
 
 export const dynamicParams = true;
 

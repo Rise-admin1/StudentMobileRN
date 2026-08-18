@@ -3,6 +3,7 @@ import { canonicalUrl } from "@/lib/seo/site";
 import { getAllCurriculumSlugs } from "@/lib/curricula/get-curriculum";
 import { getAllSubjectSlugs } from "@/lib/subjects/get-subject";
 import { getAllExamPreparationSlugs } from "@/lib/resources/exam-preparation";
+import { getAllParentGuideSlugs } from "@/lib/resources/parent-guides";
 
 const routes: {
   path: string;
@@ -20,6 +21,12 @@ const routes: {
   { path: "/exam-preparation", changeFrequency: "weekly", priority: 0.7 },
   ...getAllExamPreparationSlugs().map((slug) => ({
     path: `/exam-preparation/${slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  })),
+  { path: "/parent-guides", changeFrequency: "weekly", priority: 0.7 },
+  ...getAllParentGuideSlugs().map((slug) => ({
+    path: `/parent-guides/${slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.8,
   })),

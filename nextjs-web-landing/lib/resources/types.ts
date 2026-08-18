@@ -22,10 +22,12 @@ export type ResourceSection = {
   blocks: ResourceBlock[];
 };
 
+export type ResourceCategory = 'Exam Preparation' | 'Parent Guides';
+
 export type ResourceArticle = {
   slug: string;
-  category: 'Exam Preparation';
-  categoryPath: '/exam-preparation';
+  category: ResourceCategory;
+  categoryPath: '/exam-preparation' | '/parent-guides';
   title: string;
   description: string;
   primaryKeywords: string[];
