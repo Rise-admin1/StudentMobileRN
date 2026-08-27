@@ -61,8 +61,8 @@ type HeroProps = {
 };
 
 export default function Hero({
-  h1 = "Find expert online tutors across the UAE",
-  supporting = "Connect with qualified tutors for IGCSE, IB, A-Level, American, CBSE, and more. Compare tutor profiles, book lessons, and learn online.",
+  h1 = "The UAE's app-first tutoring platform — KHDA-verified tutors for every curriculum.",
+  supporting = "Compare tutor profiles, book in the app, and learn online — IGCSE, IB, A-Level, American, CBSE, and more.",
   getTheApp = "Get the app",
   scanToDownload = "Scan to download on iOS or Android",
 }: HeroProps) {

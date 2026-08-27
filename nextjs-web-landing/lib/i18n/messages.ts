@@ -133,9 +133,9 @@ export const messages: Record<Locale, UiMessages> = {
     scanToDownload: "Scan to download on iOS or Android",
     faqTitle: "Q&A for the curious",
     hero: {
-      h1: "Find expert online tutors across the UAE",
+      h1: "The UAE's app-first tutoring platform — KHDA-verified tutors for every curriculum.",
       supporting:
-        "Connect with qualified tutors for IGCSE, IB, A-Level, American, CBSE, and more. Compare tutor profiles, book lessons, and learn online.",
+        "Compare tutor profiles, book in the app, and learn online — IGCSE, IB, A-Level, American, CBSE, and more.",
     },
     howItWorks: {
       title: "How CoachAcadem works",
@@ -400,9 +400,9 @@ export const messages: Record<Locale, UiMessages> = {
     scanToDownload: "امسح الرمز للتحميل على iOS أو Android",
     faqTitle: "أسئلة شائعة",
     hero: {
-      h1: "معلمون أونلاين معتمدون في جميع أنحاء الإمارات",
+      h1: "منصة الإمارات للدروس عبر التطبيق — معلمون موثّقون من KHDA لكل منهج.",
       supporting:
-        "تواصل مع معلمين مؤهلين لمناهج IGCSE والبكالوريا الدولية وA-Level والمنهج الأمريكي وCBSE وغيرها. قارن ملفات المعلمين واحجز الحصص وتعلّم عبر الإنترنت.",
+        "قارن ملفات المعلمين واحجز من التطبيق وتعلّم أونلاين — IGCSE والبكالوريا الدولية وA-Level والمنهج الأمريكي وCBSE وغيرها.",
     },
     howItWorks: {
       title: "كيف يعمل كوتش أكاديم",
