@@ -22,11 +22,11 @@ export const S3_BASE =
   "https://coachacademic.s3.ap-southeast-1.amazonaws.com/dummy-image";
 
 /**
- * WhatsApp Business number as international digits only (e.g. 9715XXXXXXXX).
- * Set NEXT_PUBLIC_WHATSAPP_NUMBER — do not use a placeholder number.
+ * WhatsApp Business number as international digits only.
+ * Override with NEXT_PUBLIC_WHATSAPP_NUMBER if needed.
  */
 export const WHATSAPP_NUMBER = (
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ""
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "971567791074"
 ).replace(/\D/g, "");
 
 export const WHATSAPP_DEFAULT_MESSAGE =
