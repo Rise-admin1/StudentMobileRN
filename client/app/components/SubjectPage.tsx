@@ -173,7 +173,7 @@ const CapacityCard = React.memo(({ availableSpots, maxCapacity, isFull }: Capaci
   );
 });
 
-const SubjectPage = ({ subjectId }) => {
+const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const segments = useSegments() as string[];
   const stackTab = segments.includes('profile') ? 'profile' : 'home';
   const [singleSubjectData, setSingleSubjectData] = React.useState<SubjectData>({});
@@ -236,6 +236,17 @@ const SubjectPage = ({ subjectId }) => {
   React.useEffect(() => {
     const fetchCapacityInfo = async () => {
       if ((singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && subjectId) {
+        if (guestPreview) {
+          const maxCapacity = singleSubjectData.maxCapacity ?? 0;
+          const currentEnrollment = singleSubjectData.currentEnrollment ?? 0;
+          const availableSpots = Math.max(0, maxCapacity - currentEnrollment);
+          setCapacityInfo({
+            availableSpots,
+            isFull: availableSpots === 0,
+            isVerified: true,
+          });
+          return;
+        }
         try {
           const token = await AsyncStorage.getItem("authToken");
           const capacityResponse = await axios.get(
@@ -250,7 +261,7 @@ const SubjectPage = ({ subjectId }) => {
     };
 
     fetchCapacityInfo();
-  }, [singleSubjectData.courseType, subjectId]);
+  }, [singleSubjectData.courseType, singleSubjectData.maxCapacity, singleSubjectData.currentEnrollment, subjectId, guestPreview]);
   const handleChatNow = async () => {
     if (isInitializingChat) {
       return;
@@ -540,6 +551,17 @@ const SubjectPage = ({ subjectId }) => {
   useEffect(() => {
     const getSubjects = async () => {
       try {
+        if (guestPreview) {
+          const resp = await axios.get(`${ipURL}/api/subjects/${subjectId}`);
+          if (resp.data?.user?.id) {
+            setTeacherId(resp.data.user.id);
+          }
+          setSingleSubjectData(resp.data);
+          setPurchaseStatus(false);
+          setIsPageLoading(false);
+          return;
+        }
+
         const token = await AsyncStorage.getItem("authToken");
         const userDetails = await AsyncStorage.getItem('userDetails');
         if (userDetails) {
@@ -566,13 +588,14 @@ const SubjectPage = ({ subjectId }) => {
     const fetchReviews = async () => {
       setIsLoadingReviews(true);
       try {
-        const token = await AsyncStorage.getItem("authToken");
-        const response = await axios.get(
-          `${ipURL}/api/reviews/subject/${subjectId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = guestPreview
+          ? await axios.get(`${ipURL}/api/reviews/subject/${subjectId}`)
+          : await axios.get(
+              `${ipURL}/api/reviews/subject/${subjectId}`,
+              {
+                headers: { Authorization: `Bearer ${await AsyncStorage.getItem("authToken")}` },
+              }
+            );
         // Ensure reviews have the expected structure with user object
         const reviewsData = Array.isArray(response.data) ? response.data : [];
         setReviews(reviewsData);
@@ -584,6 +607,10 @@ const SubjectPage = ({ subjectId }) => {
     };
 
     const checkIfSaved = async () => {
+      if (guestPreview) {
+        setIsSaved(false);
+        return;
+      }
       try {
         const token = await AsyncStorage.getItem("authToken");
         const response = await axios.get(`${ipURL}/api/subjects/saved`, {
@@ -603,7 +630,7 @@ const SubjectPage = ({ subjectId }) => {
     getSubjects();
     fetchReviews();
     checkIfSaved();
-  }, [subjectId]);
+  }, [subjectId, guestPreview]);
 
   useEffect(() => {
     // Entrance animations
@@ -803,37 +830,39 @@ const SubjectPage = ({ subjectId }) => {
         <Text style={styles.reviewTitle}>{review.title || ''}</Text>
         <Text style={styles.reviewDescription}>{review.description || ''}</Text>
         
-        <View style={styles.voteContainer}>
-          <TouchableOpacity 
-            style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote]}
-            onPress={() => handleVote('up')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons 
-              name="thumbs-up" 
-              size={16} 
-              color={voteState.userVote === 'up' ? '#2DCB63' : '#666'} 
-            />
-            <Text style={[styles.voteCount, voteState.userVote === 'up' && styles.activeVoteCount]}>
-              {voteState.upvotes}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote]}
-            onPress={() => handleVote('down')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons 
-              name="thumbs-down" 
-              size={16} 
-              color={voteState.userVote === 'down' ? '#E74C3C' : '#666'} 
-            />
-            <Text style={[styles.voteCount, voteState.userVote === 'down' && styles.activeVoteCount]}>
-              {voteState.downvotes}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {!guestPreview && (
+          <View style={styles.voteContainer}>
+            <TouchableOpacity 
+              style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote]}
+              onPress={() => handleVote('up')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons 
+                name="thumbs-up" 
+                size={16} 
+                color={voteState.userVote === 'up' ? '#2DCB63' : '#666'} 
+              />
+              <Text style={[styles.voteCount, voteState.userVote === 'up' && styles.activeVoteCount]}>
+                {voteState.upvotes}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote]}
+              onPress={() => handleVote('down')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons 
+                name="thumbs-down" 
+                size={16} 
+                color={voteState.userVote === 'down' ? '#E74C3C' : '#666'} 
+              />
+              <Text style={[styles.voteCount, voteState.userVote === 'down' && styles.activeVoteCount]}>
+                {voteState.downvotes}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -849,7 +878,10 @@ const SubjectPage = ({ subjectId }) => {
       <StatusBar barStyle="dark-content" />
       <Animated.ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          guestPreview && styles.scrollContentGuest,
+        ]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -859,32 +891,34 @@ const SubjectPage = ({ subjectId }) => {
       >
         <Animated.View style={[styles.headerImageContainer, headerStyle]}>
           <CoverImage uri={singleSubjectData?.subjectImage} />
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={[styles.iconButton, isSaved && styles.iconButtonSaved]}
-              onPress={handleSaveSubject}
-              disabled={isSaving}
-              accessibilityRole="button"
-              accessibilityLabel={isSaved ? "Unsave course" : "Save course"}
-            >
-              <Ionicons
-                name={isSaved ? "bookmark" : "bookmark-outline"}
-                size={20}
-                color={isSaved ? "#1A4C6E" : "#FFFFFF"}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleMenuPress}
-              accessibilityRole="button"
-              accessibilityLabel="More options"
-            >
-              <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          {!guestPreview && (
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={[styles.iconButton, isSaved && styles.iconButtonSaved]}
+                onPress={handleSaveSubject}
+                disabled={isSaving}
+                accessibilityRole="button"
+                accessibilityLabel={isSaved ? "Unsave course" : "Save course"}
+              >
+                <Ionicons
+                  name={isSaved ? "bookmark" : "bookmark-outline"}
+                  size={20}
+                  color={isSaved ? "#1A4C6E" : "#FFFFFF"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleMenuPress}
+                accessibilityRole="button"
+                accessibilityLabel="More options"
+              >
+                <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          )}
         </Animated.View>
 
-        {showMenu && (
+        {!guestPreview && showMenu && (
           <TouchableOpacity
             style={styles.menuBackdrop}
             activeOpacity={1}
@@ -892,7 +926,7 @@ const SubjectPage = ({ subjectId }) => {
           />
         )}
 
-        {showMenu && (
+        {!guestPreview && showMenu && (
           <Animated.View style={[styles.menuContainer, menuStyle]}>
             <TouchableOpacity 
               style={styles.menuItem}
@@ -966,25 +1000,41 @@ const SubjectPage = ({ subjectId }) => {
           ) : null}
 
           {singleSubjectData?.user && teacherId && (
-            <TouchableOpacity
-              style={styles.teacherCard}
-              onPress={() => router.push(`/(tabs)/${stackTab}/singleProfile/${teacherId}`)}
-              activeOpacity={0.85}
-            >
-              <Image
-                source={{ uri: singleSubjectData.user?.profileImage || '' }}
-                style={styles.teacherImage}
-                placeholder={blurhash}
-                contentFit="cover"
-                transition={100}
-              />
-              <View style={styles.teacherInfo}>
-                <Text style={styles.teacherName}>{singleSubjectData.user?.name || 'Tutor'}</Text>
-                <Text style={styles.teacherRole}>Tutor</Text>
+            guestPreview ? (
+              <View style={styles.teacherCard}>
+                <Image
+                  source={{ uri: singleSubjectData.user?.profileImage || '' }}
+                  style={styles.teacherImage}
+                  placeholder={blurhash}
+                  contentFit="cover"
+                  transition={100}
+                />
+                <View style={styles.teacherInfo}>
+                  <Text style={styles.teacherName}>{singleSubjectData.user?.name || 'Tutor'}</Text>
+                  <Text style={styles.teacherRole}>Tutor</Text>
+                </View>
               </View>
-              <Text style={styles.viewProfileText}>Profile</Text>
-              <Ionicons name="chevron-forward" size={18} color="#5C6B76" />
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.teacherCard}
+                onPress={() => router.push(`/(tabs)/${stackTab}/singleProfile/${teacherId}`)}
+                activeOpacity={0.85}
+              >
+                <Image
+                  source={{ uri: singleSubjectData.user?.profileImage || '' }}
+                  style={styles.teacherImage}
+                  placeholder={blurhash}
+                  contentFit="cover"
+                  transition={100}
+                />
+                <View style={styles.teacherInfo}>
+                  <Text style={styles.teacherName}>{singleSubjectData.user?.name || 'Tutor'}</Text>
+                  <Text style={styles.teacherRole}>Tutor</Text>
+                </View>
+                <Text style={styles.viewProfileText}>Profile</Text>
+                <Ionicons name="chevron-forward" size={18} color="#5C6B76" />
+              </TouchableOpacity>
+            )
           )}
 
           <View style={styles.factsCard}>
@@ -1127,7 +1177,7 @@ const SubjectPage = ({ subjectId }) => {
           <View style={styles.section}>
             <View style={styles.reviewsHeader}>
               <Text style={[styles.sectionTitle, styles.sectionTitleFlush]}>Reviews</Text>
-              {reviews.length > 0 && (
+              {!guestPreview && reviews.length > 0 && (
                 <TouchableOpacity onPress={handleViewAllReviews}>
                   <Text style={styles.viewAllButton}>See all</Text>
                 </TouchableOpacity>
@@ -1145,74 +1195,78 @@ const SubjectPage = ({ subjectId }) => {
             )}
             
             {/* Review Form */}
-            <ReviewForm purchaseStatus={purchaseStatus} onSubmit={handleSubmitReview} isSubmitting={isSubmitting} />
+            {!guestPreview && (
+              <ReviewForm purchaseStatus={purchaseStatus} onSubmit={handleSubmitReview} isSubmitting={isSubmitting} />
+            )}
           </View>
         </Animated.View>
       </Animated.ScrollView>
 
-      <Animated.View style={[styles.footer, buttonStyle]}>
-        <TouchableOpacity 
-          style={[
-            styles.primaryButton,
-            (isUserType === 'TEACHER' || isUserType === 'PARENT' || !isUserType) && styles.disabledButton,
-            ((singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus) && styles.disabledButton,
-            isFixedSchedulePast && styles.disabledButton,
-          ]} 
-          onPress={() => {
-            handleButtonPress();
-            handleEnrollPress();
-          }}
-          disabled={
-            isUserType === 'TEACHER' ||
-            isUserType === 'PARENT' ||
-            !isUserType ||
-            isFixedSchedulePast ||
-            ((singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus)
-          }
-        >
-          <View style={styles.buttonTextContainer}>
-            <Text style={styles.primaryButtonText} numberOfLines={2}>
-              {isUserType === 'TEACHER'
-                ? "Log in as a student to enroll"
-                : isUserType === 'PARENT'
-                ? "Parents cannot enroll in courses"
-                : !isUserType
-                ? "Log in as a student to enroll"
-                : isFixedSchedulePast
-                ? "This class has started"
-                : (singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus
-                ? "Already enrolled"
-                : (singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && capacityInfo?.isFull
-                ? "Course full"
-                : "Enroll now"}
-            </Text>
-            {(singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && capacityInfo && !capacityInfo.isFull && !purchaseStatus && !isFixedSchedulePast && (
-              <Text style={styles.capacityText}>
-                {capacityInfo.availableSpots} of {singleSubjectData.maxCapacity} spots left
+      {!guestPreview && (
+        <Animated.View style={[styles.footer, buttonStyle]}>
+          <TouchableOpacity 
+            style={[
+              styles.primaryButton,
+              (isUserType === 'TEACHER' || isUserType === 'PARENT' || !isUserType) && styles.disabledButton,
+              ((singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus) && styles.disabledButton,
+              isFixedSchedulePast && styles.disabledButton,
+            ]} 
+            onPress={() => {
+              handleButtonPress();
+              handleEnrollPress();
+            }}
+            disabled={
+              isUserType === 'TEACHER' ||
+              isUserType === 'PARENT' ||
+              !isUserType ||
+              isFixedSchedulePast ||
+              ((singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus)
+            }
+          >
+            <View style={styles.buttonTextContainer}>
+              <Text style={styles.primaryButtonText} numberOfLines={2}>
+                {isUserType === 'TEACHER'
+                  ? "Log in as a student to enroll"
+                  : isUserType === 'PARENT'
+                  ? "Parents cannot enroll in courses"
+                  : !isUserType
+                  ? "Log in as a student to enroll"
+                  : isFixedSchedulePast
+                  ? "This class has started"
+                  : (singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && purchaseStatus
+                  ? "Already enrolled"
+                  : (singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && capacityInfo?.isFull
+                  ? "Course full"
+                  : "Enroll now"}
               </Text>
+              {(singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && capacityInfo && !capacityInfo.isFull && !purchaseStatus && !isFixedSchedulePast && (
+                <Text style={styles.capacityText}>
+                  {capacityInfo.availableSpots} of {singleSubjectData.maxCapacity} spots left
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.secondaryButton, isInitializingChat && styles.disabledOutline]} 
+            onPress={() => {
+              handleButtonPress();
+              handleChatNow();
+            }}
+            disabled={isInitializingChat}
+            accessibilityRole="button"
+            accessibilityLabel="Chat with tutor"
+          >
+            {isInitializingChat ? (
+              <ActivityIndicator size="small" color="#1A4C6E" />
+            ) : (
+              <Ionicons name="chatbubbles-outline" size={22} color="#1A4C6E" />
             )}
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.secondaryButton, isInitializingChat && styles.disabledOutline]} 
-          onPress={() => {
-            handleButtonPress();
-            handleChatNow();
-          }}
-          disabled={isInitializingChat}
-          accessibilityRole="button"
-          accessibilityLabel="Chat with tutor"
-        >
-          {isInitializingChat ? (
-            <ActivityIndicator size="small" color="#1A4C6E" />
-          ) : (
-            <Ionicons name="chatbubbles-outline" size={22} color="#1A4C6E" />
-          )}
-        </TouchableOpacity>
-      </Animated.View>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       {/* Show BookingCalendar for single-student and single-package (per-topic booking) */}
-      {(singleSubjectData.courseType === 'SINGLE_STUDENT' || singleSubjectData.courseType === 'SINGLE_PACKAGE') && (
+      {!guestPreview && (singleSubjectData.courseType === 'SINGLE_STUDENT' || singleSubjectData.courseType === 'SINGLE_PACKAGE') && (
         <BookingCalendar
           teacherId={teacherId}
           teacherProfileId={singleSubjectData.teacherProfileId}
@@ -1226,7 +1280,7 @@ const SubjectPage = ({ subjectId }) => {
       )}
 
       {/* BookingSummaryModal for multi-student and multi-package (slots/capacity, direct payment) */}
-      {(singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && (
+      {!guestPreview && (singleSubjectData.courseType === 'MULTI_STUDENT' || singleSubjectData.courseType === 'MULTI_PACKAGE') && (
         <BookingSummaryModal
           visible={showBookingSummary}
           onClose={() => setShowBookingSummary(false)}
@@ -1240,6 +1294,7 @@ const SubjectPage = ({ subjectId }) => {
         />
       )}
 
+      {!guestPreview && (
       <Modal
         visible={showReportModal}
         transparent={true}
@@ -1278,6 +1333,7 @@ const SubjectPage = ({ subjectId }) => {
           </View>
         </View>
       </Modal>
+      )}
     </SafeAreaView>
    )
   );
@@ -1305,6 +1361,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: verticalScale(112),
+  },
+  scrollContentGuest: {
+    paddingBottom: verticalScale(32),
   },
   headerImageContainer: {
     position: 'relative',

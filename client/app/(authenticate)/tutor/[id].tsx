@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { ipURL } from '../../utils/utils';
 import TeacherProfileView from '../../components/TeacherProfileView';
@@ -24,22 +25,34 @@ const GuestTutorProfile = () => {
     load();
   }, [id]);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator color="#1A2B4B" />
-      </View>
-    );
-  }
-
   return (
-    <TeacherProfileView
-      user={user}
-      userDetails={{ isTeacher: true }}
-      coursesInteractive={false}
-      roleLabel="Tutor"
-      showTutorStats
-    />
+    <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
+      <Stack.Screen options={{
+        headerShown: true,
+        headerStyle: { backgroundColor: '#F4F6F8' },
+        headerTintColor: '#12263A',
+        headerTitle: "",
+        headerShadowVisible: false,
+        headerBackVisible: false,
+        headerLeft: () => (
+          <Ionicons name="chevron-back" size={24} color="#12263A" onPress={() => router.back()} style={{ marginLeft: 0 }} />
+        ),
+      }} />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator color="#1A2B4B" />
+        </View>
+      ) : (
+        <TeacherProfileView
+          user={user}
+          userDetails={{ isTeacher: true }}
+          coursesInteractive
+          onCoursePress={(item) => router.push(`/(authenticate)/course/${item.id}`)}
+          roleLabel="Tutor"
+          showTutorStats
+        />
+      )}
+    </View>
   );
 };
 

@@ -26,64 +26,85 @@ const getSlides = (userType) => {
       {
         id: '1',
         title: 'Welcome to Coach Academ',
-        description: 'Follow your child\'s tutoring journey from one parent account',
-        image: require('../../assets/images/onboard-1.png'),
+        description: 'Follow your child’s tutoring from one parent account.',
+        image: require('../../assets/images/onboard-parent-1.png'),
       },
       {
         id: '2',
         title: 'Link your student',
-        description: 'Invite a student account by email. They must accept before you can see their activity.',
-        image: require('../../assets/images/onboard-1.png'),
+        description: 'Invite a student by email. They must accept before you can see their activity.',
+        image: require('../../assets/images/onboard-parent-2.png'),
       },
       {
         id: '3',
         title: 'See their progress',
-        description: 'View classes, course progress, and upcoming sessions for linked students.',
-        image: require('../../assets/images/onboard-1.png'),
+        description: 'View courses, class history, hours, and upcoming sessions for linked students.',
+        image: require('../../assets/images/onboard-parent-3.png'),
       },
       {
         id: '4',
         title: 'Message their tutors',
         description: 'Chat with tutors after a linked student has purchased a course. Ready to start?',
-        image: require('../../assets/images/onboard-1.png'),
+        image: require('../../assets/images/onboard-parent-4.png'),
       },
     ];
   }
-  const commonSlides = [
+
+  if (userType === 'teacher') {
+    return [
+      {
+        id: '1',
+        title: 'Welcome to Coach Academ',
+        description: 'Create your tutor profile and start teaching on Coach Academ.',
+        image: require('../../assets/images/onboard-teacher-1.png'),
+      },
+      {
+        id: '2',
+        title: 'Create and publish courses',
+        description: 'Offer 1-on-1, group, or package courses students can discover and enroll in.',
+        image: require('../../assets/images/onboard-teacher-2.png'),
+      },
+      {
+        id: '3',
+        title: 'Manage your schedule',
+        description: 'View upcoming classes and track teaching hours and student progress.',
+        image: require('../../assets/images/onboard-teacher-3.png'),
+      },
+      {
+        id: '4',
+        title: 'Connect with students',
+        description: 'Chat with enrolled students and share updates in Community. Ready to teach?',
+        image: require('../../assets/images/onboard-teacher-4.png'),
+      },
+    ];
+  }
+
+  return [
     {
       id: '1',
-      title: `Welcome to Coach Academ`,
-      description: userType === 'teacher' 
-        ? 'Your journey to inspire and educate starts here'
-        : 'Your journey to academic excellence starts here',
-      image: require('../../assets/images/onboard-1.png'),
+      title: 'Welcome to Coach Academ',
+      description: 'Browse tutors and courses to find the right fit for your goals.',
+      image: require('../../assets/images/onboard-student-1.png'),
     },
     {
       id: '2',
-      title: userType === 'teacher' ? 'Share Your Expertise' : 'Learn from Experts',
-      description: userType === 'teacher'
-        ? 'Connect with students and share your knowledge and experience'
-        : 'Connect with qualified tutors and get personalized guidance',
-      image: require('../../assets/images/onboard-1.png'),
+      title: 'Enroll and book classes',
+      description: 'Purchase a course and book sessions that match your schedule.',
+      image: require('../../assets/images/onboard-student-2.png'),
     },
     {
       id: '3',
-      title: userType === 'teacher' ? 'Track Student Progress' : 'Track Your Progress',
-      description: userType === 'teacher'
-        ? 'Monitor your student\'s learning journey and provide valuable feedback'
-        : 'Monitor your learning journey with detailed analytics and insights',
-      image: require('../../assets/images/onboard-1.png'),
+      title: 'Track your progress',
+      description: 'See upcoming classes, completed sessions, and hours learned.',
+      image: require('../../assets/images/onboard-student-3.png'),
     },
     {
       id: '4',
-      title: 'Ready to Start?',
-      description: userType === 'teacher'
-        ? 'Begin your tutoring journey and make a difference today!'
-        : 'Begin your learning adventure and achieve your goals today!',
-      image: require('../../assets/images/onboard-1.png'),
+      title: 'Chat with your tutors',
+      description: 'Message tutors after you enroll. Ready to start learning?',
+      image: require('../../assets/images/onboard-student-4.png'),
     },
   ];
-  return commonSlides;
 };
 
 const OnboardingScreen = () => {
@@ -299,4 +320,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OnboardingScreen; 
+export default OnboardingScreen;
