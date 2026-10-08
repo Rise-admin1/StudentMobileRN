@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, Pressable, ScrollView, Modal, ActivityIndicator, Platform, KeyboardAvoidingView, useWindowDimensions, Alert } from 'react-native';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import axios from 'axios';
@@ -337,7 +340,7 @@ const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [profileImage, setProfileImage] = useState('');
+    const [profileImageUri, setProfileImageUri] = useState('');
     const [userDescription, setUserDescription] = useState('');
     const [reccomendedSubjects, setReccomendedSubjects] = useState([]);
     const [subjectInput, setSubjectInput] = useState('');
@@ -422,6 +425,10 @@ const RegisterPage = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const newErrors: Record<string, string> = {};
 
+        if (!profileImageUri) {
+            newErrors.profileImage = 'Please add a profile photo';
+        }
+
         if (name.trim() === '') {
             newErrors.name = 'Name is required';
         }
@@ -495,6 +502,47 @@ const RegisterPage = () => {
         return newErrors;
     };
 
+    const pickProfileImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert('Permission Required', 'Please allow access to your photo library to upload a profile picture.');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            const manipResult = await ImageManipulator.manipulateAsync(
+                result.assets[0].uri,
+                [{ resize: { width: 800 } }],
+                { compress: 0.8, format: ImageManipulator.SaveFormat.WEBP }
+            );
+            setProfileImageUri(manipResult.uri);
+            clearFieldError('profileImage');
+        }
+    };
+
+    const uploadRegistrationProfileImage = async (userId: string) => {
+        const uriParts = profileImageUri.split('.');
+        const fileType = uriParts[uriParts.length - 1] || 'webp';
+        const formData = new FormData();
+        formData.append('userId', userId);
+        formData.append('image', {
+            uri: profileImageUri,
+            name: `photo.${fileType}`,
+            type: `image/${fileType}`,
+        } as any);
+
+        await axios.post(`${ipURL}/api/s3/upload-to-aws/registration-profile`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    };
+
     const handleRegister = async () => {
         const validationErrors = validateForm();
         
@@ -508,7 +556,7 @@ const RegisterPage = () => {
             userType,
             email,
             password,
-            profileImage,
+            profileImage: '',
             userDescription,
             isTeacher: userType === 'teacher' || userType === 'organization',
             isOrganization: userType === 'organization',
@@ -530,7 +578,20 @@ const RegisterPage = () => {
         try {
             setIsLoading(true);
             const resp = await axios.post(`${ipURL}/api/auth/register`, user);
-            
+            const userId = resp.data?.userId;
+
+            if (userId && profileImageUri) {
+                try {
+                    await uploadRegistrationProfileImage(userId);
+                } catch (uploadErr) {
+                    console.error('Registration profile image upload failed', uploadErr);
+                    Alert.alert(
+                        'Photo upload failed',
+                        'Your account was created, but we could not upload your profile photo. You can add it later after signing in.'
+                    );
+                }
+            }
+
             if (userType === 'organization') {
                 Alert.alert(
                     'Registration Successful',
@@ -611,6 +672,33 @@ const RegisterPage = () => {
                             <Text style={styles.seeTutorsButtonText}>See all tutors</Text>
                         </TouchableOpacity>
                     )}
+
+                    <View style={styles.inputGroup} onLayout={(e) => { scrollInputTops.current['profileImage'] = e.nativeEvent.layout.y; }}>
+                        <Text style={styles.label}>Profile photo</Text>
+                        <Text style={styles.infoText}>Add a clear photo so others can recognize you.</Text>
+                        <TouchableOpacity
+                            style={styles.profilePhotoWrap}
+                            onPress={pickProfileImage}
+                            disabled={isLoading}
+                            accessibilityRole="button"
+                            accessibilityLabel="Add profile photo"
+                        >
+                            <View style={[styles.profilePhotoButton, errors.profileImage && styles.inputError]}>
+                                {profileImageUri ? (
+                                    <Image source={{ uri: profileImageUri }} style={styles.profilePhotoPreview} contentFit="cover" />
+                                ) : (
+                                    <View style={styles.profilePhotoPlaceholder}>
+                                        <Ionicons name="camera" size={moderateScale(28)} color={COLORS.primary} />
+                                        <Text style={styles.profilePhotoPlaceholderText}>Add photo</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <View style={styles.profilePhotoEditBadge}>
+                                <Ionicons name={profileImageUri ? 'pencil' : 'add'} size={14} color="#fff" />
+                            </View>
+                        </TouchableOpacity>
+                        {errors.profileImage && <Text style={styles.errorText}>{errors.profileImage}</Text>}
+                    </View>
 
                     <View style={styles.inputGroup} onLayout={(e) => { scrollInputTops.current['name'] = e.nativeEvent.layout.y; }}>
                         <Text style={styles.label}>Name</Text>
@@ -1163,6 +1251,47 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
         fontSize: moderateScale(16),
         fontWeight: '600',
+    },
+    profilePhotoWrap: {
+        alignSelf: 'center',
+        marginTop: verticalScale(8),
+        marginBottom: verticalScale(4),
+    },
+    profilePhotoButton: {
+        width: horizontalScale(112),
+        height: horizontalScale(112),
+        borderRadius: horizontalScale(56),
+        backgroundColor: '#F0F4F8',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#E6EBF0',
+    },
+    profilePhotoPreview: {
+        width: '100%',
+        height: '100%',
+    },
+    profilePhotoPlaceholder: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+    },
+    profilePhotoPlaceholderText: {
+        fontSize: moderateScale(13),
+        color: '#666',
+        fontWeight: '500',
+    },
+    profilePhotoEditBadge: {
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: COLORS.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     registerButtonText: {
         color: '#fff',

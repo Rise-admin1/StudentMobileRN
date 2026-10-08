@@ -55,6 +55,61 @@ export const postProfileImageS3 = async (req, res, next) => {
   }
 };
 
+/** Registration-time profile upload: no auth token; gated by unverified user with empty profileImage. */
+export const postRegistrationProfileImageS3 = async (req, res, next) => {
+  const userId = typeof req.body?.userId === 'string' ? req.body.userId.trim() : '';
+  const file = req.file;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+  if (!file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, verified: true, profileImage: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    if (user.verified) {
+      return res.status(403).json({ error: 'Account already verified' });
+    }
+    if (user.profileImage) {
+      return res.status(409).json({ error: 'Profile image already set' });
+    }
+
+    const data = await new Upload({
+      client: s3,
+      params: {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `users/${userId}/profileImage/${file.originalname}`,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      },
+    }).done();
+
+    const location = data?.Location;
+    if (!location) {
+      return res.status(500).json({ error: 'Upload succeeded but no image location returned' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { profileImage: location },
+    });
+
+    res.status(200).json({ message: 'File uploaded successfully', data });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
 export const subjectPDFVerifyeS3 = async (req, res, next) => {
   const { awsId } = req.body;
   const userId = req.userId;

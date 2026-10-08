@@ -24,6 +24,13 @@ import { horizontalScale, moderateScale, verticalScale } from '../utils/metrics'
 const blurhash =
   '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
+const getGreeting = (date: Date) => {
+  const hour = date.getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
 const ParentHome = ({ firstName = 'there' }) => {
   const [email, setEmail] = useState('');
   const [children, setChildren] = useState([]);
@@ -98,7 +105,7 @@ const ParentHome = ({ firstName = 'there' }) => {
       <StatusBar style="dark" />
       <View style={styles.topBar}>
         <View>
-          <Text style={styles.greeting}>Parent account</Text>
+          <Text style={styles.greeting}>{getGreeting(new Date())}</Text>
           <Text style={styles.userName}>{firstName}</Text>
         </View>
       </View>

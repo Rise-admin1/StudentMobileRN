@@ -64,6 +64,9 @@ const ProfilePage = () => {
   const [profileImageVersion, setProfileImageVersion] = useState<string>('0');
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [parentInvites, setParentInvites] = useState([]);
+  const [linkedChildren, setLinkedChildren] = useState([]);
+  const [pendingChildren, setPendingChildren] = useState([]);
+  const [childrenLoading, setChildrenLoading] = useState(false);
 
   const isParent = !!(userDetails?.isParent || userDetails?.userType === 'PARENT');
 
@@ -82,6 +85,26 @@ const ProfilePage = () => {
         }
       } else {
         setParentInvites([]);
+      }
+
+      const userIsParent = !!(apiUser.data?.isParent || apiUser.data?.userType === 'PARENT');
+      if (userIsParent) {
+        setChildrenLoading(true);
+        try {
+          const childrenResp = await axiosWithAuth.get(`${ipURL}/api/parent/children`);
+          setLinkedChildren(childrenResp.data.children || []);
+          setPendingChildren(childrenResp.data.pending || []);
+        } catch (error) {
+          console.error('Error fetching linked students:', error);
+          setLinkedChildren([]);
+          setPendingChildren([]);
+        } finally {
+          setChildrenLoading(false);
+        }
+      } else {
+        setLinkedChildren([]);
+        setPendingChildren([]);
+        setChildrenLoading(false);
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -125,6 +148,46 @@ const ProfilePage = () => {
 
   const handleSettingsPress = () => {
     router.push('/(tabs)/profile/settings');
+  };
+
+  const handleUnlinkChild = (linkId) => {
+    Alert.alert('Unlink student', 'They will no longer appear in your parent account.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Unlink',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axiosWithAuth.delete(`${ipURL}/api/parent/links/${linkId}`);
+            getUser();
+          } catch (error) {
+            Alert.alert('Error', 'Could not unlink this student.');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleUnlinkParent = (linkId) => {
+    Alert.alert(
+      'Unlink parent',
+      'This parent will no longer be linked to your student account or see your progress.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unlink',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axiosWithAuth.delete(`${ipURL}/api/student/parent-links/${linkId}`);
+              getUser();
+            } catch (error) {
+              Alert.alert('Error', 'Could not unlink this parent.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleShareProfile = async () => {
@@ -282,44 +345,77 @@ const ProfilePage = () => {
 
         {parentInvites.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Parent requests</Text>
-            {parentInvites.map((invite) => (
-              <View key={invite.linkId} style={styles.card}>
-                <Text style={styles.aboutText}>
-                  {invite.parent?.name} ({invite.status === 'PENDING' ? 'wants to link' : 'linked'})
-                </Text>
-                {invite.status === 'PENDING' && (
-                  <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                    <TouchableOpacity
-                      onPress={async () => {
-                        await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/accept`);
-                        getUser();
-                      }}
-                    >
-                      <Text style={styles.editLink}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={async () => {
-                        await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/reject`);
-                        getUser();
-                      }}
-                    >
-                      <Text style={[styles.editLink, { color: '#C44747' }]}>Reject</Text>
-                    </TouchableOpacity>
+            <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>Parent requests</Text>
+            <Text style={styles.childrenHelper}>
+              Parents who can see your classes and progress after you accept.
+            </Text>
+            {parentInvites.map((invite) => {
+              const isAccepted = invite.status === 'ACCEPTED';
+              return (
+                <View key={invite.linkId} style={styles.parentInviteCard}>
+                  <View style={styles.parentInviteRow}>
+                    {invite.parent?.profileImage ? (
+                      <Image
+                        source={{ uri: invite.parent.profileImage }}
+                        style={styles.childAvatar}
+                        placeholder={blurhash}
+                      />
+                    ) : (
+                      <View style={[styles.childAvatar, styles.childAvatarFallback]}>
+                        <Ionicons name="person" size={20} color="#1A4C6E" />
+                      </View>
+                    )}
+                    <View style={styles.childInfo}>
+                      <Text style={styles.childName}>{invite.parent?.name || 'Parent'}</Text>
+                      {!!invite.parent?.email && (
+                        <Text style={styles.childMeta}>{invite.parent.email}</Text>
+                      )}
+                      <View style={[styles.parentStatusChip, isAccepted && styles.parentStatusChipLinked]}>
+                        <Ionicons
+                          name={isAccepted ? 'link' : 'mail-outline'}
+                          size={12}
+                          color={isAccepted ? '#1A4C6E' : '#8A5A00'}
+                        />
+                        <Text style={[styles.parentStatusText, isAccepted && styles.parentStatusTextLinked]}>
+                          {isAccepted ? 'Linked to your account' : 'Wants to follow your progress'}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                )}
-                {invite.status === 'ACCEPTED' && (
-                  <TouchableOpacity
-                    onPress={async () => {
-                      await axiosWithAuth.delete(`${ipURL}/api/student/parent-links/${invite.linkId}`);
-                      getUser();
-                    }}
-                  >
-                    <Text style={[styles.editLink, { color: '#C44747' }]}>Unlink</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
+                  {invite.status === 'PENDING' && (
+                    <View style={styles.parentInviteActions}>
+                      <TouchableOpacity
+                        style={styles.parentAcceptButton}
+                        onPress={async () => {
+                          await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/accept`);
+                          getUser();
+                        }}
+                      >
+                        <Text style={styles.parentAcceptButtonText}>Accept</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.parentRejectButton}
+                        onPress={async () => {
+                          await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/reject`);
+                          getUser();
+                        }}
+                      >
+                        <Text style={styles.parentRejectButtonText}>Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {isAccepted && (
+                    <TouchableOpacity
+                      style={styles.parentUnlinkButton}
+                      onPress={() => handleUnlinkParent(invite.linkId)}
+                    >
+                      <Ionicons name="unlink-outline" size={16} color="#C44747" />
+                      <Text style={styles.parentUnlinkButtonText}>Unlink</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
           </View>
         )}
         {!(userDetails?.isParent || userDetails?.userType === 'PARENT') && (
@@ -330,10 +426,54 @@ const ProfilePage = () => {
 
         {userDetails?.isParent || userDetails?.userType === 'PARENT' ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Linked students</Text>
-            <Text style={styles.emptyCoursesSub}>
-              Invite and manage students from Home. Parent accounts cannot create courses or join organizations.
+            <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>Linked students</Text>
+            <Text style={styles.childrenHelper}>
+              Invite students from Home. Parent accounts cannot create courses or join organizations.
             </Text>
+            {childrenLoading ? (
+              <ActivityIndicator color="#1A4C6E" />
+            ) : linkedChildren.length === 0 ? (
+              <Text style={styles.childrenEmpty}>No linked students yet.</Text>
+            ) : (
+              linkedChildren.map((child) => (
+                <TouchableOpacity
+                  key={child.linkId}
+                  style={styles.childCard}
+                  onPress={() => router.push(`/(tabs)/home/child/${child.studentUserId}`)}
+                >
+                  {child.profileImage ? (
+                    <Image source={{ uri: child.profileImage }} style={styles.childAvatar} placeholder={blurhash} />
+                  ) : (
+                    <View style={[styles.childAvatar, styles.childAvatarFallback]}>
+                      <Ionicons name="person" size={20} color="#1A4C6E" />
+                    </View>
+                  )}
+                  <View style={styles.childInfo}>
+                    <Text style={styles.childName}>{child.name}</Text>
+                    <Text style={styles.childMeta}>{child.email}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => handleUnlinkChild(child.linkId)} hitSlop={8}>
+                    <Ionicons name="unlink-outline" size={20} color="#8B1E1E" />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            )}
+
+            {pendingChildren.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, styles.sectionTitleSpaced, { marginTop: verticalScale(12) }]}>
+                  Pending invites
+                </Text>
+                {pendingChildren.map((child) => (
+                  <View key={child.linkId} style={styles.childCard}>
+                    <View style={styles.childInfo}>
+                      <Text style={styles.childName}>{child.name}</Text>
+                      <Text style={styles.childMeta}>Waiting for the student to accept</Text>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
           </View>
         ) : (
         <View style={styles.section}>
@@ -568,6 +708,134 @@ const styles = StyleSheet.create({
     color: '#5C6B76',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  childrenHelper: {
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+    marginBottom: verticalScale(12),
+    lineHeight: 20,
+  },
+  childrenEmpty: {
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+    marginBottom: verticalScale(8),
+  },
+  childCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E6EBF0',
+  },
+  childAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 12,
+  },
+  childAvatarFallback: {
+    backgroundColor: '#E8EEF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  childInfo: {
+    flex: 1,
+  },
+  childName: {
+    fontFamily: FONT.bold,
+    color: '#12263A',
+  },
+  childMeta: {
+    fontFamily: FONT.regular,
+    color: '#5C6B76',
+    fontSize: moderateScale(12),
+  },
+  parentInviteCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E6EBF0',
+  },
+  parentInviteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  parentStatusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    marginTop: 6,
+    backgroundColor: '#FFF6E5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  parentStatusChipLinked: {
+    backgroundColor: '#E4EEF5',
+  },
+  parentStatusText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(11),
+    color: '#8A5A00',
+  },
+  parentStatusTextLinked: {
+    color: '#1A4C6E',
+  },
+  parentInviteActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  parentAcceptButton: {
+    flex: 1,
+    backgroundColor: '#1A4C6E',
+    borderRadius: 12,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  parentAcceptButtonText: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(13),
+    color: '#FFFFFF',
+  },
+  parentRejectButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#E6EBF0',
+  },
+  parentRejectButtonText: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(13),
+    color: '#C44747',
+  },
+  parentUnlinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F0D0D0',
+    backgroundColor: '#FFF8F8',
+  },
+  parentUnlinkButtonText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(13),
+    color: '#C44747',
   },
 });
 

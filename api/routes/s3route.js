@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import { postProfileImageS3, subjectPDFVerifyeS3, organizationTradeLicenseS3, postChatMediaS3 } from '../controllers/s3-controller.js';
+import { postProfileImageS3, postRegistrationProfileImageS3, subjectPDFVerifyeS3, organizationTradeLicenseS3, postChatMediaS3 } from '../controllers/s3-controller.js';
 import multer from 'multer';
 import { verifyToken } from '../middlewares/jwt.js';
 
@@ -49,6 +49,12 @@ const chatMediaUpload = multer({
 });
 
 router.post('/upload-to-aws', verifyToken, imageUpload.single('image'), postProfileImageS3);
+
+router.post(
+  '/upload-to-aws/registration-profile',
+  imageUpload.single('image'),
+  postRegistrationProfileImageS3
+);
 
 router.post(
   '/upload-to-aws/pdf-verify',
