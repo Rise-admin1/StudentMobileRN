@@ -15,6 +15,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, FONT, SIZES } from '../../constants';
 import { horizontalScale, verticalScale, moderateScale } from '../utils/metrics';
+import useSafeAreaInsets, { addBasePaddingToInset } from '../hooks/useSafeAreaInsets';
 import { getPostAuthHref } from '../utils/teacherProfileLink';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -108,6 +109,7 @@ const getSlides = (userType) => {
 };
 
 const OnboardingScreen = () => {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const userType = params.userType as string;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -213,7 +215,7 @@ const OnboardingScreen = () => {
         viewabilityConfig={viewConfig}
         ref={slidesRef}
       />
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: addBasePaddingToInset(64, insets.bottom) }]}>
         <Pagination />
         <TouchableOpacity 
           style={[styles.button, currentIndex === slides.length - 1 && styles.buttonLast]} 
@@ -282,7 +284,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: verticalScale(40),
     paddingHorizontal: horizontalScale(24),
   },
   paginationContainer: {
