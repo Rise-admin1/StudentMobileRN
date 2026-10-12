@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { PrismaClient } from "@prisma/client";
-import { sendEmailService } from "../services/emailService.js";
 import { Resend } from "resend";
 import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { getTeacherBlockedSlotsForDate } from "./bookingController.js";
@@ -302,7 +301,7 @@ export const createSubject = async (req, res, next) => {
 
             try {
                 await resend.emails.send({
-                    from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                    from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                     to: OPS_NOTIFY_EMAILS,
                     subject: `New Subject Created: ${subjectName}`,
                     html: emailHtml,
@@ -1068,7 +1067,7 @@ export const rejectSubject = async (req, res, next) => {
         if (teacherEmail) {
             try {
                 await resend.emails.send({
-                    from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                    from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                     to: teacherEmail,
                     subject: `Your course "${subject.subjectName}" was not approved`,
                     html: `

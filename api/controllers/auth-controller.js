@@ -1,12 +1,10 @@
 import crypto from "crypto";
 import bcrypt from 'bcrypt';
-import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from '@prisma/client';
 import dotenv from "dotenv";
 import { Resend } from 'resend';
 dotenv.config();
-import { sendEmailService } from "../services/emailService.js";
 import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { createZoomAccountForTeacher, deleteZoomUser } from "../services/zoomService.js";
 import { publicCatalogFilter } from "../utils/upcomingCatalog.js";
@@ -437,7 +435,7 @@ const sendVerificationEmail = async (email, verificationToken, name, isTeacher) 
         : "Welcome to Coach Academ! We're thrilled to have you join our community of learners. As a student, you'll have access to expert teachers and comprehensive learning resources.";
 
     const mailOptions = {
-      from: process.env.NAMECHEAP_EMAIL,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: email,
       subject: 'Verify Your Account – Action Required',
       html: `
@@ -493,9 +491,8 @@ const sendVerificationEmail = async (email, verificationToken, name, isTeacher) 
 
     //send the mail
     try {
-        // const response = await transporter.sendMail(mailOptions);
         const response = await resend.emails.send({
-            from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+            from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
             to: email,
             subject: mailOptions.subject,
             html: mailOptions.html,
@@ -1203,7 +1200,7 @@ export const changePassword = async (req, res, next) => {
     });
 
     await resend.emails.send({
-      from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
       subject: "Password Changed Successfully",
       html: `
@@ -1258,7 +1255,7 @@ export const forgotPassword = async (req, res, next) => {
       },
     });
     await resend.emails.send({
-      from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
       subject: "Your Password Reset Code",
       html: `
@@ -1537,7 +1534,7 @@ export const resendZoomInviteEmail = async (req, res, next) => {
 
     // Send reminder email from our app (Zoom has no API to resend their activation email)
     await resend.emails.send({
-      from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
       subject: 'Complete your Zoom setup – Coach Academ',
       html: `
@@ -1777,7 +1774,7 @@ const sendOrganizationInviteEmail = async (teacherEmail, teacherName, orgName, t
 
   try {
     await resend.emails.send({
-      from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: teacherEmail,
       subject: `You've been invited to join ${orgName}`,
       html: emailHtml,

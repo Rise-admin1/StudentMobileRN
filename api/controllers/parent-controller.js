@@ -174,7 +174,7 @@ export const inviteStudent = async (req, res, next) => {
 
     try {
       await resend.emails.send({
-        from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+        from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
         to: studentUser.email,
         subject: 'A parent wants to link to your Coach Academ account',
         html: `<p>Hi ${studentUser.name},</p>

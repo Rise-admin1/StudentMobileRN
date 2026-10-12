@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import { createZoomAccountForTeacher, createZoomMeeting } from "../services/zoomService.js";
 dotenv.config();
 import Stripe from 'stripe';
-import { sendEmailService } from "../services/emailService.js";
 import { Resend } from 'resend';
 import { fromUaeDateTime, normalizeHHmm, parseDateUTC, slotsFromInstant } from "../utils/uaeDateTime.js";
 import { sendNotificationByType } from "../services/pushNotificationService.js";
@@ -427,11 +426,12 @@ export const stripeWebhook = async (req, res, next) => {
                         //         `;
 
                         //         try {
-                        //             await sendEmailService(
-                        //                 process.env.COACH_ACADEM_RESEND_EMAIL,
-                        //                 'Zoom Account Creation Failed - Action Required',
-                        //                 errorEmailHtml
-                        //             );
+                        //             await resend.emails.send({
+                        //                 from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                        //                 to: process.env.COACH_ACADEM_RESEND_EMAIL,
+                        //                 subject: 'Zoom Account Creation Failed - Action Required',
+                        //                 html: errorEmailHtml,
+                        //             });
                         //             console.log('Admin notification email sent successfully');
                         //         } catch (emailError) {
                         //             console.error('Failed to send admin notification email:', emailError);
@@ -925,7 +925,7 @@ export const stripeWebhook = async (req, res, next) => {
 
                 try {
                     await resend.emails.send({
-                        from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                        from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                         to: chargeSucceeded.metadata.userEmail,
                         subject: 'Course Booking Success',
                         html: `
@@ -978,7 +978,7 @@ export const stripeWebhook = async (req, res, next) => {
 
                 try {
                     await resend.emails.send({
-                        from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                        from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                         to: chargeSucceeded.metadata.teacherEmail,
                         subject: 'You have a new booking',
                         html: `

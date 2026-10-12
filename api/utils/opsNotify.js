@@ -39,7 +39,7 @@ export const sendOpsNotifyEmail = async ({ subject, title, rows = [], intro = ''
 
   try {
     await resend.emails.send({
-      from: `Support <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+      from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: OPS_NOTIFY_EMAILS,
       subject,
       html,

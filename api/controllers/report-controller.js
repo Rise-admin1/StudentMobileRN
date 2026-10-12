@@ -1,6 +1,8 @@
 import {PrismaClient} from "@prisma/client";
-import { sendEmailService } from "../services/emailService.js";
+import { Resend } from "resend";
+import { OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
 const prisma = new PrismaClient();
+const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 
 export const reportSubject = async (req, res, next) => {
@@ -33,10 +35,11 @@ export const reportSubject = async (req, res, next) => {
 
         // Send emails after successful report creation
         await Promise.all([
-            sendEmailService(
-                process.env.NAMECHEAP_EMAIL,
-                "⚠️ New Report Alert",
-                `
+            resend.emails.send({
+                from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                to: OPS_NOTIFY_EMAILS,
+                subject: "⚠️ New Report Alert",
+                html: `
                 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
                     <div style="background-color: #1A2B4B; padding: 40px 20px; text-align: center; position: relative; overflow: hidden;">
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1;">
@@ -59,12 +62,13 @@ export const reportSubject = async (req, res, next) => {
                         </div>
                     </div>
                 </div>
-                `
-            ),
-            sendEmailService(
-                userEmail,
-                "Report Submission Confirmation",
-                `
+                `,
+            }),
+            resend.emails.send({
+                from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                to: userEmail,
+                subject: "Report Submission Confirmation",
+                html: `
                 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
                     <div style="background-color: #1A2B4B; padding: 40px 20px; text-align: center; position: relative; overflow: hidden;">
                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1;">
@@ -93,8 +97,8 @@ export const reportSubject = async (req, res, next) => {
                         </div>
                     </div>
                 </div>
-                `
-            )
+                `,
+            }),
         ]);
 
         return res.status(200).json({message: "Report created successfully"});
