@@ -59,7 +59,7 @@ export const getAllCommunity = async (req, res, next) => {
         const searchTerm = q?.toLowerCase();
         const whereClause = searchTerm ? {
             OR: [
-                { communityName: { contains: searchTerm, mode: 'insensitive' } }
+                { communityName: { contains: searchTerm } }
             ]
         } : {};
         

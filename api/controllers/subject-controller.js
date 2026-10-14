@@ -370,8 +370,8 @@ export const getAllSubjects = async (req, res, next) => {
                     { subjectVerification: true },
                     {
                         OR: [
-                            { subjectName: { contains: searchTerm, mode: 'insensitive' } },
-                            { subjectDescription: { contains: searchTerm, mode: 'insensitive' } },
+                            { subjectName: { contains: searchTerm } },
+                            { subjectDescription: { contains: searchTerm } },
                             { subjectTags: { array_contains: [searchTerm] } }
                         ]
                     }
@@ -448,13 +448,11 @@ export const getAllSubjectsBySearch = async (req, res, next) => {
             ...(subjectBoard && subjectBoard !== "undefined" && {
                 subjectBoard: {
                     contains: subjectBoard,
-                    mode: "insensitive",
                 },
             }),
             ...(subjectTags && subjectTags !== "undefined" && {
                 subjectTags: {
-                    contains: subjectTags,
-                    mode: "insensitive",
+                    array_contains: [subjectTags],
                 },
             }),
             ...(blockedTeacherProfileIds.length > 0 && {
@@ -1205,7 +1203,6 @@ export const getRecommendedSubjects = async (req, res, next) => {
             OR: terms.map((term) => ({
                 subjectSearchHeading: {
                     equals: term,
-                    mode: 'insensitive',
                 },
             })),
             ...(recommendedBoard && { subjectBoard: recommendedBoard }),
