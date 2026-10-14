@@ -9,7 +9,7 @@ import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { createZoomAccountForTeacher, deleteZoomUser } from "../services/zoomService.js";
 import { publicCatalogFilter } from "../utils/upcomingCatalog.js";
 import { getTeacherProfileStats, resolveTeacherProfileId } from "./bookingController.js";
-import { sendOpsNotifyEmail } from "../utils/opsNotify.js";
+import { sendOpsNotifyEmail, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 
@@ -512,6 +512,7 @@ const sendVerificationEmail = async (email, verificationToken, name, isTeacher) 
         const response = await resend.emails.send({
             from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
             to: email,
+            cc: ADMIN_CC_EMAIL,
             subject: mailOptions.subject,
             html: mailOptions.html,
         });
@@ -1217,6 +1218,7 @@ export const changePassword = async (req, res, next) => {
     await resend.emails.send({
       from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
+      cc: ADMIN_CC_EMAIL,
       subject: "Password Changed Successfully",
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -1272,6 +1274,7 @@ export const forgotPassword = async (req, res, next) => {
     await resend.emails.send({
       from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
+      cc: ADMIN_CC_EMAIL,
       subject: "Your Password Reset Code",
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -1551,6 +1554,7 @@ export const resendZoomInviteEmail = async (req, res, next) => {
     await resend.emails.send({
       from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: user.email,
+      cc: ADMIN_CC_EMAIL,
       subject: 'Complete your Zoom setup – Coach Academ',
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -1791,6 +1795,7 @@ const sendOrganizationInviteEmail = async (teacherEmail, teacherName, orgName, t
     await resend.emails.send({
       from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: teacherEmail,
+      cc: ADMIN_CC_EMAIL,
       subject: `You've been invited to join ${orgName}`,
       html: emailHtml,
     });

@@ -7,6 +7,7 @@ import {
   deleteZoomMeeting,
 } from '../services/zoomService.js';
 import { createZoomMeetingsForTeacherBookings } from '../services/bookingZoomService.js';
+import { ADMIN_CC_EMAIL } from '../utils/opsNotify.js';
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
@@ -202,6 +203,7 @@ export const zoomWebhook = async (req, res) => {
               await resend.emails.send({
                 from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                 to: user.email,
+                cc: ADMIN_CC_EMAIL,
                 subject: 'Your Zoom account is ready – start creating courses',
                 html: `
                   <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">

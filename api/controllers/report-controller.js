@@ -1,6 +1,6 @@
 import {PrismaClient} from "@prisma/client";
 import { Resend } from "resend";
-import { OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
+import { OPS_NOTIFY_EMAILS, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
@@ -38,6 +38,7 @@ export const reportSubject = async (req, res, next) => {
             resend.emails.send({
                 from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                 to: OPS_NOTIFY_EMAILS,
+                cc: ADMIN_CC_EMAIL,
                 subject: "⚠️ New Report Alert",
                 html: `
                 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -67,6 +68,7 @@ export const reportSubject = async (req, res, next) => {
             resend.emails.send({
                 from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                 to: userEmail,
+                cc: ADMIN_CC_EMAIL,
                 subject: "Report Submission Confirmation",
                 html: `
                 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">

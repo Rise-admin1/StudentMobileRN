@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { Resend } from 'resend';
+import { ADMIN_CC_EMAIL } from '../utils/opsNotify.js';
 import {
   getStudentLearningProgressPayload,
   getStudentUpcomingClassesPayload,
@@ -176,6 +177,7 @@ export const inviteStudent = async (req, res, next) => {
       await resend.emails.send({
         from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
         to: studentUser.email,
+        cc: ADMIN_CC_EMAIL,
         subject: 'A parent wants to link to your Coach Academ account',
         html: `<p>Hi ${studentUser.name},</p>
          <p>${parentUser?.name || 'A parent'} wants to link their Coach Academ parent account to yours so they can follow your classes and progress.</p>

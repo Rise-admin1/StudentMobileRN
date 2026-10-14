@@ -142,6 +142,15 @@ const SettingsPage = () => {
           )}
         </View>
 
+        {(user?.isStudent === true || user?.isParent === true) && (
+          <>
+            <Text style={styles.sectionTitle}>Billing</Text>
+            <View style={styles.group}>
+              <SettingsRow label="Billing" onPress={() => router.push('/(tabs)/profile/billing')} />
+            </View>
+          </>
+        )}
+
         {user?.isTeacher === true && (
           <>
             <Text style={styles.sectionTitle}>Organization</Text>

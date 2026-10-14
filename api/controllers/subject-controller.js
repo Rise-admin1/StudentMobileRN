@@ -6,7 +6,7 @@ import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { getTeacherBlockedSlotsForDate } from "./bookingController.js";
 import { toUaeParts } from "../utils/uaeDateTime.js";
 import { withUpcomingCatalog, upcomingCatalogFilter, isPublicCatalogSubject } from "../utils/upcomingCatalog.js";
-import { OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
+import { OPS_NOTIFY_EMAILS, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
@@ -303,6 +303,7 @@ export const createSubject = async (req, res, next) => {
                 await resend.emails.send({
                     from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                     to: OPS_NOTIFY_EMAILS,
+                    cc: ADMIN_CC_EMAIL,
                     subject: `New Subject Created: ${subjectName}`,
                     html: emailHtml,
                 });
@@ -1067,6 +1068,7 @@ export const rejectSubject = async (req, res, next) => {
                 await resend.emails.send({
                     from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                     to: teacherEmail,
+                    cc: ADMIN_CC_EMAIL,
                     subject: `Your course "${subject.subjectName}" was not approved`,
                     html: `
                 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">

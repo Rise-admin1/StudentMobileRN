@@ -1,0 +1,339 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  StatusBar,
+  Linking,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FONT } from '../../../constants';
+import { horizontalScale, moderateScale, verticalScale } from '../../utils/metrics';
+import { axiosWithAuth } from '../../utils/customAxios';
+import { ipURL } from '../../utils/utils';
+
+type Purchase = {
+  id: string;
+  subjectName: string;
+  purchaseAmount: number;
+  purchaseCurrency: string;
+  purchaseDate: string;
+  purchaseReceiptUrl: string | null;
+};
+
+type StudentGroup = {
+  studentProfileId: string;
+  studentName: string;
+  purchases: Purchase[];
+};
+
+type BillingResponse =
+  | { role: 'STUDENT'; purchases: Purchase[] }
+  | { role: 'PARENT'; students: StudentGroup[] };
+
+const formatAmount = (amount: number, currency: string) => {
+  const value = (amount || 0) / 100;
+  const formatted = value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${(currency || 'AED').toUpperCase()} ${formatted}`;
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+const openReceipt = async (url: string) => {
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      Alert.alert('Invoice', 'This invoice link cannot be opened on this device.');
+      return;
+    }
+    await Linking.openURL(url);
+  } catch (error) {
+    console.error('Error opening invoice:', error);
+    Alert.alert('Invoice', 'Could not open this invoice.');
+  }
+};
+
+const PurchaseCard = ({ purchase }: { purchase: Purchase }) => (
+  <View style={styles.card}>
+    <Text style={styles.courseName}>{purchase.subjectName}</Text>
+    <Text style={styles.amount}>{formatAmount(purchase.purchaseAmount, purchase.purchaseCurrency)}</Text>
+    <Text style={styles.date}>{formatDate(purchase.purchaseDate)}</Text>
+    {purchase.purchaseReceiptUrl ? (
+      <TouchableOpacity
+        style={styles.invoiceButton}
+        onPress={() => openReceipt(purchase.purchaseReceiptUrl as string)}
+        accessibilityRole="button"
+        accessibilityLabel={`Open invoice for ${purchase.subjectName}`}
+      >
+        <Ionicons name="document-text-outline" size={16} color="#1A4C6E" />
+        <Text style={styles.invoiceText}>Invoice</Text>
+      </TouchableOpacity>
+    ) : null}
+  </View>
+);
+
+const BillingPage = () => {
+  const [billing, setBilling] = useState<BillingResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchBilling = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError('');
+      const response = await axiosWithAuth.get(`${ipURL}/api/billing`);
+      setBilling(response.data);
+    } catch (err) {
+      console.error('Error fetching billing:', err);
+      setError('Failed to load billing. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBilling(false);
+  }, [fetchBilling]);
+
+  const header = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Back to settings"
+      >
+        <Ionicons name="chevron-back" size={24} color="#12263A" />
+      </TouchableOpacity>
+      <View style={styles.headerText}>
+        <Text style={styles.title}>Billing</Text>
+        <Text style={styles.subtitle}>Confirmed purchases and invoices</Text>
+      </View>
+    </View>
+  );
+
+  const refreshControl = (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={() => fetchBilling(true)}
+      colors={['#1A4C6E']}
+      tintColor="#1A4C6E"
+    />
+  );
+
+  const renderBody = () => {
+    if (loading) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#1A4C6E" />
+        </View>
+      );
+    }
+
+    let content: React.ReactNode;
+    let isEmpty = false;
+
+    if (error) {
+      isEmpty = true;
+      content = <Text style={styles.emptyText}>{error}</Text>;
+    } else if (!billing) {
+      isEmpty = true;
+      content = <Text style={styles.emptyText}>No billing details found</Text>;
+    } else if (billing.role === 'STUDENT') {
+      if (billing.purchases.length === 0) {
+        isEmpty = true;
+        content = (
+          <>
+            <Ionicons name="receipt-outline" size={40} color="#5C6B76" />
+            <Text style={styles.emptyText}>No confirmed purchases</Text>
+          </>
+        );
+      } else {
+        content = billing.purchases.map((purchase) => (
+          <PurchaseCard key={purchase.id} purchase={purchase} />
+        ));
+      }
+    } else if (billing.students.length === 0) {
+      isEmpty = true;
+      content = (
+        <>
+          <Ionicons name="people-outline" size={40} color="#5C6B76" />
+          <Text style={styles.emptyText}>No linked students</Text>
+        </>
+      );
+    } else {
+      content = billing.students.map((student) => (
+        <View key={student.studentProfileId} style={styles.studentGroup}>
+          <Text style={styles.studentName}>{student.studentName}</Text>
+          {student.purchases.length === 0 ? (
+            <Text style={styles.groupEmpty}>No confirmed purchases</Text>
+          ) : (
+            student.purchases.map((purchase) => (
+              <PurchaseCard key={purchase.id} purchase={purchase} />
+            ))
+          )}
+        </View>
+      ));
+    }
+
+    return (
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, isEmpty && styles.scrollContentEmpty]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {content}
+      </ScrollView>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" />
+      {header}
+      {renderBody()}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F6F8',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingTop: verticalScale(4),
+    paddingBottom: verticalScale(12),
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    flex: 1,
+    marginLeft: 4,
+  },
+  title: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(24),
+    color: '#12263A',
+  },
+  subtitle: {
+    marginTop: 2,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(14),
+    color: '#5C6B76',
+  },
+  scrollContent: {
+    paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(32),
+  },
+  scrollContentEmpty: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  studentGroup: {
+    marginTop: verticalScale(8),
+  },
+  studentName: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+    marginTop: verticalScale(16),
+    marginBottom: verticalScale(8),
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E6EBF0',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: verticalScale(10),
+  },
+  courseName: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(16),
+    color: '#12263A',
+  },
+  amount: {
+    marginTop: 6,
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(15),
+    color: '#12263A',
+  },
+  date: {
+    marginTop: 4,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+  },
+  invoiceButton: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: '#E8EEF3',
+  },
+  invoiceText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(14),
+    color: '#1A4C6E',
+  },
+  groupEmpty: {
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(14),
+    color: '#5C6B76',
+    marginBottom: verticalScale(8),
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: horizontalScale(24),
+    gap: 10,
+  },
+  emptyText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(15),
+    color: '#5C6B76',
+    textAlign: 'center',
+  },
+});
+
+export default BillingPage;

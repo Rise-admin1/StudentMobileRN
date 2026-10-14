@@ -4,9 +4,9 @@ import { createZoomAccountForTeacher, createZoomMeeting } from "../services/zoom
 dotenv.config();
 import Stripe from 'stripe';
 import { Resend } from 'resend';
-import { fromUaeDateTime, normalizeHHmm, parseDateUTC, slotsFromInstant } from "../utils/uaeDateTime.js";
+import { fromUaeDateTime, normalizeHHmm, parseDateUTC, slotsFromInstant, toUaeParts } from "../utils/uaeDateTime.js";
 import { sendNotificationByType } from "../services/pushNotificationService.js";
-import { sendOpsNotifyEmail } from "../utils/opsNotify.js";
+import { sendOpsNotifyEmail, ADMIN_CC_EMAIL, SCHEDULING_FROM, BILLING_FROM, escHtml } from "../utils/opsNotify.js";
 import { isFixedSchedulePast } from "../utils/upcomingCatalog.js";
 import {
   findSlotConflict,
@@ -516,6 +516,7 @@ export const stripeWebhook = async (req, res, next) => {
                     const courseType = chargeSucceeded.metadata.courseType || 'SINGLE_STUDENT';
                     let createBooking = null;
                     let saveTransaction = null;
+                    let emailSessions = [];
 
                     if (courseType === 'MULTI_STUDENT' || courseType === 'MULTI_PACKAGE') {
                         // Handle multi-student / multi-package course enrollment
@@ -532,7 +533,7 @@ export const stripeWebhook = async (req, res, next) => {
                                 scheduledDateTime: true,
                                 subjectDuration: true,
                                 subjectTopics: {
-                                    select: { scheduledAt: true, hours: true },
+                                    select: { scheduledAt: true, hours: true, topicTitle: true },
                                 },
                             },
                         });
@@ -638,6 +639,34 @@ export const stripeWebhook = async (req, res, next) => {
                         });
                         saveTransaction = result.saveTransaction;
 
+                        if (courseType === 'MULTI_PACKAGE') {
+                            emailSessions = (subject.subjectTopics || []).map((topic) => {
+                                const parts = topic.scheduledAt ? toUaeParts(topic.scheduledAt) : null;
+                                return {
+                                    topic: topic.topicTitle || '',
+                                    date: parts ? parts.dateStr : '',
+                                    time: parts ? parts.timeStr : '',
+                                    hours: topic.hours,
+                                    minutes: (Number(topic.hours) || 0) * 60,
+                                    zoomUrl: subject.zoomMeetingUrl || '',
+                                    zoomPassword: subject.zoomMeetingPassword || '',
+                                    zoomId: subject.zoomMeetingId || '',
+                                };
+                            });
+                        } else {
+                            const parts = subject.scheduledDateTime ? toUaeParts(subject.scheduledDateTime) : null;
+                            emailSessions = [{
+                                topic: '',
+                                date: parts ? parts.dateStr : (chargeSucceeded.metadata.date || ''),
+                                time: parts ? parts.timeStr : (chargeSucceeded.metadata.time || ''),
+                                hours: subject.subjectDuration,
+                                minutes: (Number(subject.subjectDuration) || 0) * 60,
+                                zoomUrl: subject.zoomMeetingUrl || '',
+                                zoomPassword: subject.zoomMeetingPassword || '',
+                                zoomId: subject.zoomMeetingId || '',
+                            }];
+                        }
+
                         // Create UserSubject entry for multi-student courses too
                         const checkUserSubject = await prisma.userSubject.findUnique({
                             where: {
@@ -732,12 +761,24 @@ export const stripeWebhook = async (req, res, next) => {
                             );
                             bookingsToCreate.push({
                                 subjectTopicId: topic.id,
+                                date: String(slot.date).trim().split('T')[0],
                                 bookingDate: parseDateUTC(slot.date),
                                 bookingTime: normalizeHHmm(slot.time),
                                 bookingHours: topic.hours,
                                 meeting,
                             });
                         }
+
+                        emailSessions = bookingsToCreate.map((b) => ({
+                            topic: topicMap.get(b.subjectTopicId).topicTitle || '',
+                            date: b.date,
+                            time: b.bookingTime,
+                            hours: b.bookingHours,
+                            minutes: b.bookingHours * 60,
+                            zoomUrl: b.meeting.join_url || '',
+                            zoomPassword: b.meeting.password || '',
+                            zoomId: b.meeting.id || '',
+                        }));
 
                         const amountPerBooking = Math.floor(chargeSucceeded.amount / bookingsToCreate.length);
                         let singlePackageResult;
@@ -863,7 +904,17 @@ export const stripeWebhook = async (req, res, next) => {
                             meetingStart,
                             parseInt(chargeSucceeded.metadata.subjectDuration, 10) * 60
                         );
-                        
+
+                        emailSessions = [{
+                            topic: '',
+                            date: chargeSucceeded.metadata.date || '',
+                            time: chargeSucceeded.metadata.time || '',
+                            hours: chargeSucceeded.metadata.subjectDuration || '',
+                            minutes: (parseInt(chargeSucceeded.metadata.subjectDuration, 10) || 0) * 60,
+                            zoomUrl: meeting.join_url || '',
+                            zoomPassword: meeting.password || '',
+                            zoomId: meeting.id || '',
+                        }];
                     
                         let singleStudentResult;
                         try {
@@ -965,10 +1016,67 @@ export const stripeWebhook = async (req, res, next) => {
                     })
                 }
 
+                const detailRow = (label, value) => {
+                    if (value == null || String(value).trim() === '') return '';
+                    return `<div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">${escHtml(label)}</span><span style="color: #64748B; font-weight: 500;"> ${escHtml(value)}</span></div>`;
+                };
+
+                if (emailSessions.length === 0) {
+                    emailSessions = [{
+                        topic: '',
+                        date: chargeSucceeded.metadata.date || '',
+                        time: chargeSucceeded.metadata.time || '',
+                        hours: chargeSucceeded.metadata.subjectDuration || '',
+                        minutes: (parseInt(chargeSucceeded.metadata.subjectDuration, 10) || 0) * 60,
+                        zoomUrl: '',
+                        zoomPassword: '',
+                        zoomId: '',
+                    }];
+                }
+
+                const bookingIdText = (courseType === 'MULTI_STUDENT' || courseType === 'MULTI_PACKAGE')
+                    ? (saveTransaction ? saveTransaction.courseEnrollmentId : '')
+                    : (createBooking?.id ?? '');
+
+                const summaryRows = [
+                    detailRow('Booking ID', bookingIdText),
+                    detailRow('Course', chargeSucceeded.metadata.subjectName),
+                    detailRow('Course type', chargeSucceeded.metadata.courseType),
+                    detailRow('Student', studentUser.name),
+                    detailRow('Tutor', teacherUser.name),
+                ].join('');
+
+                const summaryBox = `<div style="background-color: #F8FAFC; padding: 30px; margin: 30px 0; position: relative; border-left: 4px solid #1A2B4B;">${summaryRows}</div>`;
+
+                const sessionBlocks = emailSessions.map((session, index) => {
+                    const title = emailSessions.length > 1 ? `Session ${index + 1}` : 'Session';
+                    const rows = [
+                        detailRow('Topic', session.topic),
+                        detailRow('Date', session.date),
+                        detailRow('Time', session.time),
+                        detailRow('Hours', session.hours),
+                        detailRow('Minutes', session.minutes),
+                        detailRow('Zoom join URL', session.zoomUrl),
+                        detailRow('Zoom password', session.zoomPassword),
+                        detailRow('Zoom meeting ID', session.zoomId),
+                    ].join('');
+                    return `<div style="background-color: #F8FAFC; padding: 30px; margin: 30px 0; position: relative; border-left: 4px solid #1A2B4B;"><h3 style="color: #1A2B4B; font-size: 18px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">${escHtml(title)}</h3>${rows}</div>`;
+                }).join('');
+
+                const receiptUrl = chargeSucceeded.receipt_url || '';
+                const paymentRows = [
+                    detailRow('Amount', (chargeSucceeded.amount / 100).toFixed(2)),
+                    detailRow('Currency', String(chargeSucceeded.currency || '').toUpperCase()),
+                ].join('') + (receiptUrl
+                    ? `<div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Receipt</span><span style="color: #64748B; font-weight: 500;"> <a href="${escHtml(receiptUrl)}" style="color: #1A2B4B; text-decoration: underline;">${escHtml(receiptUrl)}</a></span></div>`
+                    : '');
+                const paymentBox = `<div style="background-color: #F8FAFC; padding: 30px; margin: 30px 0; position: relative; border-left: 4px solid #1A2B4B;">${paymentRows}</div>`;
+
                 try {
                     await resend.emails.send({
-                        from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                        from: SCHEDULING_FROM,
                         to: chargeSucceeded.metadata.userEmail,
+                        cc: ADMIN_CC_EMAIL,
                         subject: 'Course Booking Success',
                         html: `
                         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -985,13 +1093,8 @@ export const stripeWebhook = async (req, res, next) => {
 
                                 <p style="font-size: 16px; line-height: 1.6; color: #64748B;">Your booking has been successfully confirmed. We're excited to have you join us!</p>
 
-                                <div style="background-color: #F8FAFC; padding: 30px; margin: 30px 0; position: relative; border-left: 4px solid #1A2B4B;">
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Booking ID</span><span style="color: #64748B; font-weight: 500;"> ${(courseType === 'MULTI_STUDENT' || courseType === 'MULTI_PACKAGE') ? saveTransaction.courseEnrollmentId : (createBooking?.id ?? '')}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Course</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.subjectName}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Date</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.date}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Time</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.time}</span></div>
-                                    <div style="margin: 15px 0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Amount Paid</span><span style="color: #64748B; font-weight: 500;"> AED${(chargeSucceeded.amount / 100).toFixed(2)}</span></div>
-                                </div>
+                                ${summaryBox}
+                                ${sessionBlocks}
 
                                 <div style="background-color: #F8FAFC; padding: 30px; margin-bottom: 30px; position: relative; border-left: 4px solid #1A2B4B;">
                                     <h3 style="color: #1A2B4B; font-size: 18px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">Important Reminders</h3>
@@ -1019,13 +1122,11 @@ export const stripeWebhook = async (req, res, next) => {
                 }
 
                 try {
-                    const teacherGreetingName = String(teacherUser.name)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
+                    const teacherGreetingName = escHtml(teacherUser.name);
                     await resend.emails.send({
-                        from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                        from: SCHEDULING_FROM,
                         to: chargeSucceeded.metadata.teacherEmail,
+                        cc: ADMIN_CC_EMAIL,
                         subject: 'You have a new booking',
                         html: `
                         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
@@ -1042,13 +1143,8 @@ export const stripeWebhook = async (req, res, next) => {
 
                                 <p style="font-size: 16px; line-height: 1.6; color: #64748B;">You have received a new booking! A student has booked your class.</p>
 
-                                <div style="background-color: #F8FAFC; padding: 30px; margin: 30px 0; position: relative; border-left: 4px solid #1A2B4B;">
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Booking ID</span><span style="color: #64748B; font-weight: 500;"> ${(courseType === 'MULTI_STUDENT' || courseType === 'MULTI_PACKAGE') ? saveTransaction.courseEnrollmentId : (createBooking?.id ?? '')}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Subject</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.subjectName}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Date & Time</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.date} ${chargeSucceeded.metadata.time}</span></div>
-                                    <div style="margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E8F0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Duration</span><span style="color: #64748B; font-weight: 500;"> ${chargeSucceeded.metadata.subjectDuration} hours</span></div>
-                                    <div style="margin: 15px 0;"><span style="font-weight: 700; color: #1A2B4B; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Amount</span><span style="color: #64748B; font-weight: 500;"> AED${(chargeSucceeded.amount / 100).toFixed(2)}</span></div>
-                                </div>
+                                ${summaryBox}
+                                ${sessionBlocks}
 
                                 <div style="background-color: #F8FAFC; padding: 30px; margin-bottom: 30px; position: relative; border-left: 4px solid #1A2B4B;">
                                     <h3 style="color: #1A2B4B; font-size: 18px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">Important Reminders</h3>
@@ -1074,6 +1170,81 @@ export const stripeWebhook = async (req, res, next) => {
                     });
                 } catch (emailError) {
                     console.error('Error sending new booking email to teacher via Resend:', emailError);
+                }
+
+                const paymentHeader = `
+                            <div style="background-color: #1A2B4B; padding: 40px 20px; text-align: center; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1;">
+                                    <div style="position: absolute; top: 20px; left: 20px; width: 60px; height: 60px; border: 4px solid #ffffff; transform: rotate(45deg);"></div>
+                                    <div style="position: absolute; bottom: 20px; right: 20px; width: 40px; height: 40px; border: 4px solid #ffffff; border-radius: 50%;"></div>
+                                </div>
+                                <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 2px;">Payment received</h1>
+                            </div>`;
+
+                const paymentHtml = (greetingName) => `
+                        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
+                            ${paymentHeader}
+                            <div style="padding: 40px 20px; background-color: #ffffff;">
+                                <p style="font-size: 18px; font-weight: 500; color: #1A2B4B;">Hey ${escHtml(greetingName)},</p>
+                                <p style="font-size: 16px; line-height: 1.6; color: #64748B;">This is your payment receipt.</p>
+                                ${summaryBox}
+                                ${sessionBlocks}
+                                ${paymentBox}
+                                <div style="text-align: center; padding-top: 30px; border-top: 2px solid #F8FAFC;">
+                                    <p style="color: #64748B; font-size: 14px; margin: 0 0 10px;">Thank you for choosing our platform!</p>
+                                    <p style="color: #1A2B4B; font-size: 16px; font-weight: 700; margin: 0;">If you have any questions, please don't hesitate to contact us.</p>
+                                </div>
+                            </div>
+                        </div>`;
+
+                const paymentRecipients = [];
+                if (studentUser.email) {
+                    paymentRecipients.push({ email: studentUser.email, name: studentUser.name || '' });
+                }
+                try {
+                    const parentLinks = await prisma.parentStudentLink.findMany({
+                        where: {
+                            studentProfileId,
+                            status: 'ACCEPTED',
+                        },
+                        select: {
+                            parent: {
+                                select: {
+                                    user: { select: { email: true, name: true } },
+                                },
+                            },
+                        },
+                    });
+                    const studentEmailKey = String(studentUser.email || '').trim().toLowerCase();
+                    for (const link of parentLinks) {
+                        const parentEmail = link.parent?.user?.email;
+                        if (!parentEmail) continue;
+                        if (String(parentEmail).trim().toLowerCase() === studentEmailKey) continue;
+                        paymentRecipients.push({
+                            email: parentEmail,
+                            name: link.parent?.user?.name || '',
+                        });
+                    }
+                } catch (parentLookupError) {
+                    console.error('Error loading parent emails for payment receipt:', parentLookupError);
+                }
+
+                const sentPaymentEmails = new Set();
+                for (const recipient of paymentRecipients) {
+                    const emailKey = String(recipient.email).trim().toLowerCase();
+                    if (!emailKey || sentPaymentEmails.has(emailKey)) continue;
+                    sentPaymentEmails.add(emailKey);
+                    try {
+                        await resend.emails.send({
+                            from: BILLING_FROM,
+                            to: recipient.email,
+                            cc: ADMIN_CC_EMAIL,
+                            subject: 'Payment received',
+                            html: paymentHtml(recipient.name),
+                        });
+                    } catch (emailError) {
+                        console.error('Error sending payment email via Resend:', emailError);
+                    }
                 }                
                          
                 console.log('saveTransaction', saveTransaction)

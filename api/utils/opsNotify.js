@@ -7,6 +7,10 @@ export const OPS_NOTIFY_EMAILS = [
   'michael.literati@gmail.com',
 ];
 
+export const ADMIN_CC_EMAIL = 'admin@coachacadem.ae';
+export const SCHEDULING_FROM = '"Scheduling - Coach academ" <scheduling@coachacadem.ae>';
+export const BILLING_FROM = '"Billing -Coach academ.ae" <billing@coachacadem.ae>';
+
 export const escHtml = (s) =>
   (s == null ? '' : String(s))
     .replace(/&/g, '&amp;')
@@ -41,6 +45,7 @@ export const sendOpsNotifyEmail = async ({ subject, title, rows = [], intro = ''
     await resend.emails.send({
       from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
       to: OPS_NOTIFY_EMAILS,
+      cc: ADMIN_CC_EMAIL,
       subject,
       html,
     });
