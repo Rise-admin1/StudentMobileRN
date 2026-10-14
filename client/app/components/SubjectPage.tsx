@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ipURL } from "../utils/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useSegments } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { resetToHome } from "../utils/navigation";
 import { horizontalScale, verticalScale, moderateScale } from '../utils/metrics';
 import { COLORS, FONT } from "../../constants";
@@ -234,6 +234,17 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const menuOpacity = useRef(new Animated.Value(0)).current;
 
   console.log(singleSubjectData,'singleSubjectData in single subject page');
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsInitializingChat(false);
+        socket.off("conversation-exists");
+        socket.off("no-conversation-found");
+        socket.off("conversation-check-error");
+      };
+    }, [])
+  );
 
   // Fetch capacity info for multi-student and multi-package courses
   React.useEffect(() => {
