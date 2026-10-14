@@ -74,9 +74,34 @@ const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [paymentInitialized, setPaymentInitialized] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [confirmingBooking, setConfirmingBooking] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const fadeOutAnim = useRef(new Animated.Value(1)).current;
+  const paidAtRef = useRef<string | null>(null);
+
+  const waitForPurchaseReady = async (paidAtIso: string) => {
+    const token = await AsyncStorage.getItem('authToken');
+    const started = Date.now();
+    const timeoutMs = 60000;
+    const pollMs = 1500;
+
+    while (Date.now() - started < timeoutMs) {
+      try {
+        const response = await axios.get(`${ipURL}/api/stripe/purchase-ready`, {
+          params: { subjectId, since: paidAtIso },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data?.ready) {
+          return true;
+        }
+      } catch (error) {
+        console.error('Error polling purchase ready:', error);
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+    }
+    return false;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -197,9 +222,12 @@ const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
   useEffect(() => {
     if (!showSuccess) return;
 
+    let cancelled = false;
+
     fadeAnim.setValue(0);
     scaleAnim.setValue(0.5);
     fadeOutAnim.setValue(1);
+    setConfirmingBooking(true);
 
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -215,18 +243,37 @@ const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
       }),
     ]).start();
 
-    const timer = setTimeout(() => {
+    const finishSuccess = (ready: boolean) => {
+      if (cancelled) return;
+      setConfirmingBooking(false);
+      if (!ready) {
+        Alert.alert(
+          'Almost there',
+          'Payment went through. Your schedule may take a moment to update.'
+        );
+      }
       Animated.timing(fadeOutAnim, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
+        if (cancelled) return;
         setShowSuccess(false);
         onConfirm();
       });
-    }, 4000);
+    };
 
-    return () => clearTimeout(timer);
+    const run = async () => {
+      const paidAtIso = paidAtRef.current || new Date().toISOString();
+      const ready = await waitForPurchaseReady(paidAtIso);
+      finishSuccess(ready);
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
   }, [showSuccess]);
 
   const openPaymentSheet = async () => {
@@ -242,6 +289,7 @@ const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
       if (error) {
         Alert.alert('Payment Error', error.message);
       } else {
+        paidAtRef.current = new Date().toISOString();
         setShowSuccess(true);
         fadeOutAnim.setValue(1);
       }
@@ -387,10 +435,15 @@ const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
                 </View>
                 <Text style={styles.successTitle}>Payment successful</Text>
                 <Text style={styles.successMessage}>
-                  {isEnrollment
-                    ? 'Your enrollment has been confirmed'
-                    : 'Your booking has been confirmed'}
+                  {confirmingBooking
+                    ? 'Confirming your schedule…'
+                    : isEnrollment
+                      ? 'Your enrollment has been confirmed'
+                      : 'Your booking has been confirmed'}
                 </Text>
+                {confirmingBooking ? (
+                  <ActivityIndicator size="small" color="#1A4C6E" style={{ marginTop: 16 }} />
+                ) : null}
               </Animated.View>
             </Animated.View>
           ) : (

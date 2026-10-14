@@ -5,7 +5,9 @@ import {
   bookingDateStr,
   expandHourSlots,
   fromUaeDateTime,
+  parseDateUTC,
   slotsFromInstant,
+  toUaeParts,
 } from '../utils/uaeDateTime.js';
 import { publicCatalogFilter } from '../utils/upcomingCatalog.js';
 
@@ -16,6 +18,219 @@ const getStartDatetime = (bookingDate, bookingTime) => {
   if (bookingDate) return new Date(bookingDate);
   return null;
 };
+
+const bookingSelectForUpcoming = {
+  id: true,
+  bookingDate: true,
+  bookingTime: true,
+  bookingZoomUrl: true,
+  subject: {
+    select: {
+      subjectName: true,
+      id: true,
+    },
+  },
+  teacher: {
+    include: {
+      user: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
+  },
+  student: {
+    include: {
+      user: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
+  },
+};
+
+const mapBookingToUpcomingClass = (booking) => ({
+  id: booking.id,
+  bookingDate: booking.bookingDate,
+  bookingTime: booking.bookingTime,
+  bookingZoomUrl: booking.bookingZoomUrl,
+  subject: booking.subject,
+  teacher: {
+    id: booking.teacher.user.id,
+    name: booking.teacher.user.name,
+  },
+  student: {
+    id: booking.student.user.id,
+    name: booking.student.user.name,
+  },
+  startsAt: getStartDatetime(booking.bookingDate, booking.bookingTime),
+});
+
+const classFromScheduledInstant = ({ id, scheduledAt, subject, teacher, student, zoomUrl }) => {
+  if (!scheduledAt) return null;
+  const { dateStr, timeStr } = toUaeParts(scheduledAt);
+  const startsAt = fromUaeDateTime(dateStr, timeStr);
+  return {
+    id,
+    bookingDate: parseDateUTC(dateStr),
+    bookingTime: timeStr,
+    bookingZoomUrl: zoomUrl || '',
+    subject: {
+      id: subject.id,
+      subjectName: subject.subjectName,
+    },
+    teacher,
+    student,
+    startsAt,
+  };
+};
+
+const finalizeUpcomingClasses = (classes, now, limit) => {
+  const futureClasses = classes
+    .filter((item) => item.startsAt && item.startsAt > now)
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const limited = limit != null ? futureClasses.slice(0, limit) : futureClasses;
+  return limited.map(({ startsAt, ...rest }) => rest);
+};
+
+async function getStudentGroupUpcomingClasses(studentProfileId) {
+  const enrollments = await prisma.courseEnrollment.findMany({
+    where: {
+      studentId: studentProfileId,
+      enrollmentStatus: EnrollmentStatus.CONFIRMED,
+    },
+    include: {
+      subject: {
+        select: {
+          id: true,
+          subjectName: true,
+          courseType: true,
+          scheduledDateTime: true,
+          zoomMeetingUrl: true,
+          subjectTopics: {
+            select: { id: true, scheduledAt: true },
+          },
+          teacherProfile: {
+            include: {
+              user: { select: { id: true, name: true } },
+            },
+          },
+        },
+      },
+      student: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+    },
+  });
+
+  const classes = [];
+  for (const enrollment of enrollments) {
+    const subject = enrollment.subject;
+    if (!subject) continue;
+    const teacher = {
+      id: subject.teacherProfile?.user?.id,
+      name: subject.teacherProfile?.user?.name || 'Tutor',
+    };
+    const student = {
+      id: enrollment.student?.user?.id,
+      name: enrollment.student?.user?.name || 'Student',
+    };
+
+    if (subject.courseType === 'MULTI_STUDENT' && subject.scheduledDateTime) {
+      const item = classFromScheduledInstant({
+        id: `enrollment-${enrollment.id}`,
+        scheduledAt: subject.scheduledDateTime,
+        subject,
+        teacher,
+        student,
+        zoomUrl: subject.zoomMeetingUrl,
+      });
+      if (item) classes.push(item);
+    }
+
+    if (subject.courseType === 'MULTI_PACKAGE') {
+      for (const topic of subject.subjectTopics || []) {
+        if (!topic.scheduledAt) continue;
+        const item = classFromScheduledInstant({
+          id: `enrollment-${enrollment.id}-${topic.id}`,
+          scheduledAt: topic.scheduledAt,
+          subject,
+          teacher,
+          student,
+          zoomUrl: subject.zoomMeetingUrl,
+        });
+        if (item) classes.push(item);
+      }
+    }
+  }
+  return classes;
+}
+
+async function getTeacherGroupUpcomingClasses(teacherProfileId) {
+  const subjects = await prisma.subject.findMany({
+    where: {
+      teacherId: teacherProfileId,
+      courseType: { in: ['MULTI_STUDENT', 'MULTI_PACKAGE'] },
+    },
+    select: {
+      id: true,
+      subjectName: true,
+      courseType: true,
+      scheduledDateTime: true,
+      zoomMeetingUrl: true,
+      subjectTopics: {
+        select: { id: true, scheduledAt: true },
+      },
+      teacherProfile: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+    },
+  });
+
+  const classes = [];
+  for (const subject of subjects) {
+    const teacher = {
+      id: subject.teacherProfile?.user?.id,
+      name: subject.teacherProfile?.user?.name || 'Tutor',
+    };
+    const student = { id: subject.id, name: 'Group class' };
+
+    if (subject.courseType === 'MULTI_STUDENT' && subject.scheduledDateTime) {
+      const item = classFromScheduledInstant({
+        id: `group-${subject.id}`,
+        scheduledAt: subject.scheduledDateTime,
+        subject,
+        teacher,
+        student,
+        zoomUrl: subject.zoomMeetingUrl,
+      });
+      if (item) classes.push(item);
+    }
+
+    if (subject.courseType === 'MULTI_PACKAGE') {
+      for (const topic of subject.subjectTopics || []) {
+        if (!topic.scheduledAt) continue;
+        const item = classFromScheduledInstant({
+          id: `group-${subject.id}-${topic.id}`,
+          scheduledAt: topic.scheduledAt,
+          subject,
+          teacher,
+          student,
+          zoomUrl: subject.zoomMeetingUrl,
+        });
+        if (item) classes.push(item);
+      }
+    }
+  }
+  return classes;
+}
 
 const hoursForBooking = (booking) => {
   const fromBooking = Number(booking.bookingHours);
@@ -235,85 +450,31 @@ export const getUpcomingClasses = async (req, res) => {
       return res.status(400).json({ error: 'Profile not found' });
     }
 
-    // Build where clause based on user type
-    const whereClause = {
-      bookingStatus: BookingStatus.CONFIRMED
-    };
-
-    if (userType === 'TEACHER') {
-      whereClause.teacherId = profileId;
-    } else {
-      whereClause.studentId = profileId;
+    if (userType === 'STUDENT') {
+      const classes = await getStudentUpcomingClassesPayload(profileId, limit);
+      return res.status(200).json(classes);
     }
 
-    // Only consider bookings from today onward (then filter by date+time in JS)
     const now = new Date();
     const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-    whereClause.bookingDate = { gte: startOfToday };
-    
-    const upcomingClasses = await prisma.booking.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        bookingDate: true,
-        bookingTime: true,
-        bookingZoomUrl: true,
-        subject: {
-          select: {
-            subjectName: true,
-            id: true
-          }
-        },
-        teacher: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                id: true
-              }
-            }
-          }
-        },
-        student: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                id: true
-              }
-            }
-          }
-        }
+
+    const upcomingBookings = await prisma.booking.findMany({
+      where: {
+        bookingStatus: BookingStatus.CONFIRMED,
+        teacherId: profileId,
+        bookingDate: { gte: startOfToday },
       },
-      orderBy: {
-        bookingDate: 'asc'
-      }
+      select: bookingSelectForUpcoming,
+      orderBy: { bookingDate: 'asc' },
     });
 
-    const futureClasses = upcomingClasses.filter(
-      (b) => {
-        const startsAt = getStartDatetime(b.bookingDate, b.bookingTime);
-        return startsAt && startsAt > now;
-      }
+    const bookingClasses = upcomingBookings.map(mapBookingToUpcomingClass);
+    const groupClasses = await getTeacherGroupUpcomingClasses(profileId);
+    const transformedClasses = finalizeUpcomingClasses(
+      [...bookingClasses, ...groupClasses],
+      now,
+      limit
     );
-    const limited = limit != null ? futureClasses.slice(0, limit) : futureClasses;
-
-    // Transform response to match expected format
-    const transformedClasses = limited.map(booking => ({
-      id: booking.id,
-      bookingDate: booking.bookingDate,
-      bookingTime: booking.bookingTime,
-      bookingZoomUrl: booking.bookingZoomUrl,
-      subject: booking.subject,
-      teacher: {
-        id: booking.teacher.user.id,
-        name: booking.teacher.user.name
-      },
-      student: {
-        id: booking.student.user.id,
-        name: booking.student.user.name
-      }
-    }));
 
     res.status(200).json(transformedClasses);
   }
@@ -858,70 +1019,21 @@ export async function getStudentUpcomingClassesPayload(studentProfileId, limit) 
   const now = new Date();
   const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
 
-  const upcomingClasses = await prisma.booking.findMany({
+  const upcomingBookings = await prisma.booking.findMany({
     where: {
       bookingStatus: BookingStatus.CONFIRMED,
       studentId: studentProfileId,
       bookingDate: { gte: startOfToday },
     },
-    select: {
-      id: true,
-      bookingDate: true,
-      bookingTime: true,
-      bookingZoomUrl: true,
-      subject: {
-        select: {
-          subjectName: true,
-          id: true,
-        },
-      },
-      teacher: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-      },
-      student: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-      },
-    },
+    select: bookingSelectForUpcoming,
     orderBy: {
       bookingDate: 'asc',
     },
   });
 
-  const futureClasses = upcomingClasses.filter((b) => {
-    const startsAt = getStartDatetime(b.bookingDate, b.bookingTime);
-    return startsAt && startsAt > now;
-  });
-  const limited = limit != null ? futureClasses.slice(0, limit) : futureClasses;
-
-  return limited.map((booking) => ({
-    id: booking.id,
-    bookingDate: booking.bookingDate,
-    bookingTime: booking.bookingTime,
-    bookingZoomUrl: booking.bookingZoomUrl,
-    subject: booking.subject,
-    teacher: {
-      id: booking.teacher.user.id,
-      name: booking.teacher.user.name,
-    },
-    student: {
-      id: booking.student.user.id,
-      name: booking.student.user.name,
-    },
-  }));
+  const bookingClasses = upcomingBookings.map(mapBookingToUpcomingClass);
+  const groupClasses = await getStudentGroupUpcomingClasses(studentProfileId);
+  return finalizeUpcomingClasses([...bookingClasses, ...groupClasses], now, limit);
 }
 
 export const getLearningProgress = async (req, res) => {

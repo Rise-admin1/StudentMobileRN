@@ -216,6 +216,48 @@ export const paymentSheet = async (req, res, next) => {
         });
     }
 };
+export const purchaseReady = async (req, res, next) => {
+    try {
+        if (req.userType !== 'STUDENT') {
+            return res.status(403).json({ error: 'You are not allowed to perform this action' });
+        }
+
+        const { subjectId, since } = req.query;
+        if (!subjectId || !since) {
+            return res.status(400).json({ error: 'subjectId and since are required' });
+        }
+
+        const sinceDate = new Date(since);
+        if (Number.isNaN(sinceDate.getTime())) {
+            return res.status(400).json({ error: 'Invalid since timestamp' });
+        }
+
+        const studentProfileId = await resolveStudentProfileId(req.userId);
+        if (!studentProfileId) {
+            return res.status(400).json({ error: 'Student profile not found' });
+        }
+
+        // Allow slight clock skew between client payment success and webhook write
+        const sinceWithBuffer = new Date(sinceDate.getTime() - 60 * 1000);
+
+        const purchase = await prisma.stripePurchases.findFirst({
+            where: {
+                studentId: studentProfileId,
+                subjectId: String(subjectId),
+                purchaseStatus: BookingStatus.CONFIRMED,
+                purchaseDate: { gte: sinceWithBuffer },
+            },
+            select: { id: true },
+            orderBy: { purchaseDate: 'desc' },
+        });
+
+        return res.status(200).json({ ready: Boolean(purchase) });
+    } catch (error) {
+        console.error('purchaseReady error:', error);
+        next(error);
+    }
+};
+
 const endpointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT;
 export const stripeWebhook = async (req, res, next) => {
     try {

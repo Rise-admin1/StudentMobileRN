@@ -262,7 +262,8 @@ const HomePage = () => {
     () => (isStudent ? subjectData.slice(0, 10) : subjectData.slice(6, 16)),
     [isStudent, subjectData]
   );
-  const [nextClass, ...laterClasses] = deadlines;
+  const nextClass = deadlines[0];
+  const laterClasses = deadlines.slice(1, 2);
 
   const refreshUserDetails = useCallback(async () => {
     const stored = await AsyncStorage.getItem('userDetails');
@@ -317,10 +318,10 @@ const HomePage = () => {
         return;
       }
       const token = await AsyncStorage.getItem("authToken");
-      const response = await axios.get(`${ipURL}/api/bookings/upcoming-classes?limit=2`, {
+      const response = await axios.get(`${ipURL}/api/bookings/upcoming-classes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setDeadlines(response.data);
+      setDeadlines(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching deadlines:', error);
     }
