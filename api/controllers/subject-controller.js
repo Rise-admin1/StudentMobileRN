@@ -1108,50 +1108,128 @@ export const rejectSubject = async (req, res, next) => {
     }
 };
 
+const subjectSearchTerms = (value) => {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(
+        value
+            .map((item) => (typeof item === 'string' ? item.trim() : ''))
+            .filter(Boolean)
+    )];
+};
+
+const subjectCardInclude = {
+    teacherProfile: {
+        include: {
+            user: {
+                select: {
+                    name: true,
+                    profileImage: true,
+                },
+            },
+        },
+    },
+};
+
+const toSubjectCard = (subject) => ({
+    ...subject,
+    user: {
+        name: subject.teacherProfile?.user?.name,
+        profileImage: subject.teacherProfile?.user?.profileImage,
+    },
+});
+
+const shuffleSubjects = (subjects) => {
+    const copy = [...subjects];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+};
+
+const findRandomCatalogSubjects = async (blockedTeacherProfileIds, limit = 6) => {
+    const subjects = await prisma.subject.findMany({
+        where: withUpcomingCatalog({
+            subjectVerification: true,
+            ...(blockedTeacherProfileIds.length > 0 && {
+                NOT: {
+                    teacherId: { in: blockedTeacherProfileIds },
+                },
+            }),
+        }),
+        include: subjectCardInclude,
+    });
+    return shuffleSubjects(subjects).slice(0, limit).map(toSubjectCard);
+};
+
 export const getRecommendedSubjects = async (req, res, next) => {
-    console.log(req.body,'req.body');
-    const {recommendedSubjects,recommendedBoard, recommendedGrade} = req.body;
-    
-    
+    const { recommendedSubjects, recommendedBoard, recommendedGrade } = req.body || {};
+
     try {
-        // Build where condition
+        let terms = subjectSearchTerms(recommendedSubjects).slice(0, 3);
+        let studentProfileId = null;
+
+        if (req.userId) {
+            const user = await prisma.user.findUnique({
+                where: { id: req.userId },
+                select: {
+                    userType: true,
+                    studentProfile: {
+                        select: { id: true, reccomendedSubjects: true },
+                    },
+                },
+            });
+            studentProfileId = user?.studentProfile?.id || null;
+            if (user?.userType === 'STUDENT') {
+                terms = subjectSearchTerms(user.studentProfile?.reccomendedSubjects).slice(0, 3);
+            }
+        }
+
+        let blockedTeacherProfileIds = [];
+        if (studentProfileId) {
+            const blocked = await prisma.blockedTeacher.findMany({
+                where: { studentId: studentProfileId },
+                select: { teacherId: true },
+            });
+            blockedTeacherProfileIds = blocked.map((entry) => entry.teacherId);
+        }
+
+        if (terms.length === 0) {
+            const randomSubjects = await findRandomCatalogSubjects(blockedTeacherProfileIds);
+            return res.status(200).json(randomSubjects);
+        }
+
+        const grade = parseInt(recommendedGrade, 10);
         const whereCondition = {
             subjectVerification: true,
-            subjectBoard: recommendedBoard,
-            subjectGrade: parseInt(recommendedGrade)
+            OR: terms.map((term) => ({
+                subjectSearchHeading: {
+                    equals: term,
+                    mode: 'insensitive',
+                },
+            })),
+            ...(recommendedBoard && { subjectBoard: recommendedBoard }),
+            ...(Number.isInteger(grade) && grade > 0 && { subjectGrade: grade }),
+            ...(blockedTeacherProfileIds.length > 0 && {
+                NOT: {
+                    teacherId: { in: blockedTeacherProfileIds },
+                },
+            }),
         };
-
-        // Add subjectSearchHeading filter if recommendedSubjects is provided
-        if (recommendedSubjects && Array.isArray(recommendedSubjects) && recommendedSubjects.length > 0) {
-            whereCondition.subjectSearchHeading = {
-                in: recommendedSubjects
-            };
-        }
 
         const filteredSubjects = await prisma.subject.findMany({
             where: withUpcomingCatalog(whereCondition),
-            include: {
-                teacherProfile: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true,
-                                profileImage: true
-                            }
-                        }
-                    }
-                }
-            }
+            include: subjectCardInclude,
+            orderBy: { createdAt: 'desc' },
         });
 
+        if (filteredSubjects.length === 0) {
+            const randomSubjects = await findRandomCatalogSubjects(blockedTeacherProfileIds);
+            return res.status(200).json(randomSubjects);
+        }
+
         // Transform response to match expected format
-        const transformedSubjects = filteredSubjects.map(subject => ({
-            ...subject,
-            user: {
-                name: subject.teacherProfile?.user?.name,
-                profileImage: subject.teacherProfile?.user?.profileImage
-            }
-        }));
+        const transformedSubjects = filteredSubjects.map(toSubjectCard);
 
         console.log(transformedSubjects,'filteredSubjects');
         

@@ -19,6 +19,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ipURL } from "../utils/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useSegments } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import { resetToHome } from "../utils/navigation";
 import { horizontalScale, verticalScale, moderateScale } from '../utils/metrics';
 import { COLORS, FONT } from "../../constants";
 import { socket, connectSocket } from '../utils/socket';
@@ -174,6 +176,7 @@ const CapacityCard = React.memo(({ availableSpots, maxCapacity, isFull }: Capaci
 });
 
 const SubjectPage = ({ subjectId, guestPreview = false }) => {
+  const navigation = useNavigation();
   const segments = useSegments() as string[];
   const stackTab = segments.includes('profile') ? 'profile' : 'home';
   const [singleSubjectData, setSingleSubjectData] = React.useState<SubjectData>({});
@@ -1290,6 +1293,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
           time={selectedBookingTime}
           onConfirm={() => {
             setShowBookingSummary(false);
+            resetToHome(navigation);
           }}
         />
       )}

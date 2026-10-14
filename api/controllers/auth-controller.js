@@ -97,6 +97,24 @@ const getManagedOrganization = (teacherProfile) => {
   return teacherProfile.ledOrganization || teacherProfile.organization || null;
 };
 
+const collectSubjectTags = (subjects) => {
+  const tags = [];
+  const seen = new Set();
+  for (const subject of subjects || []) {
+    const list = Array.isArray(subject?.subjectTags) ? subject.subjectTags : [];
+    for (const tag of list) {
+      if (typeof tag !== 'string') continue;
+      const trimmed = tag.trim();
+      if (!trimmed) continue;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      tags.push(trimmed);
+    }
+  }
+  return tags;
+};
+
 export const registerSuperAdmin = async (req, res, next) => {
     try {
         const { name, email, password, profileImage, userDescription, role, permissions } = req.body;
@@ -1046,6 +1064,20 @@ export const getTeacherProfile = async (req, res, next) => {
       return res.status(400).json({ message: "Teacher profile not found" });
     }
 
+    const subjectSelect = {
+      id: true,
+      subjectName: true,
+      subjectDescription: true,
+      subjectImage: true,
+      subjectBoard: true,
+      subjectGrade: true,
+      subjectPrice: true,
+      subjectDuration: true,
+      subjectLanguage: true,
+      subjectTags: true,
+      subjectVerification: true,
+    };
+
     const user = await prisma.user.findFirst({
       where: { teacherProfile: { id: resolvedTeacherProfileId } },
       include: {
@@ -1053,15 +1085,7 @@ export const getTeacherProfile = async (req, res, next) => {
           include: {
             subjects: {
               where: publicCatalogFilter(),
-              select: {
-                id: true,
-                subjectName: true,
-                subjectImage: true,
-                subjectBoard: true,
-                subjectGrade: true,
-                subjectPrice: true,
-                subjectVerification: true,
-              }
+              select: subjectSelect,
             },
             ledOrganization: true,
             organization: true
@@ -1081,16 +1105,6 @@ export const getTeacherProfile = async (req, res, next) => {
     const canSeePrivateCourses =
       req.userType === 'ADMIN' ||
       (req.userType === 'TEACHER' && req.userId === user.id);
-
-    const subjectSelect = {
-      id: true,
-      subjectName: true,
-      subjectImage: true,
-      subjectBoard: true,
-      subjectGrade: true,
-      subjectPrice: true,
-      subjectVerification: true,
-    };
 
     const subjects = canSeePrivateCourses
       ? await prisma.subject.findMany({
@@ -1112,6 +1126,7 @@ export const getTeacherProfile = async (req, res, next) => {
       userType: user.userType,
       isTeamLead: user.teacherProfile.isTeamLead,
       organization: user.teacherProfile.ledOrganization || user.teacherProfile.organization,
+      reccomendedSubjects: collectSubjectTags(subjects),
       subjects,
       stats,
     };

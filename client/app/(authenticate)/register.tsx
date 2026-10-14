@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import axios from 'axios';
 import { ipURL } from '../utils/utils';
+import { COMMON_SUBJECT_OPTIONS } from '../utils/commonSubjects';
 import { COLORS } from '../../constants/theme';
 import { verticalScale, horizontalScale, moderateScale } from '../utils/metrics';
 import useSafeAreaInsets, { addBasePaddingToTopInset, addBasePaddingToInset } from '../hooks/useSafeAreaInsets';
@@ -218,7 +219,7 @@ const UserTypeScreen = ({ onSelect }) => {
     );
 };
 
-const CustomDropdown = ({ label, value, options, onSelect, placeholder, isMultiSelect = false, selectedValues = [], multiSelectValueType = 'number', hasError = false, errorMessage = '' }) => {
+const CustomDropdown = ({ label, value, options, onSelect, placeholder, isMultiSelect = false, selectedValues = [], multiSelectValueType = 'number', hasError = false, errorMessage = '', info = '', maxSelections = 0, children = null }) => {
     const [isOpen, setIsOpen] = useState(false);
     const insets = useSafeAreaInsets();
     const { height } = useWindowDimensions();
@@ -244,6 +245,8 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, isMultiS
             const newValue = multiSelectValueType === 'string' ? optionValue : Number(optionValue);
             if (selectedValues.includes(newValue)) {
                 onSelect(selectedValues.filter((v: number | string) => v !== newValue));
+            } else if (maxSelections > 0 && selectedValues.length >= maxSelections) {
+                Alert.alert('Limit Reached', `You can select up to ${maxSelections}`);
             } else {
                 onSelect([...selectedValues, newValue]);
             }
@@ -271,18 +274,23 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, isMultiS
     return (
         <View style={styles.inputGroup}>
             <Text style={styles.label}>{label}</Text>
+            {!!info && <Text style={[styles.infoText, styles.dropdownInfo]}>{info}</Text>}
             <TouchableOpacity 
                 style={[styles.dropdownButton, hasError && styles.dropdownButtonError]}
                 onPress={() => setIsOpen(true)}
             >
-                <Text style={[
-                    styles.dropdownButtonText,
-                    (!value && !selectedValues.length) && styles.placeholderText
-                ]}>
+                <Text
+                    style={[
+                        styles.dropdownButtonText,
+                        (!value && !selectedValues.length) && styles.placeholderText
+                    ]}
+                    numberOfLines={2}
+                >
                     {getDisplayValue()}
                 </Text>
                 <Ionicons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
+            {children}
             {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
             <Modal
@@ -342,8 +350,7 @@ const RegisterPage = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [profileImageUri, setProfileImageUri] = useState('');
     const [userDescription, setUserDescription] = useState('');
-    const [reccomendedSubjects, setReccomendedSubjects] = useState([]);
-    const [subjectInput, setSubjectInput] = useState('');
+    const [reccomendedSubjects, setReccomendedSubjects] = useState<string[]>([]);
     const [userType, setUserType] = useState<'student' | 'teacher' | 'organization' | 'parent' | null>(null);
     const [recommendedBoard, setRecommendedBoard] = useState('');
     const [selectedBoards, setSelectedBoards] = useState<string[]>([]);
@@ -395,6 +402,8 @@ const RegisterPage = () => {
             value: i + 1
         }))
     ];
+
+    const subjectOptions = COMMON_SUBJECT_OPTIONS;
 
     const organizationRoleOptions = [
         { label: 'OWNER', value: 'OWNER' },
@@ -455,7 +464,9 @@ const RegisterPage = () => {
 
         if (userType !== 'parent') {
             if (reccomendedSubjects.length === 0) {
-                newErrors.reccomendedSubjects = 'Please add at least one subject';
+                newErrors.reccomendedSubjects = 'Please select at least one subject';
+            } else if (reccomendedSubjects.length > 3) {
+                newErrors.reccomendedSubjects = 'You can select up to 3 subjects';
             }
 
             if (userType === 'organization') {
@@ -609,17 +620,6 @@ const RegisterPage = () => {
             Alert.alert('Registration Error', msg && typeof msg === 'string' ? msg : 'Something went wrong. Please check your details and try again.');
         }
     }
-
-    const handleReccomendedSubject = () => {
-        if (reccomendedSubjects.length < 3 && subjectInput.trim()) {
-            setReccomendedSubjects([...reccomendedSubjects, subjectInput.trim().toLowerCase()]);
-            setSubjectInput('');
-        } else if (reccomendedSubjects.length >= 3) {
-            Alert.alert('Limit Reached', 'You can only add up to 3 subjects');
-        } else {
-            Alert.alert('Invalid Input', 'Please enter a valid subject');
-        }
-    };
 
     if (showUserType) {
         return <UserTypeScreen onSelect={handleUserTypeSelect} />;
@@ -799,53 +799,52 @@ const RegisterPage = () => {
 
                     {userType !== 'parent' && (
                     <>
-                    <View style={styles.inputGroup} onLayout={(e) => { scrollInputTops.current['subjects'] = e.nativeEvent.layout.y; }}>
-                        <Text style={styles.label}>Add Subjects (Max 3)</Text>
-                        <View style={styles.subjectContainer}>
-                            <View style={[styles.subjectInputWrapper, errors.reccomendedSubjects && styles.subjectInputWrapperError]}>
-                                <TextInput
-                                    style={styles.subjectInput}
-                                    placeholder="Enter a subject"
-                                    placeholderTextColor="#666"
-                                    value={subjectInput}
-                                    onChangeText={(text) => {
-                                        setSubjectInput(text);
-                                        if (reccomendedSubjects.length > 0) {
-                                            clearFieldError('reccomendedSubjects');
-                                        }
-                                    }}
-                                    onFocus={() => scrollToInput('subjects')}
-                                />
-                              {reccomendedSubjects.length < 3 && <TouchableOpacity 
-                                    style={styles.addButton}
-                                    onPress={handleReccomendedSubject}
-                                >
-                                    <Ionicons name="add-circle" size={24} color={COLORS.primary} />
-                                </TouchableOpacity>}
+                    <CustomDropdown
+                        label="Add Subjects (Max 3)"
+                        info="Select 1 to 3 subjects."
+                        value=""
+                        options={subjectOptions}
+                        onSelect={(value: string[]) => {
+                            setReccomendedSubjects(value);
+                            if (value.length > 0) {
+                                clearFieldError('reccomendedSubjects');
+                            }
+                        }}
+                        placeholder="Select subjects"
+                        isMultiSelect
+                        selectedValues={reccomendedSubjects}
+                        multiSelectValueType="string"
+                        maxSelections={3}
+                        hasError={!!errors.reccomendedSubjects}
+                        errorMessage={errors.reccomendedSubjects || ''}
+                    >
+                        {reccomendedSubjects.length > 0 && (
+                            <View style={styles.chipContainer}>
+                                {reccomendedSubjects.map((subject) => {
+                                    const subjectLabel = subjectOptions.find((option) => option.value === subject)?.label ?? subject;
+                                    return (
+                                        <View key={subject} style={styles.chip}>
+                                            <Text style={styles.chipText}>{subjectLabel}</Text>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    const newSubjects = reccomendedSubjects.filter((item) => item !== subject);
+                                                    setReccomendedSubjects(newSubjects);
+                                                    if (newSubjects.length > 0) {
+                                                        clearFieldError('reccomendedSubjects');
+                                                    }
+                                                }}
+                                                style={styles.chipDeleteButton}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={`Remove ${subjectLabel}`}
+                                            >
+                                                <Ionicons name="close-circle" size={16} color={COLORS.primary} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    );
+                                })}
                             </View>
-                        </View>
-                        <View style={styles.chipContainer}>
-                            {reccomendedSubjects.map((subject, index) => (
-                                <View key={index} style={styles.chip}>
-                                    <Text style={styles.chipText}>{subject.toUpperCase()}</Text>
-                                    <TouchableOpacity 
-                                        onPress={() => {
-                                            const newSubjects = [...reccomendedSubjects];
-                                            newSubjects.splice(index, 1);
-                                            setReccomendedSubjects(newSubjects);
-                                            if (newSubjects.length > 0) {
-                                                clearFieldError('reccomendedSubjects');
-                                            }
-                                        }}
-                                        style={styles.chipDeleteButton}
-                                    >
-                                        <Ionicons name="close-circle" size={16} color={COLORS.primary} />
-                                    </TouchableOpacity>
-                                </View>
-                            ))}
-                        </View>
-                        {errors.reccomendedSubjects && <Text style={styles.errorText}>{errors.reccomendedSubjects}</Text>}
-                    </View>
+                        )}
+                    </CustomDropdown>
 
                     {userType === 'organization' ? (
                         <>
@@ -1103,27 +1102,6 @@ const styles = StyleSheet.create({
     eyeIcon: {
         padding: moderateScale(10),
     },
-    subjectContainer: {
-        marginBottom: verticalScale(10),
-    },
-    subjectInputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: moderateScale(8),
-        backgroundColor: '#fff',
-        paddingRight: horizontalScale(8),
-    },
-    subjectInput: {
-        flex: 1,
-        padding: moderateScale(12),
-        fontSize: moderateScale(16),
-        color: '#333',
-    },
-    addButton: {
-        padding: moderateScale(8),
-    },
     chipContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -1161,9 +1139,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
     },
     dropdownButtonText: {
+        flex: 1,
         fontSize: moderateScale(16),
         color: '#333',
         fontFamily: 'System',
+        marginRight: horizontalScale(8),
+    },
+    dropdownInfo: {
+        marginTop: 0,
+        marginBottom: verticalScale(8),
     },
     placeholderText: {
         color: '#666',
@@ -1434,9 +1418,6 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     passwordContainerError: {
-        borderColor: '#DC2626',
-    },
-    subjectInputWrapperError: {
         borderColor: '#DC2626',
     },
     dropdownButtonError: {

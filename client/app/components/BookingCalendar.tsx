@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ipURL } from '../utils/utils';
 import { Ionicons } from '@expo/vector-icons';
 import BookingSummaryModal from './BookingSummaryModal';
+import { useNavigation } from '@react-navigation/native';
+import { resetToHome } from '../utils/navigation';
 import { axiosWithAuth } from '../utils/customAxios';
 import { normalizeHHmm, toUaeParts, uaeDateStr } from '../utils/uaeDateTime';
 
@@ -45,6 +47,7 @@ const formatSlotTime = (timeString: string) => {
 };
 
 const BookingCalendar: React.FC<BookingCalendarProps> = ({ teacherId, teacherProfileId, subjectId, onClose, visible, courseType = 'SINGLE_STUDENT', subjectTopics, subjectDuration }) => {
+  const navigation = useNavigation();
   const isPackage = courseType === 'SINGLE_PACKAGE' && subjectTopics && subjectTopics.length > 0;
   const sortedTopics = isPackage ? [...(subjectTopics || [])].sort((a, b) => a.orderIndex - b.orderIndex) : [];
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
@@ -230,9 +233,10 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({ teacherId, teacherPro
       //   headers: { Authorization: `Bearer ${token}` }
       // });
 
-      Alert.alert('Success', 'Session booked successfully!');
       setShowSummary(false);
       onClose();
+      resetToHome(navigation);
+      Alert.alert('Success', 'Session booked successfully!');
     } catch (error) {
       console.error('Error booking session:', error);
       Alert.alert('Error', 'Failed to book session');

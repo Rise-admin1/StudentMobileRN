@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 import { ipURL } from "../../../utils/utils";
+import { COMMON_SUBJECT_OPTIONS, normalizeSubjectOption } from "../../../utils/commonSubjects";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { horizontalScale, moderateScale, verticalScale } from "../../../utils/metrics";
@@ -193,7 +194,7 @@ const CreateSubject = () => {
         setSubjectGrade(draft.subjectGrade ?? "");
         setSubjectLanguage(draft.subjectLanguage ?? "");
         setSubjectNameSubHeading(draft.subjectNameSubHeading ?? "");
-        setSubjectSearchHeading(draft.subjectSearchHeading ?? "");
+        setSubjectSearchHeading(normalizeSubjectOption(draft.subjectSearchHeading));
         setSubjectDuration(draft.subjectDuration ?? "");
         setsubjectPoints(draft.subjectPoints ?? []);
         // Do not restore image or PDFs from draft to avoid heavy data in storage
@@ -263,7 +264,7 @@ const CreateSubject = () => {
         setSubjectGrade(subject.subjectGrade != null ? String(subject.subjectGrade) : '');
         setSubjectLanguage(subject.subjectLanguage || '');
         setSubjectNameSubHeading(subject.subjectNameSubHeading || '');
-        setSubjectSearchHeading(subject.subjectSearchHeading || '');
+        setSubjectSearchHeading(normalizeSubjectOption(subject.subjectSearchHeading));
         setSubjectDuration(subject.subjectDuration != null ? String(subject.subjectDuration) : '');
         setsubjectPoints(Array.isArray(subject.subjectPoints) ? subject.subjectPoints : []);
         setCurrentMaxCapacity(subject.maxCapacity || 1);
@@ -638,6 +639,11 @@ const CreateSubject = () => {
         setIsLoading(false);
         return;
       }
+      if (!normalizeSubjectOption(subjectSearchHeading)) {
+        validationErrors.push("Choose a subject so students can find this course");
+        setIsLoading(false);
+        return;
+      }
 
       // Validate multi-student course requirements
       if (currentCourseType === 'MULTI_STUDENT') {
@@ -763,7 +769,7 @@ const CreateSubject = () => {
         subjectGrade,
         subjectDuration,
         subjectNameSubHeading,
-        subjectSearchHeading:'search',
+        subjectSearchHeading: normalizeSubjectOption(subjectSearchHeading),
         subjectLanguage,
         subjectPoints,
         teacherVerification:[pdf1, pdf2],
@@ -913,6 +919,7 @@ const CreateSubject = () => {
       if (!subjectPrice.trim()) return 'Add a price in AED.';
     }
     if (step === 1) {
+      if (!normalizeSubjectOption(subjectSearchHeading)) return 'Choose a subject.';
       if (!subjectBoard.trim()) return 'Choose a curriculum.';
       if (!subjectGrade.trim()) return 'Choose a grade.';
       if (!subjectLanguage.trim()) return 'Add the teaching language.';
@@ -1129,6 +1136,14 @@ const CreateSubject = () => {
 
             {step === 1 && (
             <View style={styles.section}>
+              <CustomDropdown
+                label="Subject"
+                info="Same subjects students pick when they register. This is how they find your course."
+                value={subjectSearchHeading}
+                options={COMMON_SUBJECT_OPTIONS}
+                onSelect={setSubjectSearchHeading}
+                placeholder="Choose a subject"
+              />
               <CustomDropdown
                 label="Curriculum"
                 info="Which board this course follows."

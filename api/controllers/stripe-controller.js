@@ -977,6 +977,10 @@ export const stripeWebhook = async (req, res, next) => {
                 }
 
                 try {
+                    const teacherGreetingName = String(teacherUser.name)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
                     await resend.emails.send({
                         from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
                         to: chargeSucceeded.metadata.teacherEmail,
@@ -992,7 +996,7 @@ export const stripeWebhook = async (req, res, next) => {
                             </div>
 
                             <div style="padding: 40px 20px; background-color: #ffffff;">
-                                <p style="font-size: 18px; font-weight: 500; color: #1A2B4B;">Hey,</p>
+                                <p style="font-size: 18px; font-weight: 500; color: #1A2B4B;">Hey ${teacherGreetingName},</p>
 
                                 <p style="font-size: 16px; line-height: 1.6; color: #64748B;">You have received a new booking! A student has booked your class.</p>
 

@@ -44,6 +44,7 @@ interface User {
   streakCount?: number;
   totalPoints?: number;
   isTeacher?: boolean;
+  isStudent?: boolean;
   isParent?: boolean;
   userType?: string;
   completedCourses?: number;
@@ -223,6 +224,7 @@ const NextClassCard = ({
 
 const HomePage = () => {
   const [subjectData, setSubjectData] = useState([]);
+  const [featuredSubjectData, setFeaturedSubjectData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const params = useLocalSearchParams();
@@ -251,8 +253,15 @@ const HomePage = () => {
 
   const firstName = userDetails.userName?.split(' ')[0] || 'there';
   const roleLabel = user.isTeacher ? 'Tutor' : user.isParent || user.userType === 'PARENT' ? 'Parent' : 'Student';
-  const featuredCourses = useMemo(() => subjectData.slice(0, 6), [subjectData]);
-  const browseCourses = useMemo(() => subjectData.slice(6, 16), [subjectData]);
+  const isStudent = user.userType === 'STUDENT' || !!user.isStudent;
+  const featuredCourses = useMemo(
+    () => (isStudent ? featuredSubjectData : subjectData.slice(0, 6)),
+    [isStudent, featuredSubjectData, subjectData]
+  );
+  const browseCourses = useMemo(
+    () => (isStudent ? subjectData.slice(0, 10) : subjectData.slice(6, 16)),
+    [isStudent, subjectData]
+  );
   const [nextClass, ...laterClasses] = deadlines;
 
   const refreshUserDetails = useCallback(async () => {
@@ -281,12 +290,25 @@ const HomePage = () => {
       }
       const subjectsResponse = await axiosWithAuth.get(`${ipURL}/api/subjects/search?subjectGrade=${subjectGrade}&subjectBoard=${subjectBoard}&subjectTags=${subjectTags}`);
       setSubjectData(subjectsResponse.data);
+
+      const isStudentUser = userResponse.data?.isStudent || userResponse.data?.userType === 'STUDENT';
+      if (isStudentUser) {
+        const recommendedSubjects = Array.isArray(userResponse.data?.reccomendedSubjects)
+          ? userResponse.data.reccomendedSubjects
+          : [];
+        const featuredResponse = await axiosWithAuth.post(`${ipURL}/api/subjects/get-recommended-subjects`, {
+          recommendedSubjects,
+        });
+        setFeaturedSubjectData(Array.isArray(featuredResponse.data) ? featuredResponse.data : []);
+      } else {
+        setFeaturedSubjectData([]);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
-  const fetchDeadlines = async () => {
+  const fetchDeadlines = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem('userDetails');
       const parsed = stored ? JSON.parse(stored) : {};
@@ -302,7 +324,13 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error fetching deadlines:', error);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDeadlines();
+    }, [fetchDeadlines])
+  );
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -326,7 +354,7 @@ const HomePage = () => {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([fetchData(), fetchDeadlines()]).finally(() => setRefreshing(false));
-  }, []);
+  }, [fetchDeadlines]);
 
   const handleItemPress = (itemId: { id: any }) => {
     router.push(`/(tabs)/home/${itemId.id}`);
@@ -553,37 +581,37 @@ const HomePage = () => {
       />
     </View>
 
-    {subjectData.length > 0 ? (
-      <>
-        <View style={styles.section}>
-          <SectionHeader
-            title="Featured courses"
-            actionLabel="See all"
-            onAction={() => router.push('/(tabs)/home/allSubject')}
-          />
-          <HorizontalSubjectCard
-            subjectData={featuredCourses}
-            handleItemPress={handleItemPress}
-            isHorizontal
-          />
-        </View>
+    {featuredCourses.length > 0 && (
+      <View style={styles.section}>
+        <SectionHeader
+          title="Featured courses"
+          actionLabel="See all"
+          onAction={() => router.push('/(tabs)/home/allSubject')}
+        />
+        <HorizontalSubjectCard
+          subjectData={featuredCourses}
+          handleItemPress={handleItemPress}
+          isHorizontal
+        />
+      </View>
+    )}
 
-        {browseCourses.length > 0 && (
-        <View style={styles.section}>
-          <SectionHeader
-            title="Browse courses"
-            actionLabel="See all"
-            onAction={() => router.push('/(tabs)/home/allSubject')}
-          />
-          <ColumnSubjectCards
-            subjectData={browseCourses}
-            handleItemPress={handleItemPress}
-            isHorizontal={false}
-          />
-        </View>
-        )}
-      </>
-    ) : (
+    {browseCourses.length > 0 && (
+      <View style={styles.section}>
+        <SectionHeader
+          title="Browse courses"
+          actionLabel="See all"
+          onAction={() => router.push('/(tabs)/home/allSubject')}
+        />
+        <ColumnSubjectCards
+          subjectData={browseCourses}
+          handleItemPress={handleItemPress}
+          isHorizontal={false}
+        />
+      </View>
+    )}
+
+    {featuredCourses.length === 0 && browseCourses.length === 0 && (
       <View style={styles.section}>
         <View style={styles.paddedBlock}>
           <View style={styles.emptyCourses}>
