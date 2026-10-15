@@ -139,6 +139,7 @@ model StudentProfile {
   parentLinks         ParentStudentLink[]
   parentConversations ParentConversation[]
   refundRequests      RefundRequest[]
+  ratingsReceived     StudentRating[]
 }
 
 // Teacher-specific data
@@ -162,6 +163,7 @@ model TeacherProfile {
   communityMemberships   CommunityUser[]
   communityMessages      CommunityMessage[]
   parentConversations    ParentConversation[]
+  studentRatings         StudentRating[]
 }
 
 // Admin-specific data
@@ -302,6 +304,21 @@ model SubjectTopic {
 
   @@index([subjectId])
   @@index([scheduledAt])
+}
+
+model StudentRating {
+  id          String         @id @default(cuid())
+  description String
+  rating      Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  teacherId   String
+  studentId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, studentId])
+  @@index([studentId])
 }
 
 model Review {

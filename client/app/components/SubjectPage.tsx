@@ -305,6 +305,80 @@ const CapacityCard = React.memo(({ availableSpots, maxCapacity, isFull }: Capaci
   );
 });
 
+const StudentRateCard = ({ student }) => {
+  const [rating, setRating] = useState(student.rating || 0);
+  const [description, setDescription] = useState(student.description || '');
+  const [hasRating, setHasRating] = useState(Boolean(student.rating));
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+
+  const saveRating = async () => {
+    if (savingRef.current) return;
+    if (!description.trim()) {
+      alert('Please add a description');
+      return;
+    }
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      alert('Please choose a star rating');
+      return;
+    }
+
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      await axiosWithAuth.post(`${ipURL}/api/student-ratings`, {
+        studentUserId: student.studentUserId,
+        description: description.trim(),
+        rating,
+      });
+      setHasRating(true);
+      alert('Student rating saved');
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Failed to save rating. Please try again.';
+      alert(message);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  };
+
+  return (
+    <View style={styles.studentRateCard}>
+      <Text style={styles.reviewerName}>{student.name || 'Student'}</Text>
+      <View style={styles.starPicker}>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => setRating(value)}
+            disabled={saving}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+          >
+            <Ionicons
+              name={value <= rating ? 'star' : 'star-outline'}
+              size={28}
+              color={value <= rating ? '#E6A817' : '#8A97A3'}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        placeholder="Give a brief description of this student."
+        placeholderTextColor="#8A97A3"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        numberOfLines={3}
+        maxLength={191}
+        editable={!saving}
+      />
+      <TouchableOpacity style={styles.submitButton} onPress={saveRating} disabled={saving}>
+        <Text style={styles.submitButtonText}>{saving ? 'Saving...' : hasRating ? 'Update rating' : 'Save rating'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const navigation = useNavigation();
   const segments = useSegments() as string[];
@@ -337,6 +411,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializingChat, setIsInitializingChat] = useState(false);
   const [showAllTopics, setShowAllTopics] = useState(false);
+  const [rateStudents, setRateStudents] = useState([]);
+  const isCourseTutor = !guestPreview && isUserType === 'TEACHER' && Boolean(currentUserId) && currentUserId === teacherId;
 
   const isFixedSchedulePast = useMemo(() => {
     const now = Date.now();
@@ -365,7 +441,26 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const menuScale = useRef(new Animated.Value(0)).current;
   const menuOpacity = useRef(new Animated.Value(0)).current;
 
-  console.log(singleSubjectData,'singleSubjectData in single subject page');
+  useEffect(() => {
+    if (!isCourseTutor || !subjectId) {
+      setRateStudents([]);
+      return;
+    }
+
+    let cancelled = false;
+    axiosWithAuth.get(`${ipURL}/api/student-ratings/subject/${subjectId}`)
+      .then((response) => {
+        if (!cancelled) setRateStudents(response.data?.students || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching students to rate:', error);
+        if (!cancelled) setRateStudents([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isCourseTutor, subjectId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1269,6 +1364,19 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
             </View>
           )}
 
+          {isCourseTutor && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleFlush]}>Rate students</Text>
+              {rateStudents.length > 0 ? (
+                rateStudents.map((student) => (
+                  <StudentRateCard key={student.studentUserId} student={student} />
+                ))
+              ) : (
+                <Text style={styles.noReviewsText}>Students you teach in this course will appear here.</Text>
+              )}
+            </View>
+          )}
+
           {/* Reviews Section */}
           <View style={styles.section}>
             <View style={styles.reviewsHeader}>
@@ -1814,6 +1922,12 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     color: '#5C6B76',
     lineHeight: 20,
+  },
+  studentRateCard: {
+    backgroundColor: '#F4F6F8',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
   },
   reviewForm: {
     marginTop: 8,

@@ -26,6 +26,7 @@ const ProfileLayout = () => {
     ),}} />
 
     <Stack.Screen name='schedule' options={{ headerShown:false }}/>
+    <Stack.Screen name="student/[studentUserId]" options={{ headerShown: false }} />
     <Stack.Screen
       name="chat/[conversationId]"
       options={{ headerShown: false, gestureEnabled: false }}

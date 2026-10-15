@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StatusBar, Linking } from 'react-native';
-import { useSegments } from 'expo-router';
+import { router, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FONT } from '../../../constants';
@@ -67,13 +67,20 @@ const SchedulePage = () => {
   };
 
   const handleEventPress = (event) => {
+    const actions = [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Join', onPress: () => Linking.openURL(event.zoomUrl) },
+    ];
+    if (userDetails?.isTeacher && event.studentId) {
+      actions.splice(1, 0, {
+        text: 'Rate student',
+        onPress: () => router.push(`/(tabs)/profile/student/${event.studentId}`),
+      });
+    }
     Alert.alert(
       event.title,
       `With: ${event.instructor}\nDate: ${formatDate(event.date)}\nTime: ${event.time}\nSubject: ${event.subject}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Join', onPress: () => Linking.openURL(event.zoomUrl) }
-      ]
+      actions
     );
   };
 

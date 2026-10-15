@@ -67,6 +67,7 @@ const ProfilePage = () => {
   const [linkedChildren, setLinkedChildren] = useState([]);
   const [pendingChildren, setPendingChildren] = useState([]);
   const [childrenLoading, setChildrenLoading] = useState(false);
+  const [studentRatings, setStudentRatings] = useState(null);
 
   const isParent = !!(userDetails?.isParent || userDetails?.userType === 'PARENT');
 
@@ -83,8 +84,15 @@ const ProfilePage = () => {
         } catch (error) {
           setParentInvites([]);
         }
+        try {
+          const ratings = await axiosWithAuth.get(`${ipURL}/api/student-ratings/${apiUser.data.id}`);
+          setStudentRatings(ratings.data);
+        } catch (error) {
+          setStudentRatings(null);
+        }
       } else {
         setParentInvites([]);
+        setStudentRatings(null);
       }
 
       const userIsParent = !!(apiUser.data?.isParent || apiUser.data?.userType === 'PARENT');
@@ -336,6 +344,47 @@ const ProfilePage = () => {
             </Text>
           </View>
         </View>
+
+        {userDetails?.userType === 'STUDENT' && !userDetails?.isTeacher && !isParent && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>Ratings</Text>
+            <View style={styles.card}>
+              <View style={styles.ratingSummary}>
+                <View style={styles.starRow}>
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <Ionicons
+                      key={value}
+                      name={value <= Math.round(studentRatings?.average || 0) ? 'star' : 'star-outline'}
+                      size={18}
+                      color={value <= Math.round(studentRatings?.average || 0) ? '#E6A817' : '#C5CDD6'}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.ratingSummaryText}>
+                  {studentRatings?.count
+                    ? `${studentRatings.average} from ${studentRatings.count} ${studentRatings.count === 1 ? 'rating' : 'ratings'}`
+                    : 'No ratings yet'}
+                </Text>
+              </View>
+              {(studentRatings?.ratings || []).map((rating) => (
+                <View key={rating.id} style={styles.ratingItem}>
+                  <Text style={styles.ratingTeacher}>{rating.teacher?.name || 'Tutor'}</Text>
+                  <View style={styles.starRow}>
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <Ionicons
+                        key={value}
+                        name={value <= rating.rating ? 'star' : 'star-outline'}
+                        size={14}
+                        color={value <= rating.rating ? '#E6A817' : '#C5CDD6'}
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.aboutText}>{rating.description}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {parentInvites.length > 0 && (
           <View style={styles.section}>
@@ -679,6 +728,32 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     color: '#5C6B76',
     lineHeight: 22,
+  },
+  ratingSummary: {
+    marginBottom: verticalScale(4),
+  },
+  ratingSummaryText: {
+    marginTop: 6,
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+  },
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  ratingItem: {
+    marginTop: verticalScale(14),
+    paddingTop: verticalScale(14),
+    borderTopWidth: 1,
+    borderTopColor: '#E6EBF0',
+  },
+  ratingTeacher: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(14),
+    color: '#12263A',
+    marginBottom: 4,
   },
   emptyCourses: {
     backgroundColor: '#FFFFFF',
