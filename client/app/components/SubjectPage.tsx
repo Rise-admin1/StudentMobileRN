@@ -31,8 +31,8 @@ import { axiosWithAuth } from "../utils/customAxios";
 import { SafeAreaView } from "react-native-safe-area-context";
 interface Review {
   id: string;
-  title: string;
   description: string;
+  rating: number;
   createdAt: string;
   upvotes: number;
   downvotes: number;
@@ -91,32 +91,58 @@ const blurhash =
   '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
 interface ReviewFormProps {
-  onSubmit: (reviewData: { title: string; description: string }) => void;
+  onSubmit: (reviewData: { description: string; rating: number }) => Promise<boolean>;
   isSubmitting: boolean;
   purchaseStatus: boolean;
 }
 
-const ReviewForm = React.memo(({ onSubmit, isSubmitting, purchaseStatus }: ReviewFormProps) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+const votesInFlight = new Set<string>();
 
-  const handleSubmit = useCallback(() => {
-    onSubmit({ title, description });
-    setTitle('');
-    setDescription('');
-  }, [title, description, onSubmit]);
+const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
+  <View style={styles.starRow}>
+    {[1, 2, 3, 4, 5].map((value) => (
+      <Ionicons
+        key={value}
+        name={value <= rating ? 'star' : 'star-outline'}
+        size={size}
+        color={value <= rating ? '#E6A817' : '#C5CDD6'}
+      />
+    ))}
+  </View>
+);
+
+const ReviewForm = React.memo(({ onSubmit, isSubmitting, purchaseStatus }: ReviewFormProps) => {
+  const [description, setDescription] = useState('');
+  const [rating, setRating] = useState(0);
+
+  const handleSubmit = useCallback(async () => {
+    const saved = await onSubmit({ description, rating });
+    if (saved) {
+      setDescription('');
+      setRating(0);
+    }
+  }, [description, rating, onSubmit]);
 
   return (
     <View style={styles.reviewForm}>
       <Text style={styles.sectionTitle}>Submit Your Review</Text>
       {purchaseStatus ? <View>
-      <TextInput
-        style={styles.input}
-        placeholder="Review title"
-        placeholderTextColor="#8A97A3"
-        value={title}
-        onChangeText={setTitle}
-      />
+      <View style={styles.starPicker}>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => setRating(value)}
+            disabled={isSubmitting}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+          >
+            <Ionicons
+              name={value <= rating ? 'star' : 'star-outline'}
+              size={32}
+              color={value <= rating ? '#E6A817' : '#8A97A3'}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
       <TextInput
         style={[styles.input, styles.textArea]}
         placeholder="Give a brief description of your experience."
@@ -125,6 +151,7 @@ const ReviewForm = React.memo(({ onSubmit, isSubmitting, purchaseStatus }: Revie
         onChangeText={setDescription}
         multiline
         numberOfLines={4}
+        maxLength={191}
       />
       <TouchableOpacity
         style={styles.submitButton}
@@ -139,6 +166,109 @@ const ReviewForm = React.memo(({ onSubmit, isSubmitting, purchaseStatus }: Revie
     </View>
   );
 });
+
+const ReviewItem = ({ review, guestPreview }: { review: Review; guestPreview: boolean }) => {
+  const [voteState, setVoteState] = useState({
+    upvotes: review?.upvotes || 0,
+    downvotes: review?.downvotes || 0,
+    userVote: review?.userVote || null
+  });
+  const [isVoting, setIsVoting] = useState(() => votesInFlight.has(review?.id));
+
+  const handleVote = async (voteType: 'up' | 'down') => {
+    if (!review?.id || votesInFlight.has(review.id)) {
+      return;
+    }
+
+    votesInFlight.add(review.id);
+    setIsVoting(true);
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await axios.post(
+        `${ipURL}/api/reviews/${review.id}/vote`,
+        { voteType },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setVoteState({
+        upvotes: response.data.upvotes,
+        downvotes: response.data.downvotes,
+        userVote: response.data.userVote
+      });
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status !== 409) {
+        console.error("Error voting:", error);
+        alert('Failed to vote. Please try again.');
+      }
+    } finally {
+      votesInFlight.delete(review.id);
+      setIsVoting(false);
+    }
+  };
+
+  if (!review || !review.user) {
+    return null;
+  }
+
+  return (
+    <View style={styles.reviewItem}>
+      <View style={styles.reviewHeader}>
+        <Image
+          source={{ uri: review.user?.profileImage || '' }}
+          style={styles.reviewerImage}
+          placeholder={blurhash}
+          contentFit='fill'
+          transition={100}
+        />
+        <View style={styles.reviewerInfo}>
+          <Text style={styles.reviewerName}>{review.user?.name || 'Anonymous'}</Text>
+          <Text style={styles.reviewDate}>
+            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}
+          </Text>
+        </View>
+      </View>
+      <StarRow rating={review.rating || 0} />
+      <Text style={styles.reviewDescription}>{review.description || ''}</Text>
+
+      {!guestPreview && (
+        <View style={styles.voteContainer}>
+          <TouchableOpacity
+            style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote, isVoting && styles.voteButtonDisabled]}
+            onPress={() => handleVote('up')}
+            disabled={isVoting}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name="thumbs-up"
+              size={16}
+              color={voteState.userVote === 'up' ? '#2DCB63' : '#666'}
+            />
+            <Text style={[styles.voteCount, voteState.userVote === 'up' && styles.activeVoteCount]}>
+              {voteState.upvotes}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote, isVoting && styles.voteButtonDisabled]}
+            onPress={() => handleVote('down')}
+            disabled={isVoting}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name="thumbs-down"
+              size={16}
+              color={voteState.userVote === 'down' ? '#E74C3C' : '#666'}
+            />
+            <Text style={[styles.voteCount, voteState.userVote === 'down' && styles.activeVoteCount]}>
+              {voteState.downvotes}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+};
 
 interface CapacityCardProps {
   availableSpots: number;
@@ -773,9 +903,14 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   };
 
   const handleSubmitReview = useCallback(async (reviewData) => {
-    if (!reviewData.title || !reviewData.description) {
-      alert('Please fill in all fields');
-      return;
+    if (!reviewData.description || !reviewData.description.trim()) {
+      alert('Please add a description');
+      return false;
+    }
+
+    if (!Number.isInteger(reviewData.rating) || reviewData.rating < 1 || reviewData.rating > 5) {
+      alert('Please choose a star rating');
+      return false;
     }
 
     setIsSubmitting(true);
@@ -783,8 +918,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       const response = await axios.post(
         `${ipURL}/api/reviews`,
         {
-          title: reviewData.title,
-          description: reviewData.description,
+          description: reviewData.description.trim(),
+          rating: reviewData.rating,
           subjectId: subjectId,
         },
         {
@@ -792,108 +927,21 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         }
       );
       
-      // Ensure response.data has the expected structure with user object
       if (response.data) {
         setReviews(prevReviews => [response.data, ...prevReviews]);
       }
+      return true;
     } catch (error) {
       console.error("Error submitting review:", error);
       alert('Failed to submit review. Please try again.');
+      return false;
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   }, [subjectId, usertoken]);
 
   const handleViewAllReviews = () => {
     router.push(`/(tabs)/${stackTab}/subjectReviews/${subjectId}`);
-  };
-
-  const ReviewItem = ({ review }) => {
-    const [voteState, setVoteState] = useState({
-      upvotes: review?.upvotes || 0,
-      downvotes: review?.downvotes || 0,
-      userVote: review?.userVote || null
-    });
-
-    const handleVote = async (voteType: 'up' | 'down') => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        const response = await axios.post(
-          `${ipURL}/api/reviews/${review.id}/vote`,
-          { voteType },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        setVoteState({
-          upvotes: response.data.upvotes,
-          downvotes: response.data.downvotes,
-          userVote: response.data.userVote
-        });
-      } catch (error) {
-        console.error("Error voting:", error);
-        alert('Failed to vote. Please try again.');
-      }
-    };
-
-    // Safety check for review data
-    if (!review || !review.user) {
-      return null;
-    }
-
-    return (
-      <View style={styles.reviewItem}>
-        <View style={styles.reviewHeader}>
-          <Image
-            source={{ uri: review.user?.profileImage || '' }}
-            style={styles.reviewerImage}
-            placeholder={blurhash}
-            contentFit='fill'
-            transition={100}
-          />
-          <View style={styles.reviewerInfo}>
-            <Text style={styles.reviewerName}>{review.user?.name || 'Anonymous'}</Text>
-            <Text style={styles.reviewDate}>
-              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.reviewTitle}>{review.title || ''}</Text>
-        <Text style={styles.reviewDescription}>{review.description || ''}</Text>
-        
-        {!guestPreview && (
-          <View style={styles.voteContainer}>
-            <TouchableOpacity 
-              style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote]}
-              onPress={() => handleVote('up')}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons 
-                name="thumbs-up" 
-                size={16} 
-                color={voteState.userVote === 'up' ? '#2DCB63' : '#666'} 
-              />
-              <Text style={[styles.voteCount, voteState.userVote === 'up' && styles.activeVoteCount]}>
-                {voteState.upvotes}
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote]}
-              onPress={() => handleVote('down')}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons 
-                name="thumbs-down" 
-                size={16} 
-                color={voteState.userVote === 'down' ? '#E74C3C' : '#666'} 
-              />
-              <Text style={[styles.voteCount, voteState.userVote === 'down' && styles.activeVoteCount]}>
-                {voteState.downvotes}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    );
   };
 
   const canReportOrBlock =
@@ -1235,7 +1283,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
             {reviews.length > 0 ? (
               <>
                 {reviews.slice(0, 3).map((review) => (
-                  <ReviewItem key={review.id} review={review} />
+                  <ReviewItem key={review.id} review={review} guestPreview={guestPreview} />
                 ))}
               </>
             ) : (
@@ -1749,11 +1797,17 @@ const styles = StyleSheet.create({
     color: '#5C6B76',
     marginTop: 2,
   },
-  reviewTitle: {
-    fontSize: moderateScale(14),
-    fontFamily: FONT.semiBold,
-    color: '#12263A',
-    marginBottom: 4,
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: 6,
+  },
+  starPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   reviewDescription: {
     fontSize: moderateScale(13),
@@ -1886,6 +1940,9 @@ const styles = StyleSheet.create({
   },
   activeDownVote: {
     backgroundColor: '#FDECEC',
+  },
+  voteButtonDisabled: {
+    opacity: 0.5,
   },
   voteCount: {
     fontSize: moderateScale(13),

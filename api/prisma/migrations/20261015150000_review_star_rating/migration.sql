@@ -1,0 +1,5 @@
+DELETE FROM `ReviewVote`;
+DELETE FROM `Review`;
+
+ALTER TABLE `Review` DROP COLUMN `title`,
+    ADD COLUMN `rating` INTEGER NOT NULL;

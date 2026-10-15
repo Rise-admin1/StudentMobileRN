@@ -14,6 +14,7 @@ import { ipURL } from "../../../utils/utils";
 import { useLocalSearchParams, router } from "expo-router";
 import { horizontalScale, verticalScale, moderateScale } from '../../../utils/metrics';
 import { FONT } from "../../../../constants";
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const blurhash =
@@ -21,8 +22,8 @@ const blurhash =
 
 interface Review {
   id: string;
-  title: string;
   description: string;
+  rating: number;
   createdAt: string;
   user: {
     name: string;
@@ -82,7 +83,16 @@ const SubjectReviews = () => {
           </Text>
         </View>
       </View>
-      <Text style={styles.reviewTitle}>{review.title}</Text>
+      <View style={styles.starRow}>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <Ionicons
+            key={value}
+            name={value <= review.rating ? 'star' : 'star-outline'}
+            size={16}
+            color={value <= review.rating ? '#E6A817' : '#C5CDD6'}
+          />
+        ))}
+      </View>
       <Text style={styles.reviewDescription}>{review.description}</Text>
     </View>
   );
@@ -184,10 +194,10 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     color: '#5D6D7E',
   },
-  reviewTitle: {
-    fontFamily: FONT.bold,
-    fontSize: moderateScale(16),
-    color: '#1A4C6E',
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
     marginBottom: verticalScale(5),
   },
   reviewDescription: {

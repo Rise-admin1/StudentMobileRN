@@ -16,8 +16,8 @@ import { FONT } from '../../../constants';
 
 interface Review {
   id: string;
-  title: string;
   description: string;
+  rating: number;
   createdAt: string;
   upvotes: number;
   downvotes: number;
@@ -102,9 +102,16 @@ const YourReviewsPage = () => {
                 </Text>
                 <Text style={styles.date}>{formatDate(review.createdAt)}</Text>
               </View>
-              <Text style={styles.reviewTitle} numberOfLines={2}>
-                {review.title}
-              </Text>
+              <View style={styles.starRow}>
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <Ionicons
+                    key={value}
+                    name={value <= review.rating ? 'star' : 'star-outline'}
+                    size={16}
+                    color={value <= review.rating ? '#E6A817' : '#C5CDD6'}
+                  />
+                ))}
+              </View>
               <Text style={styles.reviewDescription} numberOfLines={3}>
                 {review.description}
               </Text>
@@ -211,10 +218,10 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginLeft: horizontalScale(8),
   },
-  reviewTitle: {
-    fontFamily: FONT.bold,
-    fontSize: moderateScale(16),
-    color: '#1A2B4B',
+  starRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
     marginBottom: verticalScale(6),
   },
   reviewDescription: {

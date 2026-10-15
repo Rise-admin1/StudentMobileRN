@@ -2,10 +2,21 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const votesInFlight = new Set();
+
 export const createReview = async (req, res, next) => {
   try {
-    const { title, description, subjectId } = req.body;
+    const { description, rating, subjectId } = req.body;
+    const stars = Number(rating);
     const userId = req.userId;
+
+    if (!description || typeof description !== 'string' || !description.trim()) {
+      return res.status(400).json({ message: "Description is required" });
+    }
+
+    if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
+      return res.status(400).json({ message: "Rating must be a whole number from 1 to 5" });
+    }
 
     // Get StudentProfile.id from User.id
     const user = await prisma.user.findUnique({
@@ -23,8 +34,8 @@ export const createReview = async (req, res, next) => {
 
     const review = await prisma.review.create({
       data: {
-        title,
-        description,
+        description: description.trim(),
+        rating: stars,
         studentId: user.studentProfile.id,
         subjectId,
       },
@@ -171,10 +182,16 @@ export const getMyReviews = async (req, res, next) => {
 };
 
 export const voteReview = async (req, res, next) => {
+  const { reviewId } = req.params;
+  const { voteType } = req.body;
+  const userId = req.userId;
+  let lockKey = null;
+  let acquiredLock = false;
+
   try {
-    const { reviewId } = req.params;
-    const { voteType } = req.body;
-    const userId = req.userId;
+    if (voteType !== 'up' && voteType !== 'down') {
+      return res.status(400).json({ message: "Vote must be up or down" });
+    }
 
     // Get StudentProfile.id from User.id
     const user = await prisma.user.findUnique({
@@ -191,33 +208,35 @@ export const voteReview = async (req, res, next) => {
     }
 
     const studentId = user.studentProfile.id;
+    lockKey = `${studentId}:${reviewId}`;
 
-    // Find the review
-    const review = await prisma.review.findUnique({
-      where: { id: reviewId },
-    });
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
+    if (votesInFlight.has(lockKey)) {
+      return res.status(409).json({ message: "Vote is already being saved" });
     }
 
-    // Check if user has already voted
-    const existingVote = await prisma.reviewVote.findUnique({
-      where: {
-        studentId_reviewId: {
-          studentId,
-          reviewId,
+    votesInFlight.add(lockKey);
+    acquiredLock = true;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const review = await tx.review.findUnique({
+        where: { id: reviewId },
+      });
+
+      if (!review) {
+        return null;
+      }
+
+      const existingVote = await tx.reviewVote.findUnique({
+        where: {
+          studentId_reviewId: {
+            studentId,
+            reviewId,
+          },
         },
-      },
-    });
+      });
 
-    let updatedReview;
-    let userVote;
-
-    if (existingVote) {
-      // If user is voting the same way again, remove their vote
-      if (existingVote.voteType === voteType) {
-        await prisma.reviewVote.delete({
+      if (existingVote && existingVote.voteType === voteType) {
+        await tx.reviewVote.delete({
           where: {
             studentId_reviewId: {
               studentId,
@@ -226,17 +245,22 @@ export const voteReview = async (req, res, next) => {
           },
         });
 
-        updatedReview = await prisma.review.update({
+        const updatedReview = await tx.review.update({
           where: { id: reviewId },
-          data: {
-            upvotes: voteType === 'up' ? review.upvotes - 1 : review.upvotes,
-            downvotes: voteType === 'down' ? review.downvotes - 1 : review.downvotes,
-          },
+          data: voteType === 'up'
+            ? { upvotes: { decrement: 1 } }
+            : { downvotes: { decrement: 1 } },
         });
-        userVote = null;
-      } else {
-        // If user is changing their vote
-        await prisma.reviewVote.update({
+
+        return {
+          upvotes: updatedReview.upvotes,
+          downvotes: updatedReview.downvotes,
+          userVote: null,
+        };
+      }
+
+      if (existingVote) {
+        await tx.reviewVote.update({
           where: {
             studentId_reviewId: {
               studentId,
@@ -246,18 +270,22 @@ export const voteReview = async (req, res, next) => {
           data: { voteType },
         });
 
-        updatedReview = await prisma.review.update({
+        const updatedReview = await tx.review.update({
           where: { id: reviewId },
           data: {
-            upvotes: voteType === 'up' ? review.upvotes + 1 : review.upvotes - 1,
-            downvotes: voteType === 'down' ? review.downvotes + 1 : review.downvotes - 1,
+            upvotes: { increment: voteType === 'up' ? 1 : -1 },
+            downvotes: { increment: voteType === 'down' ? 1 : -1 },
           },
         });
-        userVote = voteType;
+
+        return {
+          upvotes: updatedReview.upvotes,
+          downvotes: updatedReview.downvotes,
+          userVote: voteType,
+        };
       }
-    } else {
-      // Create new vote
-      await prisma.reviewVote.create({
+
+      await tx.reviewVote.create({
         data: {
           studentId,
           reviewId,
@@ -265,22 +293,30 @@ export const voteReview = async (req, res, next) => {
         },
       });
 
-      updatedReview = await prisma.review.update({
+      const updatedReview = await tx.review.update({
         where: { id: reviewId },
-        data: {
-          upvotes: voteType === 'up' ? review.upvotes + 1 : review.upvotes,
-          downvotes: voteType === 'down' ? review.downvotes + 1 : review.downvotes,
-        },
+        data: voteType === 'up'
+          ? { upvotes: { increment: 1 } }
+          : { downvotes: { increment: 1 } },
       });
-      userVote = voteType;
+
+      return {
+        upvotes: updatedReview.upvotes,
+        downvotes: updatedReview.downvotes,
+        userVote: voteType,
+      };
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: "Review not found" });
     }
 
-    res.status(200).json({
-      upvotes: updatedReview.upvotes,
-      downvotes: updatedReview.downvotes,
-      userVote,
-    });
+    res.status(200).json(result);
   } catch (err) {
     next(err);
-  } 
+  } finally {
+    if (acquiredLock && lockKey) {
+      votesInFlight.delete(lockKey);
+    }
+  }
 }; 
