@@ -1258,10 +1258,12 @@ export const stripeWebhook = async (req, res, next) => {
                         rows: [
                             ['Student', studentUser?.name || ''],
                             ['Student email', chargeSucceeded.metadata.userEmail || studentUser?.email || ''],
+                            ['Teacher', teacherUser?.name || ''],
                             ['Course', chargeSucceeded.metadata.subjectName || ''],
                             ['Amount (AED)', (chargeSucceeded.amount / 100).toFixed(2)],
                             ['Course type', courseType || ''],
                             ['Subject ID', chargeSucceeded.metadata.subjectId || ''],
+                            ['Stripe charge ID', chargeSucceeded.id || ''],
                         ],
                     });
                     try {
