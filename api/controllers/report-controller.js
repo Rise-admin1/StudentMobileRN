@@ -5,31 +5,61 @@ const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 
+const canReportOrBlock = (userType) => userType === 'STUDENT' || userType === 'TEACHER';
+
+const findSubjectTutor = async (subjectId) => {
+    if (!subjectId) return null;
+    return prisma.subject.findUnique({
+        where: { id: subjectId },
+        select: {
+            id: true,
+            teacherId: true,
+            teacherProfile: {
+                select: { userId: true },
+            },
+        },
+    });
+};
+
 export const reportSubject = async (req, res, next) => {
     const {subjectId, reportReason} = req.body;
     const userId = req.userId;
     const userEmail = req.email;
+    const cleanedReason = typeof reportReason === 'string' ? reportReason.replace(/\s+/g, ' ').trim() : '';
     try {
-        // Get StudentProfile.id from User.id
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: {
-                    select: { id: true }
-                }
-            }
-        });
+        if (!canReportOrBlock(req.userType)) {
+            return res.status(400).json({ message: "Only students and tutors can report a subject" });
+        }
+        if (!cleanedReason) {
+            return res.status(400).json({ message: "Please provide a reason for reporting" });
+        }
 
-        if (!user || !user.studentProfile) {
-            return res.status(400).json({ message: "Student profile not found" });
+        const subject = await findSubjectTutor(subjectId);
+        if (!subject || !subject.teacherProfile) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+        if (subject.teacherProfile.userId === userId) {
+            return res.status(400).json({ message: "You cannot report your own subject" });
+        }
+
+        const existingReport = await prisma.report.findUnique({
+            where: {
+                reporterId_subjectId: {
+                    reporterId: userId,
+                    subjectId,
+                },
+            },
+        });
+        if (existingReport) {
+            return res.status(400).json({ message: "You have already reported this subject" });
         }
 
         // Create the report record
         const report = await prisma.report.create({
             data: {
                 subjectId,
-                reportDescription: reportReason,
-                studentId: user.studentProfile.id
+                reportDescription: cleanedReason,
+                reporterId: userId,
             }
         });
 
@@ -55,7 +85,7 @@ export const reportSubject = async (req, res, next) => {
                             <h3 style="color: #1A2B4B; font-size: 18px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">Report Details</h3>
                             <p style="margin: 10px 0; color: #64748B;"><strong>User ID:</strong> ${userId}</p>
                             <p style="margin: 10px 0; color: #64748B;"><strong>Subject ID:</strong> ${subjectId}</p>
-                            <p style="margin: 10px 0; color: #64748B;"><strong>Reason:</strong> ${reportReason}</p>
+                            <p style="margin: 10px 0; color: #64748B;"><strong>Reason:</strong> ${cleanedReason}</p>
                         </div>
 
                         <div style="text-align: center; padding-top: 30px; border-top: 2px solid #F8FAFC;">
@@ -88,7 +118,7 @@ export const reportSubject = async (req, res, next) => {
                             <p style="margin: 0; color: #64748B; font-size: 14px;">
                                 <strong>Report Details:</strong><br>
                                 Subject ID: ${subjectId}<br>
-                                Reason: ${reportReason}
+                                Reason: ${cleanedReason}
                             </p>
                         </div>
 
@@ -101,9 +131,11 @@ export const reportSubject = async (req, res, next) => {
                 </div>
                 `,
             }),
-        ]);
+        ]).catch((emailErr) => {
+            console.log(emailErr);
+        });
 
-        return res.status(200).json({message: "Report created successfully"});
+        return res.status(200).json({message: "Report created successfully", report});
     }
     catch (err) {
         console.log(err);
@@ -115,43 +147,23 @@ export const blockUser = async (req, res,next) => {
     const userId = req.userId;
     const {subjectId} = req.body;
     try {
-        // Get StudentProfile.id from User.id (the blocking student)
-        const studentUser = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: {
-                    select: { id: true }
-                }
-            }
-        });
-
-        if (!studentUser || !studentUser.studentProfile) {
-            return res.status(400).json({ message: "Student profile not found" });
+        if (!canReportOrBlock(req.userType)) {
+            return res.status(400).json({ message: "Only students and tutors can block a tutor" });
         }
 
-        // Get TeacherProfile.id from subject
-        const subject = await prisma.subject.findUnique({
-            where: {
-                id: subjectId
-            },
-            include: {
-                teacherProfile: {
-                    select: {
-                        id: true
-                    }
-                }
-            }
-        });
-
+        const subject = await findSubjectTutor(subjectId);
         if (!subject || !subject.teacherProfile) {
             return res.status(400).json({ message: "Subject or teacher not found" });
+        }
+        if (subject.teacherProfile.userId === userId) {
+            return res.status(400).json({ message: "You cannot block yourself" });
         }
 
         const blockSubjectTeacher = await prisma.blockedTeacher.findUnique({
             where: {
-                studentId_teacherId: {
-                    studentId: studentUser.studentProfile.id,
-                    teacherId: subject.teacherProfile.id
+                blockerId_teacherId: {
+                    blockerId: userId,
+                    teacherId: subject.teacherId
                 }
             }
         })
@@ -160,10 +172,10 @@ export const blockUser = async (req, res,next) => {
             return res.status(400).json({message: "You have already blocked this user"});
         }
 
-        const blockUser = await prisma.blockedTeacher.create({
+        await prisma.blockedTeacher.create({
             data: {
-                studentId: studentUser.studentProfile.id,
-                teacherId: subject.teacherProfile.id
+                blockerId: userId,
+                teacherId: subject.teacherId
             }
         })
 
@@ -179,23 +191,9 @@ export const blockUser = async (req, res,next) => {
 export const getUserReports = async (req, res, next) => {
     const userId = req.userId;
     try {
-        // Get StudentProfile.id from User.id
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: {
-                    select: { id: true }
-                }
-            }
-        });
-
-        if (!user || !user.studentProfile) {
-            return res.status(400).json({ message: "Student profile not found" });
-        }
-
         const reports = await prisma.report.findMany({
             where: {
-                studentId: user.studentProfile.id
+                reporterId: userId
             },
             include: {
                 reportedSubject: {
@@ -219,29 +217,16 @@ export const getUserReports = async (req, res, next) => {
 export const getBlockedUsers = async (req, res, next) => {
     const userId = req.userId;
     try {
-        // Get StudentProfile.id from User.id
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: {
-                    select: { id: true }
-                }
-            }
-        });
-
-        if (!user || !user.studentProfile) {
-            return res.status(400).json({ message: "Student profile not found" });
-        }
-
         const blockedUsers = await prisma.blockedTeacher.findMany({
             where: {
-                studentId: user.studentProfile.id
+                blockerId: userId
             },
             include: {
                 teacher: {
                     include: {
                         user: {
                             select: {
+                                id: true,
                                 name: true,
                                 email: true,
                                 profileImage: true
@@ -255,9 +240,9 @@ export const getBlockedUsers = async (req, res, next) => {
             }
         });
 
-        // Transform response to match expected format
         const transformedBlockedUsers = blockedUsers.map(blocked => ({
             ...blocked,
+            blockedTeacherId: blocked.teacher.user.id,
             blockedTeacher: blocked.teacher.user
         }));
 
@@ -270,23 +255,8 @@ export const getBlockedUsers = async (req, res, next) => {
 
 export const unblockUser = async (req, res, next) => {
     const userId = req.userId;
-    const { blockedTeacherId } = req.body; // This is User.id, need to convert to TeacherProfile.id
+    const { blockedTeacherId } = req.body; // User.id of the blocked tutor
     try {
-        // Get StudentProfile.id from User.id (the unblocking student)
-        const studentUser = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: {
-                    select: { id: true }
-                }
-            }
-        });
-
-        if (!studentUser || !studentUser.studentProfile) {
-            return res.status(400).json({ message: "Student profile not found" });
-        }
-
-        // Get TeacherProfile.id from User.id (the blocked teacher)
         const teacherUser = await prisma.user.findUnique({
             where: { id: blockedTeacherId },
             include: {
@@ -302,8 +272,8 @@ export const unblockUser = async (req, res, next) => {
 
         const findBlockedRecord = await prisma.blockedTeacher.findUnique({
             where: {
-                studentId_teacherId: {
-                    studentId: studentUser.studentProfile.id,
+                blockerId_teacherId: {
+                    blockerId: userId,
                     teacherId: teacherUser.teacherProfile.id
                 }
             },
@@ -316,8 +286,8 @@ export const unblockUser = async (req, res, next) => {
 
         await prisma.blockedTeacher.delete({
             where: {
-                studentId_teacherId: {
-                    studentId: studentUser.studentProfile.id,
+                blockerId_teacherId: {
+                    blockerId: userId,
                     teacherId: teacherUser.teacherProfile.id
                 }
             }

@@ -8,6 +8,7 @@ dotenv.config();
 import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { createZoomAccountForTeacher, deleteZoomUser } from "../services/zoomService.js";
 import { publicCatalogFilter } from "../utils/upcomingCatalog.js";
+import { getViewerHiddenSubjects } from "../utils/subjectVisibility.js";
 import { getTeacherProfileStats, resolveTeacherProfileId } from "./bookingController.js";
 import { sendOpsNotifyEmail, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
@@ -988,10 +989,14 @@ export const getAllTeachers = async (req, res, next) => {
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
 
     const catalogFilter = publicCatalogFilter();
+    const { reportedSubjectIds, blockedTeacherProfileIds } = await getViewerHiddenSubjects(req.userId);
     const where = {
       userType: 'TEACHER',
       teacherProfile: {
         is: {
+          ...(blockedTeacherProfileIds.length > 0 && {
+            id: { notIn: blockedTeacherProfileIds },
+          }),
           subjects: {
             some: catalogFilter,
           },
@@ -1018,12 +1023,9 @@ export const getAllTeachers = async (req, res, next) => {
           teacherProfile: {
             select: {
               id: true,
-              _count: {
-                select: {
-                  subjects: {
-                    where: catalogFilter,
-                  },
-                },
+              subjects: {
+                where: catalogFilter,
+                select: { id: true },
               },
             },
           },
@@ -1041,8 +1043,10 @@ export const getAllTeachers = async (req, res, next) => {
         name: user.name,
         profileImage: user.profileImage,
         userDescription: user.userDescription,
-        courseCount: user.teacherProfile?._count?.subjects || 0,
-      })),
+        courseCount: (user.teacherProfile?.subjects || []).filter(
+          (subject) => !reportedSubjectIds.includes(subject.id)
+        ).length,
+      })).filter((teacher) => teacher.courseCount > 0),
       pagination: {
         currentPage: page,
         totalPages: Math.max(Math.ceil(total / pageSize), 1),
@@ -1107,7 +1111,7 @@ export const getTeacherProfile = async (req, res, next) => {
       req.userType === 'ADMIN' ||
       (req.userType === 'TEACHER' && req.userId === user.id);
 
-    const subjects = canSeePrivateCourses
+    let subjects = canSeePrivateCourses
       ? await prisma.subject.findMany({
           where: { teacherId: resolvedTeacherProfileId },
           select: subjectSelect,
@@ -1115,9 +1119,18 @@ export const getTeacherProfile = async (req, res, next) => {
         })
       : user.teacherProfile.subjects || [];
 
+    if (!canSeePrivateCourses && req.userId) {
+      const { reportedSubjectIds, blockedTeacherProfileIds } = await getViewerHiddenSubjects(req.userId);
+      const tutorIsBlocked = blockedTeacherProfileIds.includes(resolvedTeacherProfileId);
+      subjects = subjects.filter((subject) => !tutorIsBlocked && !reportedSubjectIds.includes(subject.id));
+    }
+
     const stats = await getTeacherProfileStats(resolvedTeacherProfileId, {
       publicOnly: !canSeePrivateCourses,
     });
+    if (!canSeePrivateCourses && req.userId) {
+      stats.courseCount = subjects.length;
+    }
 
     const response = {
       id: user.id,
@@ -1142,16 +1155,15 @@ export const getTeacherProfile = async (req, res, next) => {
 export const updateMetadata = async (req, res, next) => {
   try{
     const userId = req.userId;
-    const { name, email, userDescription } = req.body.body;
-    console.log(userId, 'this is the user id');
-    console.log(name, email, userDescription, 'this is the name, email, user description');
-    
+    const { userDescription } = req.body.body || {};
+
+    if (userDescription === undefined) {
+      return res.status(400).json({ message: "userDescription is required" });
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        name: name,
-        email: email,
         userDescription: userDescription,
       },
     });

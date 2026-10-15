@@ -7,6 +7,7 @@ import { getTeacherBlockedSlotsForDate } from "./bookingController.js";
 import { toUaeParts } from "../utils/uaeDateTime.js";
 import { withUpcomingCatalog, upcomingCatalogFilter, isPublicCatalogSubject } from "../utils/upcomingCatalog.js";
 import { OPS_NOTIFY_EMAILS, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
+import { viewerCatalogExclusion, isSubjectHiddenFromUser } from "../utils/subjectVisibility.js";
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
@@ -331,11 +332,13 @@ export const createSubject = async (req, res, next) => {
 export const getAllSubjects = async (req, res, next) => {
     try {
         const { q } = req.query;
+        const exclusion = await viewerCatalogExclusion(req.userId);
         
         if (!q || q === '') {
             const subjects = await prisma.subject.findMany({
                 where: withUpcomingCatalog({
-                    subjectVerification: true
+                    subjectVerification: true,
+                    ...exclusion,
                 }),
                 include: {
                     teacherProfile: {
@@ -375,7 +378,8 @@ export const getAllSubjects = async (req, res, next) => {
                             { subjectDescription: { contains: searchTerm } },
                             { subjectTags: { array_contains: [searchTerm] } }
                         ]
-                    }
+                    },
+                    ...(Object.keys(exclusion).length > 0 ? [exclusion] : []),
                 ]
             }),
             include: {
@@ -411,38 +415,9 @@ export const getAllSubjects = async (req, res, next) => {
 export const getAllSubjectsBySearch = async (req, res, next) => {
     const { subjectGrade, subjectBoard, subjectTags } = req.query;
     const grade = parseInt(subjectGrade);
-    const currentUserId = req.userId;
-
     try {
-        // Step 1: Get user's StudentProfile if they are a student
-        let studentProfileId = null;
-        if (currentUserId) {
-            const user = await prisma.user.findUnique({
-                where: { id: currentUserId },
-                include: {
-                    studentProfile: {
-                        select: { id: true }
-                    }
-                }
-            });
-            studentProfileId = user?.studentProfile?.id;
-        }
+        const exclusion = await viewerCatalogExclusion(req.userId);
 
-        // Step 2: Get all blocked teacher profile IDs for this student
-        let blockedTeacherProfileIds = [];
-        if (studentProfileId) {
-            const blocked = await prisma.blockedTeacher.findMany({
-                where: {
-                    studentId: studentProfileId,
-                },
-                select: {
-                    teacherId: true, // This is TeacherProfile.id
-                },
-            });
-            blockedTeacherProfileIds = blocked.map(b => b.teacherId);
-        }
-
-        // Step 3: Construct the filter with exclusions
         const filter = {
             subjectVerification: true,
             ...(grade && !isNaN(grade) && { subjectGrade: grade }),
@@ -456,13 +431,7 @@ export const getAllSubjectsBySearch = async (req, res, next) => {
                     array_contains: [subjectTags],
                 },
             }),
-            ...(blockedTeacherProfileIds.length > 0 && {
-                NOT: {
-                    teacherId: {
-                        in: blockedTeacherProfileIds,
-                    },
-                },
-            }),
+            ...exclusion,
         };
 
         // Step 4: Fetch filtered subjects
@@ -504,8 +473,10 @@ export const getAllSubjectsByAdvanceSearch = async (req, res, next) => {
     const pageNumber = parseInt(page);
 
     try {
+        const exclusion = await viewerCatalogExclusion(req.userId);
         let whereCondition = {
-            subjectVerification: true
+            subjectVerification: true,
+            ...exclusion,
         };
 
         // Only add search conditions if q is provided and not empty
@@ -541,7 +512,8 @@ export const getAllSubjectsByAdvanceSearch = async (req, res, next) => {
                                 ? [{ teacherId: { in: matchingTeacherIds } }]
                                 : [])
                         ]
-                    }
+                    },
+                    ...(Object.keys(exclusion).length > 0 ? [exclusion] : []),
                 ]
             };
         }
@@ -632,6 +604,9 @@ export const getOneSubject = async (req, res, next) => {
 
         const isOwner = req.userId && subject.teacherProfile?.user?.id === req.userId;
         const isAdmin = req.userType === 'ADMIN';
+        if (!isOwner && !isAdmin && await isSubjectHiddenFromUser(req.userId, subject.id, subject.teacherId)) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
         const isPublic = isPublicCatalogSubject(subject);
 
         if (!isPublic && !isOwner && !isAdmin) {
@@ -1147,15 +1122,11 @@ const shuffleSubjects = (subjects) => {
     return copy;
 };
 
-const findRandomCatalogSubjects = async (blockedTeacherProfileIds, limit = 6) => {
+const findRandomCatalogSubjects = async (exclusion, limit = 6) => {
     const subjects = await prisma.subject.findMany({
         where: withUpcomingCatalog({
             subjectVerification: true,
-            ...(blockedTeacherProfileIds.length > 0 && {
-                NOT: {
-                    teacherId: { in: blockedTeacherProfileIds },
-                },
-            }),
+            ...exclusion,
         }),
         include: subjectCardInclude,
     });
@@ -1167,7 +1138,7 @@ export const getRecommendedSubjects = async (req, res, next) => {
 
     try {
         let terms = subjectSearchTerms(recommendedSubjects).slice(0, 3);
-        let studentProfileId = null;
+        const exclusion = await viewerCatalogExclusion(req.userId);
 
         if (req.userId) {
             const user = await prisma.user.findUnique({
@@ -1175,27 +1146,17 @@ export const getRecommendedSubjects = async (req, res, next) => {
                 select: {
                     userType: true,
                     studentProfile: {
-                        select: { id: true, reccomendedSubjects: true },
+                        select: { reccomendedSubjects: true },
                     },
                 },
             });
-            studentProfileId = user?.studentProfile?.id || null;
             if (user?.userType === 'STUDENT') {
                 terms = subjectSearchTerms(user.studentProfile?.reccomendedSubjects).slice(0, 3);
             }
         }
 
-        let blockedTeacherProfileIds = [];
-        if (studentProfileId) {
-            const blocked = await prisma.blockedTeacher.findMany({
-                where: { studentId: studentProfileId },
-                select: { teacherId: true },
-            });
-            blockedTeacherProfileIds = blocked.map((entry) => entry.teacherId);
-        }
-
         if (terms.length === 0) {
-            const randomSubjects = await findRandomCatalogSubjects(blockedTeacherProfileIds);
+            const randomSubjects = await findRandomCatalogSubjects(exclusion);
             return res.status(200).json(randomSubjects);
         }
 
@@ -1209,11 +1170,7 @@ export const getRecommendedSubjects = async (req, res, next) => {
             })),
             ...(recommendedBoard && { subjectBoard: recommendedBoard }),
             ...(Number.isInteger(grade) && grade > 0 && { subjectGrade: grade }),
-            ...(blockedTeacherProfileIds.length > 0 && {
-                NOT: {
-                    teacherId: { in: blockedTeacherProfileIds },
-                },
-            }),
+            ...exclusion,
         };
 
         const filteredSubjects = await prisma.subject.findMany({
@@ -1223,7 +1180,7 @@ export const getRecommendedSubjects = async (req, res, next) => {
         });
 
         if (filteredSubjects.length === 0) {
-            const randomSubjects = await findRandomCatalogSubjects(blockedTeacherProfileIds);
+            const randomSubjects = await findRandomCatalogSubjects(exclusion);
             return res.status(200).json(randomSubjects);
         }
 
@@ -1388,10 +1345,12 @@ export const getSubjectCapacity = async (req, res, next) => {
 
 export const getMultiStudentSubjects = async (req, res, next) => {
     try {
+        const exclusion = await viewerCatalogExclusion(req.userId);
         const subjects = await prisma.subject.findMany({
             where: withUpcomingCatalog({
                 courseType: 'MULTI_STUDENT',
                 subjectVerification: true,
+                ...exclusion,
             }),
             include: {
                 teacherProfile: {

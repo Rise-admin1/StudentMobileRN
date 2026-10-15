@@ -291,18 +291,14 @@ const ProfilePage = () => {
         }
       >
         <View style={styles.identityCard}>
-          {isParent ? (
-            profileAvatar
-          ) : (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.push('/(tabs)/profile/edit-profile')}
-              accessibilityRole="button"
-              accessibilityLabel="Edit profile photo"
-            >
-              {profileAvatar}
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.push('/(tabs)/profile/edit-profile')}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile photo"
+          >
+            {profileAvatar}
+          </TouchableOpacity>
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.name} numberOfLines={1}>{user.name || 'Your profile'}</Text>
@@ -321,7 +317,6 @@ const ProfilePage = () => {
                 ))}
               </View>
             )}
-            {!isParent && (
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/profile/edit-profile')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -330,7 +325,6 @@ const ProfilePage = () => {
             >
               <Text style={styles.editLink}>Edit profile</Text>
             </TouchableOpacity>
-            )}
           </View>
         </View>
 

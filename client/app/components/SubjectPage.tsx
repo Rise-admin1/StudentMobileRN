@@ -200,6 +200,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [isUserType, setIsUserType] = useState<UserType>();
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [subjectUnavailable, setSubjectUnavailable] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [purchaseStatus, setPurchaseStatus] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -537,10 +539,15 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       setShowReportModal(false);
       setShowMenu(false);
       setIsLoading(false);
-    } catch (error) {
+      router.back();
+    } catch (error: any) {
       console.error('Error reporting subject:', error);
-      alert('Failed to report subject. Please try again.');
+      const message = error?.response?.data?.message || 'Failed to report subject. Please try again.';
+      alert(message);
       setIsLoading(false);
+      if (message === 'You have already reported this subject') {
+        router.back();
+      }
     }
   };
 
@@ -555,10 +562,14 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       setShowMenu(false);
       router.back();
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error blocking user:', error);
-      alert('Failed to block user. Please try again.');
+      const message = error?.response?.data?.message || 'Failed to block user. Please try again.';
+      alert(message);
       setIsLoading(false);
+      if (message === 'You have already blocked this user') {
+        router.back();
+      }
     }
   };
 
@@ -581,6 +592,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         if (userDetails) {
           const parsedDetails = JSON.parse(userDetails);
           setIsUserType(parsedDetails.userType);
+          setCurrentUserId(parsedDetails.userId || '');
         }
         setUserToken(token);
         const resp = await axiosWithAuth.get(`${ipURL}/api/subjects/${subjectId}`);
@@ -593,8 +605,11 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         const purchaseStatus = await axiosWithAuth.get(`${ipURL}/api/auth/metadata/verify-purchase/${subjectId}`);
         setPurchaseStatus(purchaseStatus.data?.hasPurchased || false);
         setIsPageLoading(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching subject data:", error);
+        if (error?.response?.status === 404) {
+          setSubjectUnavailable(true);
+        }
         setIsPageLoading(false);
       }
     };
@@ -881,6 +896,23 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
     );
   };
 
+  const canReportOrBlock =
+    (isUserType === 'STUDENT' || isUserType === 'TEACHER') &&
+    Boolean(currentUserId) &&
+    Boolean(teacherId) &&
+    currentUserId !== teacherId;
+
+  if (subjectUnavailable) {
+    return (
+      <View style={styles.loadingWrap}>
+        <Text style={styles.loadingText}>This course is no longer available.</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.unavailableBack}>
+          <Text style={styles.unavailableBackText}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
    isPageLoading ? (
     <View style={styles.loadingWrap}>
@@ -920,6 +952,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
                   color={isSaved ? "#1A4C6E" : "#FFFFFF"}
                 />
               </TouchableOpacity>
+              {canReportOrBlock && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={handleMenuPress}
@@ -928,11 +961,12 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
               >
                 <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
               </TouchableOpacity>
+              )}
             </View>
           )}
         </Animated.View>
 
-        {!guestPreview && showMenu && (
+        {!guestPreview && canReportOrBlock && showMenu && (
           <TouchableOpacity
             style={styles.menuBackdrop}
             activeOpacity={1}
@@ -940,7 +974,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
           />
         )}
 
-        {!guestPreview && showMenu && (
+        {!guestPreview && canReportOrBlock && showMenu && (
           <Animated.View style={[styles.menuContainer, menuStyle]}>
             <TouchableOpacity 
               style={styles.menuItem}
@@ -1364,6 +1398,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F4F6F8',
+  },
+  unavailableBack: {
+    marginTop: verticalScale(16),
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(10),
+  },
+  unavailableBackText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(16),
+    color: '#1A4C6E',
   },
   loadingText: {
     marginTop: verticalScale(12),

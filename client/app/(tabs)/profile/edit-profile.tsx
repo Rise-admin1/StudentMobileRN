@@ -1,5 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Image,
+  ActivityIndicator,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+} from 'react-native';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +24,25 @@ import { ipURL } from '../../utils/utils';
 import { axiosWithAuth } from '../../utils/customAxios';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const normalizeBio = (value?: string | null) => {
+  if (!value || value === 'No description provided') return '';
+  return value;
+};
+
+const roleLabel = (userType: string | null, isTeacher: boolean) => {
+  if (userType === 'TEACHER' || isTeacher) return 'Tutor';
+  if (userType === 'PARENT') return 'Parent';
+  if (userType === 'ADMIN') return 'Admin';
+  return 'Student';
+};
+
+const bioPlaceholder = (userType: string | null, isTeacher: boolean) => {
+  if (userType === 'TEACHER' || isTeacher) return 'A short bio students will see on your profile';
+  if (userType === 'PARENT') return 'A short note about you (optional)';
+  return 'A short bio about you';
+};
 
 const EditProfilePage = () => {
   const [userData, setUserData] = useState({
@@ -23,39 +55,74 @@ const EditProfilePage = () => {
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profileImageVersion, setProfileImageVersion] = useState<string>('0');
+  const [userType, setUserType] = useState<string | null>(null);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [initialBio, setInitialBio] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const hasLoadedRef = useRef(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const bioOffsetY = useRef(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    fetchUserData();
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
-  // Refetch user when screen is focused (e.g. returning from image picker or after updating photo elsewhere)
+  const scrollBioIntoView = () => {
+    requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(bioOffsetY.current - verticalScale(24), 0),
+        animated: true,
+      });
+    });
+  };
+
+  const fetchUserData = async () => {
+    const quiet = hasLoadedRef.current;
+    if (!quiet) setIsFetching(true);
+
+    try {
+      const response = await axiosWithAuth.get(`${ipURL}/api/auth/metadata`);
+      const bio = normalizeBio(response.data.userDescription);
+
+      setUserData({
+        name: response.data.name || '',
+        email: response.data.email || '',
+        userDescription: bio,
+      });
+      setProfileImage(response.data.profileImage || null);
+      setUserType(response.data.userType || null);
+      setIsTeacher(!!response.data.isTeacher || response.data.userType === 'TEACHER');
+      setInitialBio(bio);
+      hasLoadedRef.current = true;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      Alert.alert('Error', 'Failed to load profile data');
+    } finally {
+      if (!quiet) setIsFetching(false);
+    }
+  };
+
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchUserData();
       AsyncStorage.getItem('profileImageVersion').then((v) => {
         if (v != null) setProfileImageVersion(v);
       });
     }, [])
   );
-
-  const fetchUserData = async () => {
-    try {
-      const response = await axiosWithAuth.get(`${ipURL}/api/auth/metadata`);
-                
-      setUserData({
-        name: response.data.name || '',
-        email: response.data.email || '',
-        userDescription: response.data.userDescription || '',
-      });
-      setProfileImage(response.data.profileImage || null);
-      if (response.data.id) {
-        setUserIdForImageUpload(response.data.id);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      Alert.alert('Error', 'Failed to load profile data');
-    }
-  };
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -129,7 +196,6 @@ const EditProfilePage = () => {
       setSelectedImageUri(null);
       setProfileImageVersion(String(Date.now()));
 
-      // Update AsyncStorage userDetails so home (and any screen using it) shows the new image
       const stored = await AsyncStorage.getItem('userDetails');
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -139,7 +205,6 @@ const EditProfilePage = () => {
         }));
       }
 
-      // Bump version so profile screen revalidates image cache
       await AsyncStorage.setItem('profileImageVersion', String(Date.now()));
 
       Alert.alert('Success', 'Your profile picture has been updated.');
@@ -154,16 +219,28 @@ const EditProfilePage = () => {
     }
   };
 
+  const isDirty = userData.userDescription.trim() !== initialBio.trim();
+  const saveDisabled = isLoading || !isDirty || isFetching;
+
   const handleSave = async () => {
+    if (!isDirty) return;
+
     setIsLoading(true);
     try {
+      const trimmedBio = userData.userDescription.trim();
       const response = await axiosWithAuth.put(`${ipURL}/api/auth/update-metadata`, {
-        body: userData,
+        body: { userDescription: trimmedBio },
       });
-      console.log(response.data, 'this is the response');
-      await AsyncStorage.setItem('authToken', response.data.token);
-      router.back();
 
+      if (response.data?.token) {
+        await AsyncStorage.setItem('authToken', response.data.token);
+      }
+
+      setInitialBio(trimmedBio);
+      setUserData((prev) => ({ ...prev, userDescription: trimmedBio }));
+      Alert.alert('Success', 'Profile updated.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile');
@@ -172,10 +249,18 @@ const EditProfilePage = () => {
     }
   };
 
-  const displayImageUri = selectedImageUri || (profileImage ? `${profileImage}${profileImage.includes('?') ? '&' : '?'}v=${profileImageVersion}` : null);
+  const displayImageUri =
+    selectedImageUri ||
+    (profileImage
+      ? `${profileImage}${profileImage.includes('?') ? '&' : '?'}v=${profileImageVersion}`
+      : null);
+
+  const chipLabel = roleLabel(userType, isTeacher);
+  const showLoading = isFetching && !userData.name;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -185,102 +270,146 @@ const EditProfilePage = () => {
         >
           <Ionicons name="chevron-back" size={24} color="#12263A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+          <Text style={styles.headerSubtitle}>Photo, bio, and account details</Text>
+        </View>
       </View>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Photo section */}
-      <View style={styles.photoSection}>
-        <TouchableOpacity
-          style={styles.avatarWrapper}
-          onPress={pickImage}
-          activeOpacity={0.9}
-          disabled={isUploadingImage}
+
+      {showLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1A4C6E" />
+        </View>
+      ) : (
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 20}
         >
-          {displayImageUri ? (
-            <Image source={{ uri: displayImageUri }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={moderateScale(48)} color="#94A3B8" />
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.scrollView}
+            contentContainerStyle={[
+              styles.content,
+              { paddingBottom: verticalScale(48) + keyboardHeight },
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+          >
+            <View style={styles.photoSection}>
+              <TouchableOpacity
+                style={styles.avatarWrapper}
+                onPress={pickImage}
+                activeOpacity={0.9}
+                disabled={isUploadingImage}
+                accessibilityRole="button"
+                accessibilityLabel="Change profile photo"
+              >
+                {displayImageUri ? (
+                  <Image source={{ uri: displayImageUri }} style={styles.avatar} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Ionicons name="person" size={moderateScale(48)} color="#94A3B8" />
+                  </View>
+                )}
+                <View style={styles.avatarBadge}>
+                  <Ionicons name="camera" size={moderateScale(16)} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.roleChip}>
+                <Text style={styles.roleChipText}>{chipLabel}</Text>
+              </View>
+
+              {selectedImageUri ? (
+                <View style={styles.photoActions}>
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={uploadProfileImage}
+                    disabled={isUploadingImage}
+                  >
+                    {isUploadingImage ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Text style={styles.uploadButtonText}>Upload photo</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelPhotoButton}
+                    onPress={() => setSelectedImageUri(null)}
+                  >
+                    <Text style={styles.cancelPhotoText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity onPress={pickImage} style={styles.changePhotoLink}>
+                  <Text style={styles.changePhotoText}>Change photo</Text>
+                </TouchableOpacity>
+              )}
             </View>
-          )}
-          <View style={styles.avatarBadge}>
-            <Ionicons name="camera" size={moderateScale(16)} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-        {selectedImageUri ? (
-          <View style={styles.photoActions}>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={uploadProfileImage}
-              disabled={isUploadingImage}
+
+            <Text style={styles.sectionTitle}>Account</Text>
+            <View style={styles.formCard}>
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>Name</Text>
+                <Text style={styles.fieldValue}>{userData.name || '—'}</Text>
+                <Text style={styles.fieldHint}>Contact support to change your name.</Text>
+              </View>
+              <View style={styles.fieldDivider} />
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>Email</Text>
+                <Text style={styles.fieldValue}>{userData.email || '—'}</Text>
+                <Text style={styles.fieldHint}>Contact support to change your email.</Text>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>About</Text>
+            <View
+              style={styles.formCard}
+              onLayout={(e) => {
+                bioOffsetY.current = e.nativeEvent.layout.y;
+              }}
             >
-              {isUploadingImage ? (
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>Bio</Text>
+                <TextInput
+                  style={styles.bioInput}
+                  value={userData.userDescription}
+                  onChangeText={(text) =>
+                    setUserData((prev) => ({ ...prev, userDescription: text }))
+                  }
+                  placeholder={bioPlaceholder(userType, isTeacher)}
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  numberOfLines={3}
+                  maxLength={500}
+                  onFocus={() => {
+                    setTimeout(scrollBioIntoView, Platform.OS === 'ios' ? 50 : 150);
+                  }}
+                />
+                <Text style={styles.charCount}>
+                  {userData.userDescription.length}/500
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveButton, saveDisabled && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={saveDisabled}
+              accessibilityRole="button"
+              accessibilityLabel="Save changes"
+            >
+              {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.uploadButtonText}>Upload photo</Text>
+                <Text style={styles.saveButtonText}>Save changes</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelPhotoButton} onPress={() => setSelectedImageUri(null)}>
-              <Text style={styles.cancelPhotoText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity onPress={pickImage} style={styles.changePhotoLink}>
-            <Text style={styles.changePhotoText}>Change photo</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Form card */}
-      <View style={styles.formCard}>
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Name</Text>
-          <TextInput
-            style={[styles.fieldInput, styles.fieldInputDisabled]}
-            value={userData.name}
-            editable={false}
-            placeholderTextColor="#94A3B8"
-          />
-          <Text style={styles.fieldHint}>Name cannot be changed. Contact support if this is incorrect.</Text>
-        </View>
-        <View style={styles.fieldDivider} />
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Email</Text>
-          <TextInput
-            style={[styles.fieldInput, styles.fieldInputDisabled]}
-            value={userData.email}
-            editable={false}
-            placeholderTextColor="#94A3B8"
-          />
-          <Text style={styles.fieldHint}>Email cannot be changed. Contact support if this is incorrect.</Text>
-        </View>
-        <View style={styles.fieldDivider} />
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Bio</Text>
-          <TextInput
-            style={[styles.fieldInput, styles.fieldInputArea]}
-            value={userData.userDescription}
-            onChangeText={(text) => setUserData(prev => ({ ...prev, userDescription: text }))}
-            placeholder="A short bio about you"
-            placeholderTextColor="#94A3B8"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
-        onPress={handleSave}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#FFFFFF" size="small" />
-        ) : (
-          <Text style={styles.saveButtonText}>Save changes</Text>
-        )}
-      </TouchableOpacity>
-      </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 };
@@ -289,6 +418,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F4F6F8',
+  },
+  flex: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -303,22 +435,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerText: {
+    flex: 1,
+    marginLeft: 4,
+  },
   headerTitle: {
     fontFamily: FONT.bold,
     fontSize: moderateScale(24),
     color: '#12263A',
   },
+  headerSubtitle: {
+    marginTop: 2,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(14),
+    color: '#5C6B76',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   scrollView: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: horizontalScale(24),
-    paddingTop: verticalScale(32),
+    paddingHorizontal: horizontalScale(20),
+    paddingTop: verticalScale(16),
     paddingBottom: verticalScale(48),
   },
   photoSection: {
     alignItems: 'center',
-    marginBottom: verticalScale(32),
+    marginBottom: verticalScale(24),
   },
   avatarWrapper: {
     position: 'relative',
@@ -350,6 +497,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#F4F6F8',
+  },
+  roleChip: {
+    backgroundColor: '#E4EEF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    marginBottom: verticalScale(8),
+  },
+  roleChipText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(11),
+    color: '#1A4C6E',
   },
   changePhotoLink: {
     paddingVertical: verticalScale(4),
@@ -387,7 +546,15 @@ const styles = StyleSheet.create({
   cancelPhotoText: {
     fontFamily: FONT.medium,
     fontSize: moderateScale(14),
-    color: '#64748B',
+    color: '#5C6B76',
+  },
+  sectionTitle: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+    marginBottom: verticalScale(8),
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   formCard: {
     backgroundColor: '#FFFFFF',
@@ -396,7 +563,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6EBF0',
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(8),
-    marginBottom: verticalScale(24),
+    marginBottom: verticalScale(18),
   },
   field: {
     paddingVertical: verticalScale(16),
@@ -404,35 +571,42 @@ const styles = StyleSheet.create({
   fieldDivider: {
     height: 1,
     backgroundColor: '#F1F5F9',
-    marginLeft: 0,
   },
   fieldLabel: {
     fontFamily: FONT.medium,
     fontSize: moderateScale(13),
-    color: '#64748B',
+    color: '#5C6B76',
     marginBottom: verticalScale(6),
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  fieldInput: {
+  fieldValue: {
     fontFamily: FONT.regular,
     fontSize: moderateScale(16),
     color: '#12263A',
-    paddingVertical: verticalScale(4),
   },
-  fieldInputDisabled: {
-    color: '#64748B',
-  },
-  fieldInputArea: {
+  bioInput: {
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(16),
+    color: '#12263A',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 12,
     minHeight: verticalScale(72),
     textAlignVertical: 'top',
-    paddingVertical: verticalScale(8),
   },
   fieldHint: {
     fontFamily: FONT.regular,
     fontSize: moderateScale(12),
     color: '#94A3B8',
     marginTop: verticalScale(4),
+  },
+  charCount: {
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(12),
+    color: '#94A3B8',
+    marginTop: verticalScale(6),
+    textAlign: 'right',
   },
   saveButton: {
     backgroundColor: '#1A4C6E',
@@ -443,7 +617,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   saveButtonDisabled: {
-    opacity: 0.8,
+    opacity: 0.5,
   },
   saveButtonText: {
     fontFamily: FONT.medium,
@@ -452,4 +626,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditProfilePage; 
+export default EditProfilePage;

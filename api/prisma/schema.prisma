@@ -112,6 +112,8 @@ model User {
   adminProfile        AdminProfile?
   parentProfile       ParentProfile?
   reviewedRefundRequests RefundRequest[] @relation("RefundReviewedBy")
+  reports             Report[]
+  blockedTeachers     BlockedTeacher[] @relation("BlockingUser")
 }
 
 // Student-specific data
@@ -129,8 +131,6 @@ model StudentProfile {
   communityMemberships CommunityUser[]
   savedSubjects       SavedSubject[]
   reviewVotes         ReviewVote[]
-  blockedTeachers     BlockedTeacher[] @relation("BlockingStudent")
-  reports             Report[]
   stripePurchases     StripePurchases[]
   bookings            Booking[] @relation("StudentBookings")
   userSubjects        UserSubject[]
@@ -154,7 +154,7 @@ model TeacherProfile {
   user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects               Subject[]
   clientConversations    Conversation[] @relation("TeacherConversations")
-  blockedByStudents      BlockedTeacher[] @relation("BlockedTeacher")
+  blockedByUsers         BlockedTeacher[] @relation("BlockedTeacher")
   bookings               Booking[]     @relation("TeacherBookings")
   organization           Organization? @relation("OrganizationMembers", fields: [organizationId], references: [id], onDelete: SetNull)
   ledOrganization        Organization? @relation("OrganizationLead")
@@ -466,27 +466,30 @@ model ReviewVote {
 
 model BlockedTeacher {
   id         String   @id @default(cuid())
-  studentId  String
+  blockerId  String
   teacherId  String
   createdAt  DateTime @default(now())
 
-  student    StudentProfile  @relation("BlockingStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  blocker    User            @relation("BlockingUser", fields: [blockerId], references: [id], onDelete: Cascade)
   teacher    TeacherProfile  @relation("BlockedTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, teacherId])
+  @@unique([blockerId, teacherId])
 }
 
 model Report {
   id                String       @id @default(cuid())
-  studentId         String
-  subjectId          String
+  reporterId        String
+  subjectId         String
   reportDescription String
   reportStatus      ReportStatus @default(PENDING)
   reportResolution  String?
   createdAt         DateTime     @default(now())
 
-  student           StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reporter          User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
   reportedSubject   Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, subjectId])
+  @@index([reporterId])
 }
 
 model StripePurchases {
