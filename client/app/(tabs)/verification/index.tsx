@@ -22,6 +22,7 @@ type AdminStats = {
   organizations: number;
   pendingSubjects: number;
   confirmedPurchases: number;
+  pendingRefundRequests: number;
   totalSpendMinor: number;
 };
 
@@ -87,6 +88,12 @@ const AdminOverview = () => {
     { href: '/(tabs)/verification/organizations', label: 'Organizations', icon: 'business-outline' as const, hint: 'Student orgs' },
     { href: '/(tabs)/verification/parents', label: 'Parents', icon: 'people-outline' as const, hint: 'Linked families' },
     { href: '/(tabs)/verification/purchases', label: 'Purchases', icon: 'card-outline' as const, hint: 'Courses and spend' },
+    {
+      href: '/(tabs)/verification/refunds',
+      label: 'Refund requests',
+      icon: 'return-down-back-outline' as const,
+      hint: `${stats?.pendingRefundRequests ?? 0} pending`,
+    },
   ];
 
   return (

@@ -627,10 +627,12 @@ export const stripeWebhook = async (req, res, next) => {
                                     studentId: studentProfileId,
                                     subjectId: chargeSucceeded.metadata.subjectId,
                                     purchaseStatus: BookingStatus.CONFIRMED,
+                                    paymentStatus: 'COMPLETE',
                                     purchaseAmount: chargeSucceeded.amount,
                                     purchaseCurrency: chargeSucceeded.currency,
                                     stripeCustomerId: chargeSucceeded.customer,
                                     purchaseReceiptUrl: chargeSucceeded.receipt_url,
+                                    stripeChargeId: chargeSucceeded.id,
                                     courseEnrollmentId: enrollment.id, // Link to enrollment instead of booking
                                 },
                             });
@@ -831,10 +833,12 @@ export const stripeWebhook = async (req, res, next) => {
                                     studentId: studentProfileId,
                                     subjectId: chargeSucceeded.metadata.subjectId,
                                     purchaseStatus: BookingStatus.CONFIRMED,
+                                    paymentStatus: 'COMPLETE',
                                     purchaseAmount: chargeSucceeded.amount,
                                     purchaseCurrency: chargeSucceeded.currency,
                                     stripeCustomerId: chargeSucceeded.customer,
                                     purchaseReceiptUrl: chargeSucceeded.receipt_url,
+                                    stripeChargeId: chargeSucceeded.id,
                                     bookingId: firstBooking.id,
                                 },
                             });
@@ -955,10 +959,12 @@ export const stripeWebhook = async (req, res, next) => {
                                     studentId: studentProfileId,
                                     subjectId: chargeSucceeded.metadata.subjectId,
                                     purchaseStatus: BookingStatus.CONFIRMED,
+                                    paymentStatus: 'COMPLETE',
                                     purchaseAmount: chargeSucceeded.amount,
                                     purchaseCurrency: chargeSucceeded.currency,
                                     stripeCustomerId: chargeSucceeded.customer,
                                     purchaseReceiptUrl: chargeSucceeded.receipt_url,
+                                    stripeChargeId: chargeSucceeded.id,
                                     bookingId: newBooking.id // Link to the booking
                                 }
                             });

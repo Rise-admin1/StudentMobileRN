@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { acceptRefundRequest, declineRefundRequest } from '../services/refundService.js';
+import { formatClassStart, formatPurchaseAmount } from '../utils/refundEligibility.js';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +20,7 @@ export const getAdminStats = async (req, res, next) => {
       pendingSubjects,
       confirmedPurchases,
       spendAgg,
+      pendingRefundRequests,
     ] = await Promise.all([
       prisma.user.count({ where: { userType: 'TEACHER' } }),
       prisma.user.count({ where: { userType: 'STUDENT' } }),
@@ -31,6 +34,7 @@ export const getAdminStats = async (req, res, next) => {
         where: { purchaseStatus: 'CONFIRMED' },
         _sum: { purchaseAmount: true },
       }),
+      prisma.refundRequest.count({ where: { status: 'PENDING' } }),
     ]);
 
     return res.status(200).json({
@@ -40,6 +44,7 @@ export const getAdminStats = async (req, res, next) => {
       organizations,
       pendingSubjects,
       confirmedPurchases,
+      pendingRefundRequests,
       totalSpendMinor: spendAgg._sum.purchaseAmount || 0,
     });
   } catch (err) {
@@ -303,6 +308,136 @@ export const getAdminPurchases = async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
+    next(err);
+  }
+};
+
+export const getAdminRefundRequests = async (req, res, next) => {
+  try {
+    const { page, pageSize, skip } = parsePaging(req);
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toUpperCase() : 'PENDING';
+    const where = {
+      ...(status ? { status } : {}),
+      ...(q
+        ? {
+            OR: [
+              { reason: { contains: q } },
+              { student: { user: { name: { contains: q } } } },
+              { student: { user: { email: { contains: q } } } },
+              { purchase: { subject: { subjectName: { contains: q } } } },
+            ],
+          }
+        : {}),
+    };
+
+    const [total, rows] = await Promise.all([
+      prisma.refundRequest.count({ where }),
+      prisma.refundRequest.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          status: true,
+          reason: true,
+          classStartsAt: true,
+          createdAt: true,
+          reviewedAt: true,
+          adminNote: true,
+          student: {
+            select: {
+              user: { select: { name: true, email: true } },
+            },
+          },
+          purchase: {
+            select: {
+              id: true,
+              purchaseAmount: true,
+              purchaseCurrency: true,
+              purchaseDate: true,
+              paymentStatus: true,
+              subject: {
+                select: {
+                  subjectName: true,
+                  courseType: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      page,
+      pageSize,
+      total,
+      refundRequests: rows.map((row) => ({
+        id: row.id,
+        status: row.status,
+        reason: row.reason,
+        classStartsAt: row.classStartsAt,
+        classStartsAtLabel: formatClassStart(row.classStartsAt),
+        createdAt: row.createdAt,
+        reviewedAt: row.reviewedAt,
+        adminNote: row.adminNote,
+        studentName: row.student?.user?.name || null,
+        studentEmail: row.student?.user?.email || null,
+        purchaseId: row.purchase?.id || null,
+        subjectName: row.purchase?.subject?.subjectName || null,
+        courseType: row.purchase?.subject?.courseType || null,
+        purchaseAmount: row.purchase?.purchaseAmount || 0,
+        purchaseCurrency: row.purchase?.purchaseCurrency || 'aed',
+        purchaseAmountLabel: formatPurchaseAmount(
+          row.purchase?.purchaseAmount || 0,
+          row.purchase?.purchaseCurrency || 'aed'
+        ),
+        purchaseDate: row.purchase?.purchaseDate || null,
+        paymentStatus: row.purchase?.paymentStatus || null,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const acceptAdminRefundRequest = async (req, res, next) => {
+  try {
+    const refundRequest = await acceptRefundRequest({
+      refundRequestId: req.params.refundRequestId,
+      adminUserId: req.userId,
+      adminNote: req.body?.adminNote,
+    });
+    return res.status(200).json({
+      message: 'Refund request accepted',
+      refundRequest,
+    });
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message });
+    }
+    next(err);
+  }
+};
+
+export const declineAdminRefundRequest = async (req, res, next) => {
+  try {
+    const refundRequest = await declineRefundRequest({
+      refundRequestId: req.params.refundRequestId,
+      adminUserId: req.userId,
+      adminNote: req.body?.adminNote,
+    });
+    return res.status(200).json({
+      message: 'Refund request declined',
+      refundRequest,
+    });
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message });
+    }
     next(err);
   }
 };

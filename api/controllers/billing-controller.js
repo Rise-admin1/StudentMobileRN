@@ -1,24 +1,88 @@
 import { PrismaClient } from '@prisma/client';
+import {
+  createRefundRequest,
+  getPurchaseRefundContext,
+  mapPurchaseForBilling,
+} from '../services/refundService.js';
 
 const prisma = new PrismaClient();
 
-const purchaseSelect = {
+const billingPurchaseSelect = {
   id: true,
   purchaseAmount: true,
   purchaseCurrency: true,
   purchaseDate: true,
   purchaseReceiptUrl: true,
-  subject: { select: { subjectName: true } },
+  purchaseStatus: true,
+  paymentStatus: true,
+  studentId: true,
+  subjectId: true,
+  bookingId: true,
+  courseEnrollmentId: true,
+  stripeChargeId: true,
+  stripeCustomerId: true,
+  subject: {
+    select: {
+      id: true,
+      subjectName: true,
+      courseType: true,
+      scheduledDateTime: true,
+      teacherId: true,
+      teacherProfile: {
+        select: {
+          user: { select: { email: true, name: true } },
+        },
+      },
+      subjectTopics: {
+        select: {
+          id: true,
+          scheduledAt: true,
+        },
+        orderBy: { orderIndex: 'asc' },
+      },
+    },
+  },
+  booking: {
+    select: {
+      id: true,
+      bookingDate: true,
+      bookingTime: true,
+      bookingStatus: true,
+    },
+  },
+  courseEnrollment: {
+    select: {
+      id: true,
+      enrollmentStatus: true,
+    },
+  },
+  refundRequests: {
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      status: true,
+      reason: true,
+      classStartsAt: true,
+      createdAt: true,
+      reviewedAt: true,
+    },
+  },
+  student: {
+    select: {
+      id: true,
+      user: { select: { email: true, name: true } },
+    },
+  },
 };
 
-const mapPurchase = (row) => ({
-  id: row.id,
-  subjectName: row.subject?.subjectName || 'Course',
-  purchaseAmount: row.purchaseAmount,
-  purchaseCurrency: row.purchaseCurrency,
-  purchaseDate: row.purchaseDate,
-  purchaseReceiptUrl: row.purchaseReceiptUrl || null,
-});
+async function mapPurchases(rows, { canSubmit }) {
+  const mapped = [];
+  for (const row of rows) {
+    const context = await getPurchaseRefundContext(row);
+    mapped.push(mapPurchaseForBilling(row, context, { canSubmit }));
+  }
+  return mapped;
+}
 
 export const getBilling = async (req, res, next) => {
   try {
@@ -34,15 +98,15 @@ export const getBilling = async (req, res, next) => {
       const rows = await prisma.stripePurchases.findMany({
         where: {
           studentId: user.studentProfile.id,
-          purchaseStatus: 'CONFIRMED',
+          purchaseStatus: { in: ['CONFIRMED', 'CANCELLED'] },
         },
         orderBy: { purchaseDate: 'desc' },
-        select: purchaseSelect,
+        select: billingPurchaseSelect,
       });
 
       return res.status(200).json({
         role: 'STUDENT',
-        purchases: rows.map(mapPurchase),
+        purchases: await mapPurchases(rows, { canSubmit: true }),
       });
     }
 
@@ -67,27 +131,64 @@ export const getBilling = async (req, res, next) => {
               id: true,
               user: { select: { name: true } },
               stripePurchases: {
-                where: { purchaseStatus: 'CONFIRMED' },
+                where: { purchaseStatus: { in: ['CONFIRMED', 'CANCELLED'] } },
                 orderBy: { purchaseDate: 'desc' },
-                select: purchaseSelect,
+                select: billingPurchaseSelect,
               },
             },
           },
         },
       });
 
-      return res.status(200).json({
-        role: 'PARENT',
-        students: links.map((link) => ({
+      const students = [];
+      for (const link of links) {
+        students.push({
           studentProfileId: link.student.id,
           studentName: link.student.user?.name || 'Student',
-          purchases: (link.student.stripePurchases || []).map(mapPurchase),
-        })),
+          purchases: await mapPurchases(link.student.stripePurchases || [], { canSubmit: false }),
+        });
+      }
+
+      return res.status(200).json({
+        role: 'PARENT',
+        students,
       });
     }
 
     return res.status(403).json({ message: 'Billing is not available for this account' });
   } catch (err) {
+    next(err);
+  }
+};
+
+export const requestPurchaseRefund = async (req, res, next) => {
+  try {
+    if (req.userType !== 'STUDENT') {
+      return res.status(403).json({ message: 'Only students can request a refund' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { studentProfile: { select: { id: true } } },
+    });
+    if (!user?.studentProfile) {
+      return res.status(400).json({ message: 'Student profile not found' });
+    }
+
+    const refundRequest = await createRefundRequest({
+      purchaseId: req.params.purchaseId,
+      studentProfileId: user.studentProfile.id,
+      reason: req.body?.reason,
+    });
+
+    return res.status(201).json({
+      message: 'Refund request submitted',
+      refundRequest,
+    });
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message });
+    }
     next(err);
   }
 };

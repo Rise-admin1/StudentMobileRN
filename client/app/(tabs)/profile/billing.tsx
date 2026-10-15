@@ -10,6 +10,9 @@ import {
   Linking,
   Alert,
   RefreshControl,
+  Modal,
+  TextInput,
+  Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +29,11 @@ type Purchase = {
   purchaseCurrency: string;
   purchaseDate: string;
   purchaseReceiptUrl: string | null;
+  paymentStatus?: string | null;
+  purchaseStatus?: string | null;
+  refundEligible?: boolean;
+  refundRequestStatus?: string | null;
+  refundReason?: string | null;
 };
 
 type StudentGroup = {
@@ -70,22 +78,63 @@ const openReceipt = async (url: string) => {
   }
 };
 
-const PurchaseCard = ({ purchase }: { purchase: Purchase }) => (
+const statusLabel = (purchase: Purchase) => {
+  if (purchase.paymentStatus === 'REFUNDED' || purchase.purchaseStatus === 'CANCELLED') {
+    return 'Refunded';
+  }
+  if (purchase.refundRequestStatus === 'PENDING') {
+    return 'Refund pending';
+  }
+  if (purchase.refundRequestStatus === 'DECLINED') {
+    return 'Refund declined';
+  }
+  if (purchase.refundRequestStatus === 'ACCEPTED') {
+    return 'Refunded';
+  }
+  return 'Paid';
+};
+
+const PurchaseCard = ({
+  purchase,
+  canRequestRefund,
+  onRequestRefund,
+}: {
+  purchase: Purchase;
+  canRequestRefund: boolean;
+  onRequestRefund?: (purchase: Purchase) => void;
+}) => (
   <View style={styles.card}>
     <Text style={styles.courseName}>{purchase.subjectName}</Text>
     <Text style={styles.amount}>{formatAmount(purchase.purchaseAmount, purchase.purchaseCurrency)}</Text>
     <Text style={styles.date}>{formatDate(purchase.purchaseDate)}</Text>
-    {purchase.purchaseReceiptUrl ? (
-      <TouchableOpacity
-        style={styles.invoiceButton}
-        onPress={() => openReceipt(purchase.purchaseReceiptUrl as string)}
-        accessibilityRole="button"
-        accessibilityLabel={`Open invoice for ${purchase.subjectName}`}
-      >
-        <Ionicons name="document-text-outline" size={16} color="#1A4C6E" />
-        <Text style={styles.invoiceText}>Invoice</Text>
-      </TouchableOpacity>
+    <Text style={styles.status}>{statusLabel(purchase)}</Text>
+    {purchase.refundRequestStatus === 'PENDING' && purchase.refundReason ? (
+      <Text style={styles.reasonPreview}>Reason: {purchase.refundReason}</Text>
     ) : null}
+    <View style={styles.actionsRow}>
+      {purchase.purchaseReceiptUrl ? (
+        <TouchableOpacity
+          style={styles.invoiceButton}
+          onPress={() => openReceipt(purchase.purchaseReceiptUrl as string)}
+          accessibilityRole="button"
+          accessibilityLabel={`Open invoice for ${purchase.subjectName}`}
+        >
+          <Ionicons name="document-text-outline" size={16} color="#1A4C6E" />
+          <Text style={styles.invoiceText}>Invoice</Text>
+        </TouchableOpacity>
+      ) : null}
+      {canRequestRefund && purchase.refundEligible ? (
+        <TouchableOpacity
+          style={styles.refundButton}
+          onPress={() => onRequestRefund?.(purchase)}
+          accessibilityRole="button"
+          accessibilityLabel={`Request refund for ${purchase.subjectName}`}
+        >
+          <Ionicons name="return-down-back-outline" size={16} color="#FFFFFF" />
+          <Text style={styles.refundText}>Request refund</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
   </View>
 );
 
@@ -94,6 +143,9 @@ const BillingPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchBilling = useCallback(async (isRefresh = false) => {
     try {
@@ -117,6 +169,38 @@ const BillingPage = () => {
   useEffect(() => {
     fetchBilling(false);
   }, [fetchBilling]);
+
+  const closeModal = () => {
+    if (submitting) return;
+    setSelectedPurchase(null);
+    setReason('');
+  };
+
+  const submitRefundRequest = async () => {
+    if (!selectedPurchase) return;
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      Alert.alert('Refund reason', 'Please enter a reason for the refund.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await axiosWithAuth.post(
+        `${ipURL}/api/billing/purchases/${selectedPurchase.id}/refund-request`,
+        { reason: trimmed }
+      );
+      Alert.alert('Refund requested', 'Your refund request was sent for admin review.');
+      setSelectedPurchase(null);
+      setReason('');
+      await fetchBilling(true);
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Could not submit the refund request.';
+      Alert.alert('Refund request', message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const header = (
     <View style={styles.header}>
@@ -155,6 +239,7 @@ const BillingPage = () => {
 
     let content: React.ReactNode;
     let isEmpty = false;
+    const canRequestRefund = billing?.role === 'STUDENT';
 
     if (error) {
       isEmpty = true;
@@ -173,7 +258,12 @@ const BillingPage = () => {
         );
       } else {
         content = billing.purchases.map((purchase) => (
-          <PurchaseCard key={purchase.id} purchase={purchase} />
+          <PurchaseCard
+            key={purchase.id}
+            purchase={purchase}
+            canRequestRefund={canRequestRefund}
+            onRequestRefund={setSelectedPurchase}
+          />
         ));
       }
     } else if (billing.students.length === 0) {
@@ -192,7 +282,11 @@ const BillingPage = () => {
             <Text style={styles.groupEmpty}>No confirmed purchases</Text>
           ) : (
             student.purchases.map((purchase) => (
-              <PurchaseCard key={purchase.id} purchase={purchase} />
+              <PurchaseCard
+                key={purchase.id}
+                purchase={purchase}
+                canRequestRefund={false}
+              />
             ))
           )}
         </View>
@@ -215,6 +309,46 @@ const BillingPage = () => {
       <StatusBar barStyle="dark-content" />
       {header}
       {renderBody()}
+      <Modal visible={!!selectedPurchase} transparent animationType="fade" onRequestClose={closeModal}>
+        <Pressable style={styles.modalOverlay} onPress={closeModal}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Request refund</Text>
+            <Text style={styles.modalSubtitle}>
+              {selectedPurchase?.subjectName || 'Course'} ·{' '}
+              {selectedPurchase
+                ? formatAmount(selectedPurchase.purchaseAmount, selectedPurchase.purchaseCurrency)
+                : ''}
+            </Text>
+            <Text style={styles.modalHint}>Tell us why you want a refund. Admins will review this.</Text>
+            <TextInput
+              style={styles.reasonInput}
+              placeholder="Refund reason"
+              placeholderTextColor="#94A3B8"
+              value={reason}
+              onChangeText={setReason}
+              multiline
+              textAlignVertical="top"
+              editable={!submitting}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButton} onPress={closeModal} disabled={submitting}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+                onPress={submitRefundRequest}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.submitText}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -299,8 +433,25 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(13),
     color: '#5C6B76',
   },
-  invoiceButton: {
+  status: {
+    marginTop: 8,
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(13),
+    color: '#1A4C6E',
+  },
+  reasonPreview: {
+    marginTop: 4,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(12),
+    color: '#5C6B76',
+  },
+  actionsRow: {
     marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  invoiceButton: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
@@ -314,6 +465,21 @@ const styles = StyleSheet.create({
     fontFamily: FONT.medium,
     fontSize: moderateScale(14),
     color: '#1A4C6E',
+  },
+  refundButton: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: '#1A4C6E',
+  },
+  refundText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(14),
+    color: '#FFFFFF',
   },
   groupEmpty: {
     fontFamily: FONT.regular,
@@ -333,6 +499,83 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(15),
     color: '#5C6B76',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(18, 38, 58, 0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 18,
+  },
+  modalTitle: {
+    fontFamily: FONT.bold,
+    fontSize: moderateScale(18),
+    color: '#12263A',
+  },
+  modalSubtitle: {
+    marginTop: 6,
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(14),
+    color: '#1A4C6E',
+  },
+  modalHint: {
+    marginTop: 10,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(13),
+    color: '#5C6B76',
+  },
+  reasonInput: {
+    marginTop: 12,
+    minHeight: 110,
+    borderWidth: 1,
+    borderColor: '#E6EBF0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontFamily: FONT.regular,
+    fontSize: moderateScale(14),
+    color: '#12263A',
+    backgroundColor: '#F8FAFC',
+  },
+  modalActions: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  cancelButton: {
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8EEF3',
+  },
+  cancelText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(14),
+    color: '#1A4C6E',
+  },
+  submitButton: {
+    minHeight: 40,
+    minWidth: 96,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A4C6E',
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitText: {
+    fontFamily: FONT.medium,
+    fontSize: moderateScale(14),
+    color: '#FFFFFF',
   },
 });
 

@@ -43,6 +43,7 @@ const VerificationLayout = () => {
       <Stack.Screen name="organizations" options={{ headerShown: true, headerTitle: 'Organizations', headerBackTitle: 'Admin' }} />
       <Stack.Screen name="parents" options={{ headerShown: true, headerTitle: 'Parents', headerBackTitle: 'Admin' }} />
       <Stack.Screen name="purchases" options={{ headerShown: true, headerTitle: 'Purchases', headerBackTitle: 'Admin' }} />
+      <Stack.Screen name="refunds" options={{ headerShown: true, headerTitle: 'Refund requests', headerBackTitle: 'Admin' }} />
       <Stack.Screen name="[verifySingleSubject]" options={{ headerShown: true, headerTitle:'Subject Verification', headerLeft: () => (
         <Ionicons name="arrow-back" size={24} color="black" onPress={()=>router.back()} style={{ marginLeft: 0 }} />
       ) }} />

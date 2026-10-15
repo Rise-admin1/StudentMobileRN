@@ -75,6 +75,17 @@ enum ConversationMessageType {
   AUDIO
 }
 
+enum PaymentStatus {
+  COMPLETE
+  REFUNDED
+}
+
+enum RefundRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 // Core authentication and shared fields
 model User {
   id                  String   @id @default(cuid())
@@ -100,6 +111,7 @@ model User {
   teacherProfile      TeacherProfile?
   adminProfile        AdminProfile?
   parentProfile       ParentProfile?
+  reviewedRefundRequests RefundRequest[] @relation("RefundReviewedBy")
 }
 
 // Student-specific data
@@ -125,6 +137,7 @@ model StudentProfile {
   courseEnrollments   CourseEnrollment[]
   parentLinks         ParentStudentLink[]
   parentConversations ParentConversation[]
+  refundRequests      RefundRequest[]
 }
 
 // Teacher-specific data
@@ -486,6 +499,8 @@ model StripePurchases {
   purchaseCurrency   String
   stripeCustomerId   String
   purchaseReceiptUrl String
+  paymentStatus      PaymentStatus @default(COMPLETE)
+  stripeChargeId     String?
   createdAt          DateTime      @default(now())
   bookingId          String?       @unique
   courseEnrollmentId String?       @unique
@@ -494,6 +509,29 @@ model StripePurchases {
   subject            Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   booking            Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   courseEnrollment   CourseEnrollment? @relation(fields: [courseEnrollmentId], references: [id], onDelete: SetNull)
+  refundRequests     RefundRequest[]
+}
+
+model RefundRequest {
+  id            String              @id @default(cuid())
+  purchaseId    String
+  studentId     String
+  status        RefundRequestStatus @default(PENDING)
+  reason        String              @db.Text
+  classStartsAt DateTime
+  adminNote     String?             @db.Text
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  purchase      StripePurchases     @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  student       StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy    User?               @relation("RefundReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([purchaseId])
+  @@index([studentId])
 }
 
 model UserSubject {
