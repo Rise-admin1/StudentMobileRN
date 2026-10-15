@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FONT } from '../../../constants';
@@ -74,20 +74,6 @@ const SettingsPage = () => {
         }
       ]
     );
-  };
-
-  const handlePrivacyPolicy = async () => {
-    const url = 'https://coachacademic.s3.ap-southeast-1.amazonaws.com/EULA+/Privacy+Policy+for+CoachAcadem1.pdf';
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        console.log("Cannot open URL: " + url);
-      }
-    } catch (error) {
-      console.error("Error opening URL:", error);
-    }
   };
 
   const header = (
@@ -179,7 +165,7 @@ const SettingsPage = () => {
           <View style={styles.divider} />
           <SettingsRow label="Contact Us" onPress={() => router.push('/(tabs)/profile/contact-us')} />
           <View style={styles.divider} />
-          <SettingsRow label="Privacy Policy" onPress={handlePrivacyPolicy} />
+          <SettingsRow label="Privacy Policy" onPress={() => router.push('/(tabs)/profile/privacy-policy')} />
         </View>
 
         <Text style={styles.sectionTitle}>Developer</Text>

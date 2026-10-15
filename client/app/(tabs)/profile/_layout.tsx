@@ -16,6 +16,7 @@ const ProfileLayout = () => {
     <Stack.Screen name="help-center" options={{ headerShown:false }} />
     <Stack.Screen name="help-item" options={{ headerShown:false }} />
     <Stack.Screen name="contact-us" options={{ headerShown:false }} />
+    <Stack.Screen name="privacy-policy" options={{ headerShown: false }} />
     <Stack.Screen name="dev-stats" options={{ headerShown:false }} />
     <Stack.Screen name="organization" options={{ headerShown: false }}/>
     <Stack.Screen name="settings" options={{ headerShown: false }}/>

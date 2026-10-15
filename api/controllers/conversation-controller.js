@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { PrismaClient } from '@prisma/client';
+import { isOnline } from '../utils/presence.js';
 const prisma = new PrismaClient();
 
 dotenv.config();
@@ -26,6 +27,10 @@ const isConversationParticipant = (conversation, userId) => {
         (conversation.student?.userId === userId || conversation.teacher?.userId === userId)
     );
 };
+
+const withPresence = (user) => (
+    user ? { ...user, online: isOnline(user.id) } : user
+);
 
 export const getAllConversations = async (req, res, next) => {
 
@@ -72,8 +77,10 @@ export const getAllConversations = async (req, res, next) => {
                     include: {
                         user: {
                             select: {
+                                id: true,
                                 name: true,
                                 profileImage: true,
+                                lastSeenAt: true,
                             },
                         },
                     },
@@ -82,8 +89,10 @@ export const getAllConversations = async (req, res, next) => {
                     include: {
                         user: {
                             select: {
+                                id: true,
                                 name: true,
                                 profileImage: true,
+                                lastSeenAt: true,
                             },
                         },
                     },
@@ -103,8 +112,8 @@ export const getAllConversations = async (req, res, next) => {
 
         const transformedConversations = conversations.map(conv => ({
             ...conv,
-            user: conv.student.user,
-            client: conv.teacher.user,
+            user: withPresence(conv.student.user),
+            client: withPresence(conv.teacher.user),
             lastMessage: conv.messages?.[0] || null,
         }));
 
@@ -134,8 +143,10 @@ export const getSingleConversation = async (req, res, next) => {
                     include: {
                         user: {
                             select: {
+                                id: true,
                                 name: true,
                                 profileImage: true,
+                                lastSeenAt: true,
                             },
                         },
                     },
@@ -144,8 +155,10 @@ export const getSingleConversation = async (req, res, next) => {
                     include: {
                         user: {
                             select: {
+                                id: true,
                                 name: true,
                                 profileImage: true,
+                                lastSeenAt: true,
                             },
                         },
                     },
@@ -170,8 +183,8 @@ export const getSingleConversation = async (req, res, next) => {
         // Transform response to match expected format
         const response = {
             ...conversation,
-            user: conversation.student.user,
-            client: conversation.teacher.user,
+            user: withPresence(conversation.student.user),
+            client: withPresence(conversation.teacher.user),
             messages: [...(conversation.messages || [])].reverse(),
         };
 

@@ -21,7 +21,6 @@ import { FONT } from '../../../../constants';
 import StatusBarComponent from '../../../components/StatusBarComponent';
 
 const EULA_PDF_URL = `https://coachacademic.s3.ap-southeast-1.amazonaws.com/EULA+/COACHACADEM_TOU_(EULA).pdf`;
-const PRIVACY_POLICY_URL = `https://coachacademic.s3.ap-southeast-1.amazonaws.com/EULA+/Privacy+Policy+for+CoachAcadem1.pdf`;
 
 const CapacitySubscriptionPage = () => {
   const params = useLocalSearchParams();
@@ -318,18 +317,8 @@ const CapacitySubscriptionPage = () => {
     }
   };
 
-  const handleOpenPrivacyPolicy = async () => {
-    try {
-      const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
-      if (canOpen) {
-        await Linking.openURL(PRIVACY_POLICY_URL);
-      } else {
-        Alert.alert('Error', 'Unable to open Privacy Policy');
-      }
-    } catch (err) {
-      console.error('Error opening Privacy Policy:', err);
-      Alert.alert('Error', 'Unable to open Privacy Policy');
-    }
+  const handleOpenPrivacyPolicy = () => {
+    router.push('/(tabs)/profile/privacy-policy');
   };
 
   const availablePlans = getAvailablePlans();
@@ -503,7 +492,7 @@ const CapacitySubscriptionPage = () => {
           >
             <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
             <Text style={styles.legalLinkText}>Privacy Policy</Text>
-            <Ionicons name="open-outline" size={16} color="#64748B" />
+            <Ionicons name="chevron-forward" size={16} color="#64748B" />
           </TouchableOpacity>
         </View>
 

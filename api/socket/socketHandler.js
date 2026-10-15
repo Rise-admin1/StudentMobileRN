@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { userIsParentConversationParticipant } from '../controllers/parent-controller.js';
 import { normalizeDirectChatMessage, toConversationMessageCreate } from '../utils/chatMessages.js';
+import { attachIo, handleConnect, handleDisconnect } from '../utils/presence.js';
 
 const prisma = new PrismaClient();
 
@@ -73,6 +74,8 @@ export const initializeSocket = (server, allowedOrigins = []) => {
     },
   });
 
+  attachIo(io);
+
   io.use((socket, next) => {
     const token =
       socket.handshake.auth?.token ||
@@ -97,6 +100,9 @@ export const initializeSocket = (server, allowedOrigins = []) => {
   io.on('connection', (socket) => {
     count++;
     console.log('socket connected', socket.id, 'user', socket.userId);
+    handleConnect(socket).catch((err) => {
+      console.error('presence connect failed', err);
+    });
 
     socket.on('send-chat-details', async (data) => {
       try {
@@ -457,6 +463,9 @@ export const initializeSocket = (server, allowedOrigins = []) => {
     socket.on('disconnect', () => {
       count--;
       console.log('socket disconnected', socket.id, 'online', count);
+      handleDisconnect(socket).catch((err) => {
+        console.error('presence disconnect failed', err);
+      });
     });
   });
 

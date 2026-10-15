@@ -27,6 +27,7 @@ import { FONT } from "../../../../constants";
 import useSafeAreaInsets, { addBasePaddingToInset } from "../../../hooks/useSafeAreaInsets";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { goBack } from "../../../utils/navigation";
+import { formatPresence } from "../../../utils/presence";
 
 interface Message {
   text?: string;
@@ -40,6 +41,8 @@ interface UserProfile {
   id?: string;
   name?: string;
   profileImage?: string;
+  online?: boolean;
+  lastSeenAt?: string | null;
 }
 
 interface Conversation {
@@ -64,6 +67,7 @@ const ConversationId = () => {
   const { conversationId } = useLocalSearchParams();
 
   const otherParty = isTeacher ? allMessages.user : allMessages.client;
+  const presenceLabel = formatPresence(otherParty);
 
   const handleSendMessage = useCallback(() => {
     if (!message.trim()) return;
@@ -161,9 +165,24 @@ const ConversationId = () => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     });
+    const onPresence = (payload) => {
+      if (!payload?.userId) return;
+      setAllMessages((prev) => {
+        const next = { ...prev };
+        if (prev.user?.id === payload.userId) {
+          next.user = { ...prev.user, online: payload.online, lastSeenAt: payload.lastSeenAt };
+        }
+        if (prev.client?.id === payload.userId) {
+          next.client = { ...prev.client, online: payload.online, lastSeenAt: payload.lastSeenAt };
+        }
+        return next;
+      });
+    };
+    socket.on("presence-update", onPresence);
 
     return () => {
       socket.off("server-message");
+      socket.off("presence-update", onPresence);
     };
   }, [conversationId]);
 
@@ -272,10 +291,15 @@ const ConversationId = () => {
               <Text style={styles.headerTitle} numberOfLines={1}>
                 {otherParty?.name || 'Conversation'}
               </Text>
-              <Text style={styles.headerSubtitle} numberOfLines={1}>
-                {messageCount > 0
-                  ? `${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`
-                  : 'Direct chat'}
+              <Text
+                style={[styles.headerSubtitle, presenceLabel && otherParty?.online && styles.headerSubtitleOnline]}
+                numberOfLines={1}
+              >
+                {presenceLabel
+                  ? presenceLabel
+                  : messageCount > 0
+                    ? `${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`
+                    : 'Direct chat'}
               </Text>
             </View>
           </View>
@@ -390,6 +414,9 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     fontFamily: FONT.regular,
     color: '#5C6B76',
+  },
+  headerSubtitleOnline: {
+    color: '#1F8A4C',
   },
   chatContainer: {
     flex: 1,

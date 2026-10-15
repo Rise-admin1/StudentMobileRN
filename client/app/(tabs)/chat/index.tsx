@@ -21,6 +21,7 @@ import { ipURL } from "../../utils/utils";
 import { Ionicons } from '@expo/vector-icons';
 import { horizontalScale, verticalScale, moderateScale } from "../../utils/metrics";
 import { socket, connectSocket } from "../../utils/socket";
+import { formatPresence } from "../../utils/presence";
 import { FONT } from "../../../constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -115,6 +116,41 @@ const ChatPage = () => {
     React.useCallback(() => {
       setOpeningId(null);
       getConversation();
+
+      let active = true;
+      const onPresence = (payload) => {
+        if (!payload?.userId) return;
+        const apply = (list) => list.map((item) => {
+          let next = item;
+          if (item.user?.id === payload.userId) {
+            next = {
+              ...next,
+              user: { ...item.user, online: payload.online, lastSeenAt: payload.lastSeenAt },
+            };
+          }
+          if (item.client?.id === payload.userId) {
+            next = {
+              ...next,
+              client: { ...item.client, online: payload.online, lastSeenAt: payload.lastSeenAt },
+            };
+          }
+          return next;
+        });
+        setConversation((prev) => apply(prev));
+        setOriginalConversation((prev) => apply(prev));
+      };
+
+      const listen = async () => {
+        await connectSocket();
+        if (!active) return;
+        socket.on('presence-update', onPresence);
+      };
+      listen();
+
+      return () => {
+        active = false;
+        socket.off('presence-update', onPresence);
+      };
     }, [])
   );
 
@@ -176,6 +212,7 @@ const ChatPage = () => {
     const lastMessageText = lastMessage?.text;
     const lastMessageTime = formatPreviewTime(lastMessage?.createdAt || lastMessage?.timestamp);
     const subjectName = item?.subject?.subjectName;
+    const presenceLabel = formatPresence(otherParty);
 
     return (
       <TouchableOpacity
@@ -215,6 +252,14 @@ const ChatPage = () => {
               <Text style={styles.timeText}>{lastMessageTime}</Text>
             )}
           </View>
+          {!!presenceLabel && (
+            <Text
+              style={[styles.presenceText, otherParty?.online && styles.presenceOnline]}
+              numberOfLines={1}
+            >
+              {presenceLabel}
+            </Text>
+          )}
           {!!subjectName && (
             <Text style={styles.subjectText} numberOfLines={1}>
               {subjectName}
@@ -434,6 +479,15 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     fontFamily: FONT.semiBold,
     color: '#12263A',
+  },
+  presenceText: {
+    marginTop: 3,
+    fontSize: moderateScale(12),
+    fontFamily: FONT.regular,
+    color: '#5C6B76',
+  },
+  presenceOnline: {
+    color: '#1F8A4C',
   },
   timeText: {
     fontSize: moderateScale(12),

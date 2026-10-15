@@ -6,6 +6,7 @@ import {
   getStudentLearningProgressPayload,
   getStudentUpcomingClassesPayload,
 } from './bookingController.js';
+import { isOnline } from '../utils/presence.js';
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
@@ -17,10 +18,18 @@ const userSelect = {
   email: true,
 };
 
+const chatUserSelect = {
+  id: true,
+  name: true,
+  profileImage: true,
+  email: true,
+  lastSeenAt: true,
+};
+
 const conversationInclude = {
-  parent: { include: { user: { select: userSelect } } },
-  teacher: { include: { user: { select: userSelect } } },
-  student: { include: { user: { select: userSelect } } },
+  parent: { include: { user: { select: chatUserSelect } } },
+  teacher: { include: { user: { select: chatUserSelect } } },
+  student: { include: { user: { select: chatUserSelect } } },
   subject: {
     select: {
       id: true,
@@ -34,23 +43,31 @@ const conversationInclude = {
   },
 };
 
-const serializeParentConversation = (conversation) => ({
-  id: conversation.id,
-  kind: 'parent',
-  isParentThread: true,
-  createdAt: conversation.createdAt,
-  updatedAt: conversation.updatedAt,
-  subjectId: conversation.subjectId,
-  subject: conversation.subject,
-  child: conversation.student?.user,
-  childName: conversation.student?.user?.name,
-  parent: conversation.parent?.user,
-  teacher: conversation.teacher?.user,
-  user: conversation.parent?.user,
-  client: conversation.teacher?.user,
-  lastMessage: conversation.messages?.[0] || null,
-  messages: conversation.messages,
-});
+const withPresence = (user) => (
+  user ? { ...user, online: isOnline(user.id) } : user
+);
+
+const serializeParentConversation = (conversation) => {
+  const parentUser = withPresence(conversation.parent?.user);
+  const teacherUser = withPresence(conversation.teacher?.user);
+  return {
+    id: conversation.id,
+    kind: 'parent',
+    isParentThread: true,
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt,
+    subjectId: conversation.subjectId,
+    subject: conversation.subject,
+    child: conversation.student?.user,
+    childName: conversation.student?.user?.name,
+    parent: parentUser,
+    teacher: teacherUser,
+    user: parentUser,
+    client: teacherUser,
+    lastMessage: conversation.messages?.[0] || null,
+    messages: conversation.messages,
+  };
+};
 
 const getParentProfile = async (userId) => {
   const user = await prisma.user.findUnique({
