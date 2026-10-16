@@ -3,9 +3,14 @@ import { verifyToken, requireRole } from '../middlewares/jwt.js';
 import {
   getAdminStats,
   getAdminTeachers,
+  getAdminTeacherDetail,
   getAdminOrganizations,
+  getAdminOrganizationDetail,
   getAdminParents,
+  getAdminParentDetail,
   getAdminPurchases,
+  getAdminPurchaseDetail,
+  getAdminReportDetail,
   getAdminRefundRequests,
   acceptAdminRefundRequest,
   declineAdminRefundRequest,
@@ -17,9 +22,19 @@ const router = express.Router();
 
 router.get('/stats', verifyToken, requireRole('ADMIN'), getAdminStats);
 router.get('/teachers', verifyToken, requireRole('ADMIN'), getAdminTeachers);
+router.get('/teachers/:userId', verifyToken, requireRole('ADMIN'), getAdminTeacherDetail);
 router.get('/organizations', verifyToken, requireRole('ADMIN'), getAdminOrganizations);
+router.get(
+  '/organizations/:organizationId',
+  verifyToken,
+  requireRole('ADMIN'),
+  getAdminOrganizationDetail
+);
 router.get('/parents', verifyToken, requireRole('ADMIN'), getAdminParents);
+router.get('/parents/:userId', verifyToken, requireRole('ADMIN'), getAdminParentDetail);
 router.get('/purchases', verifyToken, requireRole('ADMIN'), getAdminPurchases);
+router.get('/purchases/:purchaseId', verifyToken, requireRole('ADMIN'), getAdminPurchaseDetail);
+router.get('/reports/:reportId', verifyToken, requireRole('ADMIN'), getAdminReportDetail);
 router.get('/refund-requests', verifyToken, requireRole('ADMIN'), getAdminRefundRequests);
 router.post(
   '/refund-requests/:refundRequestId/accept',

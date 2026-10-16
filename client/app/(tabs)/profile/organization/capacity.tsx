@@ -15,6 +15,7 @@ import { PurchasesPackage } from 'react-native-purchases';
 import { useRevenueCat } from '../../../providers/RevenueCatProvider';
 import { axiosWithAuth } from '../../../utils/customAxios';
 import { ipURL } from '../../../utils/utils';
+import { storeProductTitle } from '../../../utils/storeProductTitle';
 import { COLORS } from '../../../../constants/theme';
 import { horizontalScale, moderateScale, verticalScale } from '../../../utils/metrics';
 import { FONT } from '../../../../constants';
@@ -408,7 +409,7 @@ const CapacitySubscriptionPage = () => {
                       <Ionicons name="document-text-outline" size={16} color="#64748B" />
                       <Text style={styles.detailLabel}>Subscription Title:</Text>
                       <Text style={styles.detailValue}>
-                        {product.title || 'Organization Capacity'}
+                        {storeProductTitle(product.title, 'Organization Capacity')}
                       </Text>
                     </View>
                     

@@ -538,3 +538,415 @@ export const approveAdminDeletionRequest = async (req, res, next) => {
     next(err);
   }
 };
+
+const subjectAdminStatus = (subject) => {
+  if (subject.subjectVerification) return 'verified';
+  if (subject.rejectedAt) return 'rejected';
+  return 'pending';
+};
+
+const mapAdminReport = (report) => ({
+  id: report.id,
+  reportDescription: report.reportDescription,
+  reportStatus: report.reportStatus,
+  reportResolution: report.reportResolution,
+  createdAt: report.createdAt,
+  reporterId: report.reporterId,
+  reporterName: report.reporter?.name || null,
+  reporterEmail: report.reporter?.email || null,
+  subjectId: report.subjectId,
+  subjectName: report.reportedSubject?.subjectName || null,
+  teacherName: report.reportedSubject?.teacherProfile?.user?.name || null,
+  teacherEmail: report.reportedSubject?.teacherProfile?.user?.email || null,
+});
+
+const adminReportInclude = {
+  reporter: {
+    select: { id: true, name: true, email: true },
+  },
+  reportedSubject: {
+    select: {
+      id: true,
+      subjectName: true,
+      teacherProfile: {
+        select: {
+          user: {
+            select: { name: true, email: true },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const getAdminTeacherDetail = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        userDescription: true,
+        verified: true,
+        lastSeenAt: true,
+        createdAt: true,
+        userType: true,
+        teacherProfile: {
+          select: {
+            id: true,
+            zoomAccountCreated: true,
+            zoomUserAcceptedInvite: true,
+            isTeamLead: true,
+            organizationRole: true,
+            organization: {
+              select: { id: true, orgName: true, orgEmail: true },
+            },
+            subjects: {
+              orderBy: { createdAt: 'desc' },
+              select: {
+                id: true,
+                subjectName: true,
+                subjectBoard: true,
+                subjectGrade: true,
+                subjectPrice: true,
+                subjectVerification: true,
+                rejectedAt: true,
+                rejectionReason: true,
+                createdAt: true,
+                submittedForVerificationAt: true,
+                courseType: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || user.userType !== 'TEACHER' || !user.teacherProfile) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profileImage: user.profileImage,
+      userDescription: user.userDescription,
+      verified: user.verified,
+      lastSeenAt: user.lastSeenAt,
+      createdAt: user.createdAt,
+      teacherProfile: {
+        id: user.teacherProfile.id,
+        zoomAccountCreated: user.teacherProfile.zoomAccountCreated,
+        zoomUserAcceptedInvite: user.teacherProfile.zoomUserAcceptedInvite,
+        isTeamLead: user.teacherProfile.isTeamLead,
+        organizationRole: user.teacherProfile.organizationRole,
+        organization: user.teacherProfile.organization,
+      },
+      subjects: user.teacherProfile.subjects.map((subject) => ({
+        ...subject,
+        status: subjectAdminStatus(subject),
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const getAdminParentDetail = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        createdAt: true,
+        userType: true,
+        parentProfile: {
+          select: {
+            links: {
+              orderBy: { createdAt: 'desc' },
+              select: {
+                id: true,
+                status: true,
+                createdAt: true,
+                respondedAt: true,
+                student: {
+                  select: {
+                    id: true,
+                    userId: true,
+                    user: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profileImage: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || user.userType !== 'PARENT' || !user.parentProfile) {
+      return res.status(404).json({ message: 'Parent not found' });
+    }
+
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profileImage: user.profileImage,
+      createdAt: user.createdAt,
+      links: user.parentProfile.links.map((link) => ({
+        id: link.id,
+        status: link.status,
+        createdAt: link.createdAt,
+        respondedAt: link.respondedAt,
+        student: {
+          id: link.student.id,
+          userId: link.student.userId,
+          name: link.student.user?.name || null,
+          email: link.student.user?.email || null,
+          profileImage: link.student.user?.profileImage || null,
+        },
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const getAdminOrganizationDetail = async (req, res, next) => {
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { id: req.params.organizationId },
+      select: {
+        id: true,
+        orgName: true,
+        orgEmail: true,
+        orgWebsite: true,
+        orgLicense: true,
+        orgCapacity: true,
+        createdAt: true,
+        updatedAt: true,
+        teamLead: {
+          select: {
+            organizationRole: true,
+            user: {
+              select: { id: true, name: true, email: true, profileImage: true },
+            },
+          },
+        },
+        members: {
+          select: {
+            organizationRole: true,
+            user: {
+              select: { id: true, name: true, email: true, profileImage: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+
+    const teamLeadId = organization.teamLead?.user?.id || null;
+    const teamLead = organization.teamLead?.user
+      ? {
+          id: organization.teamLead.user.id,
+          name: organization.teamLead.user.name,
+          email: organization.teamLead.user.email,
+          profileImage: organization.teamLead.user.profileImage,
+          organizationRole: organization.teamLead.organizationRole || 'OWNER',
+        }
+      : null;
+
+    const regularMembers = organization.members
+      .filter((member) => member.user.id !== teamLeadId)
+      .map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+        email: member.user.email,
+        profileImage: member.user.profileImage,
+        organizationRole: member.organizationRole || null,
+        isTeamLead: false,
+      }));
+
+    const members = [
+      ...(teamLead
+        ? [
+            {
+              ...teamLead,
+              isTeamLead: true,
+            },
+          ]
+        : []),
+      ...regularMembers,
+    ];
+
+    return res.status(200).json({
+      id: organization.id,
+      orgName: organization.orgName,
+      orgEmail: organization.orgEmail,
+      orgWebsite: organization.orgWebsite,
+      orgLicense: organization.orgLicense,
+      orgCapacity: organization.orgCapacity,
+      createdAt: organization.createdAt,
+      updatedAt: organization.updatedAt,
+      teamLead,
+      members,
+      memberCount: members.length,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const getAdminPurchaseDetail = async (req, res, next) => {
+  try {
+    const purchase = await prisma.stripePurchases.findUnique({
+      where: { id: req.params.purchaseId },
+      select: {
+        id: true,
+        purchaseAmount: true,
+        purchaseCurrency: true,
+        purchaseDate: true,
+        purchaseStatus: true,
+        paymentStatus: true,
+        purchaseReceiptUrl: true,
+        stripeCustomerId: true,
+        stripeChargeId: true,
+        createdAt: true,
+        student: {
+          select: {
+            id: true,
+            userId: true,
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+        subject: {
+          select: {
+            id: true,
+            subjectName: true,
+            courseType: true,
+            subjectBoard: true,
+            subjectGrade: true,
+            subjectPrice: true,
+          },
+        },
+        booking: {
+          select: {
+            id: true,
+            bookingStatus: true,
+            bookingDate: true,
+            bookingTime: true,
+            bookingHours: true,
+            bookingMinutes: true,
+            bookingZoomUrl: true,
+            subjectTopicId: true,
+            createdAt: true,
+          },
+        },
+        courseEnrollment: {
+          select: {
+            id: true,
+            enrollmentStatus: true,
+            enrolledAt: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!purchase) {
+      return res.status(404).json({ message: 'Purchase not found' });
+    }
+
+    return res.status(200).json({
+      id: purchase.id,
+      purchaseAmount: purchase.purchaseAmount,
+      purchaseCurrency: purchase.purchaseCurrency,
+      purchaseDate: purchase.purchaseDate,
+      purchaseStatus: purchase.purchaseStatus,
+      paymentStatus: purchase.paymentStatus,
+      purchaseReceiptUrl: purchase.purchaseReceiptUrl,
+      stripeCustomerId: purchase.stripeCustomerId,
+      stripeChargeId: purchase.stripeChargeId,
+      createdAt: purchase.createdAt,
+      student: {
+        profileId: purchase.student?.id || null,
+        userId: purchase.student?.userId || purchase.student?.user?.id || null,
+        name: purchase.student?.user?.name || null,
+        email: purchase.student?.user?.email || null,
+      },
+      subject: purchase.subject
+        ? {
+            id: purchase.subject.id,
+            subjectName: purchase.subject.subjectName,
+            courseType: purchase.subject.courseType,
+            subjectBoard: purchase.subject.subjectBoard,
+            subjectGrade: purchase.subject.subjectGrade,
+            subjectPrice: purchase.subject.subjectPrice,
+          }
+        : null,
+      booking: purchase.booking
+        ? {
+            id: purchase.booking.id,
+            bookingStatus: purchase.booking.bookingStatus,
+            bookingDate: purchase.booking.bookingDate,
+            bookingTime: purchase.booking.bookingTime,
+            bookingHours: purchase.booking.bookingHours,
+            bookingMinutes: purchase.booking.bookingMinutes,
+            bookingZoomUrl: purchase.booking.bookingZoomUrl,
+            subjectTopicId: purchase.booking.subjectTopicId,
+            createdAt: purchase.booking.createdAt,
+          }
+        : null,
+      courseEnrollment: purchase.courseEnrollment
+        ? {
+            id: purchase.courseEnrollment.id,
+            enrollmentStatus: purchase.courseEnrollment.enrollmentStatus,
+            enrolledAt: purchase.courseEnrollment.enrolledAt,
+            createdAt: purchase.courseEnrollment.createdAt,
+          }
+        : null,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const getAdminReportDetail = async (req, res, next) => {
+  try {
+    const report = await prisma.report.findUnique({
+      where: { id: req.params.reportId },
+      include: adminReportInclude,
+    });
+
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+
+    return res.status(200).json(mapAdminReport(report));
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};

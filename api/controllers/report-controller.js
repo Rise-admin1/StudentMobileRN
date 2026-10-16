@@ -301,8 +301,46 @@ export const unblockUser = async (req, res, next) => {
 
 export const getAllReports = async (req, res, next) => {
     try {
-        const reports = await prisma.report.findMany();
-        return res.status(200).json(reports);
+        const reports = await prisma.report.findMany({
+            include: {
+                reporter: {
+                    select: { id: true, name: true, email: true },
+                },
+                reportedSubject: {
+                    select: {
+                        id: true,
+                        subjectName: true,
+                        teacherProfile: {
+                            select: {
+                                user: {
+                                    select: { name: true, email: true },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return res.status(200).json(
+            reports.map((report) => ({
+                id: report.id,
+                reportDescription: report.reportDescription,
+                reportStatus: report.reportStatus,
+                reportResolution: report.reportResolution,
+                createdAt: report.createdAt,
+                reporterId: report.reporterId,
+                reporterName: report.reporter?.name || null,
+                reporterEmail: report.reporter?.email || null,
+                subjectId: report.subjectId,
+                subjectName: report.reportedSubject?.subjectName || null,
+                teacherName: report.reportedSubject?.teacherProfile?.user?.name || null,
+                teacherEmail: report.reportedSubject?.teacherProfile?.user?.email || null,
+                // Backward-compatible aliases used by older clients
+                reason: report.reportDescription,
+            }))
+        );
     } catch (err) {
         console.log(err);
         next(err);

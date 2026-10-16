@@ -17,6 +17,7 @@ import { horizontalScale, moderateScale, verticalScale } from '../../utils/metri
 import { FONT } from '../../../constants';
 import { axiosWithAuth } from '../../utils/customAxios';
 import { ipURL } from '../../utils/utils';
+import { storeProductTitle } from '../../utils/storeProductTitle';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type PaidCourseType = 'MULTI_STUDENT' | 'SINGLE_PACKAGE' | 'MULTI_PACKAGE';
@@ -246,7 +247,7 @@ const CoursePaywallPage = () => {
               >
                 <View style={styles.packageHeader}>
                   <View>
-                    <Text style={styles.packageTitle}>{pkg.product.title || 'Plan'}</Text>
+                    <Text style={styles.packageTitle}>{storeProductTitle(pkg.product.title, 'Plan')}</Text>
                     {!!pkg.product.description && (
                       <Text style={styles.packageSubtitle}>{pkg.product.description}</Text>
                     )}
