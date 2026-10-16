@@ -251,7 +251,7 @@ const HomePage = () => {
   const [hasShownUpdateAlert, setHasShownUpdateAlert] = useState(false);
 
   const firstName = userDetails.userName?.split(' ')[0] || 'there';
-  const roleLabel = user.isTeacher ? 'Tutor' : user.isParent || user.userType === 'PARENT' ? 'Parent' : 'Student';
+  const roleLabel = user.userType === 'ADMIN' ? 'ADMIN' : user.isTeacher ? 'Tutor' : user.isParent || user.userType === 'PARENT' ? 'Parent' : 'Student';
   const isStudent = user.userType === 'STUDENT' || !!user.isStudent || user.userType === 'PARENT' || !!user.isParent;
   const featuredCourses = useMemo(
     () => (isStudent ? featuredSubjectData : subjectData.slice(0, 6)),
