@@ -709,6 +709,7 @@ export const updateSubject = async (req, res, next) => {
             subjectVerification: false,
             rejectedAt: null,
             rejectionReason: null,
+            submittedForVerificationAt: new Date(),
         };
         const body = req.body || {};
         if (body.subjectName != null) data.subjectName = body.subjectName;
@@ -804,6 +805,7 @@ export const resubmitSubject = async (req, res, next) => {
                 subjectVerification: false,
                 rejectedAt: null,
                 rejectionReason: null,
+                submittedForVerificationAt: new Date(),
             },
         });
 
@@ -876,6 +878,7 @@ export const getAllSubjectsToVerify = async (req, res, next) => {
                 subjectVerification: false,
                 rejectedAt: null,
             },
+            orderBy: { submittedForVerificationAt: 'desc' },
         });
 
         return res.status(200).json(subjects);

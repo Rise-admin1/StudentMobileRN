@@ -269,6 +269,7 @@ model Subject {
   rejectedAt           DateTime?
   rejectionReason      String?  @db.Text
   createdAt            DateTime @default(now())
+  submittedForVerificationAt DateTime @default(now())
   
   // Multi-student course fields
   courseType           CourseType @default(SINGLE_STUDENT)
