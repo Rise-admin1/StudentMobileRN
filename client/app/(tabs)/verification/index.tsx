@@ -23,6 +23,7 @@ type AdminStats = {
   pendingSubjects: number;
   confirmedPurchases: number;
   pendingRefundRequests: number;
+  pendingDeletionRequests: number;
   totalSpendMinor: number;
 };
 
@@ -93,6 +94,12 @@ const AdminOverview = () => {
       label: 'Refund requests',
       icon: 'return-down-back-outline' as const,
       hint: `${stats?.pendingRefundRequests ?? 0} pending`,
+    },
+    {
+      href: '/(tabs)/verification/deletion-requests',
+      label: 'Deletion requests',
+      icon: 'trash-outline' as const,
+      hint: `${stats?.pendingDeletionRequests ?? 0} pending`,
     },
   ];
 

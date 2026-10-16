@@ -68,6 +68,7 @@ const ProfilePage = () => {
   const [pendingChildren, setPendingChildren] = useState([]);
   const [childrenLoading, setChildrenLoading] = useState(false);
   const [studentRatings, setStudentRatings] = useState(null);
+  const [acceptingLinkId, setAcceptingLinkId] = useState<string | null>(null);
 
   const isParent = !!(userDetails?.isParent || userDetails?.userType === 'PARENT');
 
@@ -158,44 +159,45 @@ const ProfilePage = () => {
     router.push('/(tabs)/profile/settings');
   };
 
-  const handleUnlinkChild = (linkId) => {
-    Alert.alert('Unlink student', 'They will no longer appear in your parent account.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Unlink',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await axiosWithAuth.delete(`${ipURL}/api/parent/links/${linkId}`);
-            getUser();
-          } catch (error) {
-            Alert.alert('Error', 'Could not unlink this student.');
-          }
-        },
-      },
-    ]);
-  };
-
-  const handleUnlinkParent = (linkId) => {
+  const handleUnlinkChild = () => {
     Alert.alert(
-      'Unlink parent',
-      'This parent will no longer be linked to your student account or see your progress.',
+      'Unlink student',
+      'To unlink from a student, please contact support.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Unlink',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await axiosWithAuth.delete(`${ipURL}/api/student/parent-links/${linkId}`);
-              getUser();
-            } catch (error) {
-              Alert.alert('Error', 'Could not unlink this parent.');
-            }
-          },
+          text: 'Contact Support',
+          onPress: () => router.push('/(tabs)/profile/contact-us'),
         },
       ]
     );
+  };
+
+  const handleUnlinkParent = () => {
+    Alert.alert(
+      'Unlink parent',
+      'To unlink from a parent, please contact support.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Contact Support',
+          onPress: () => router.push('/(tabs)/profile/contact-us'),
+        },
+      ]
+    );
+  };
+
+  const handleAcceptParentInvite = async (linkId: string) => {
+    if (acceptingLinkId) return;
+    setAcceptingLinkId(linkId);
+    try {
+      await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${linkId}/accept`);
+      await getUser();
+    } catch (error) {
+      Alert.alert('Error', 'Could not accept this parent request.');
+    } finally {
+      setAcceptingLinkId(null);
+    }
   };
 
   const handleShareProfile = async () => {
@@ -429,12 +431,14 @@ const ProfilePage = () => {
                     <View style={styles.parentInviteActions}>
                       <TouchableOpacity
                         style={styles.parentAcceptButton}
-                        onPress={async () => {
-                          await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/accept`);
-                          getUser();
-                        }}
+                        onPress={() => handleAcceptParentInvite(invite.linkId)}
+                        disabled={!!acceptingLinkId}
                       >
-                        <Text style={styles.parentAcceptButtonText}>Accept</Text>
+                        {acceptingLinkId === invite.linkId ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.parentAcceptButtonText}>Accept</Text>
+                        )}
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.parentRejectButton}
@@ -442,6 +446,7 @@ const ProfilePage = () => {
                           await axiosWithAuth.post(`${ipURL}/api/student/parent-invites/${invite.linkId}/reject`);
                           getUser();
                         }}
+                        disabled={!!acceptingLinkId}
                       >
                         <Text style={styles.parentRejectButtonText}>Reject</Text>
                       </TouchableOpacity>

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { acceptRefundRequest, declineRefundRequest } from '../services/refundService.js';
+import { performAccountDeletion } from '../services/accountDeletionService.js';
 import { formatClassStart, formatPurchaseAmount } from '../utils/refundEligibility.js';
 
 const prisma = new PrismaClient();
@@ -21,6 +22,7 @@ export const getAdminStats = async (req, res, next) => {
       confirmedPurchases,
       spendAgg,
       pendingRefundRequests,
+      pendingDeletionRequests,
     ] = await Promise.all([
       prisma.user.count({ where: { userType: 'TEACHER' } }),
       prisma.user.count({ where: { userType: 'STUDENT' } }),
@@ -35,6 +37,7 @@ export const getAdminStats = async (req, res, next) => {
         _sum: { purchaseAmount: true },
       }),
       prisma.refundRequest.count({ where: { status: 'PENDING' } }),
+      prisma.accountDeletionRequest.count({ where: { status: 'PENDING' } }),
     ]);
 
     return res.status(200).json({
@@ -45,6 +48,7 @@ export const getAdminStats = async (req, res, next) => {
       pendingSubjects,
       confirmedPurchases,
       pendingRefundRequests,
+      pendingDeletionRequests,
       totalSpendMinor: spendAgg._sum.purchaseAmount || 0,
     });
   } catch (err) {
@@ -438,6 +442,101 @@ export const declineAdminRefundRequest = async (req, res, next) => {
     if (err.statusCode) {
       return res.status(err.statusCode).json({ message: err.message });
     }
+    next(err);
+  }
+};
+
+export const getAdminDeletionRequests = async (req, res, next) => {
+  try {
+    const { page, pageSize, skip } = parsePaging(req);
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toUpperCase() : 'PENDING';
+    const where = {
+      ...(status ? { status } : {}),
+      ...(q
+        ? {
+            OR: [
+              { userName: { contains: q } },
+              { userEmail: { contains: q } },
+            ],
+          }
+        : {}),
+    };
+
+    const [total, rows] = await Promise.all([
+      prisma.accountDeletionRequest.count({ where }),
+      prisma.accountDeletionRequest.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          status: true,
+          userId: true,
+          userName: true,
+          userEmail: true,
+          userType: true,
+          createdAt: true,
+          reviewedAt: true,
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      page,
+      pageSize,
+      total,
+      deletionRequests: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const approveAdminDeletionRequest = async (req, res, next) => {
+  try {
+    const { deletionRequestId } = req.params;
+    const adminUserId = req.userId;
+
+    const deletionRequest = await prisma.accountDeletionRequest.findUnique({
+      where: { id: deletionRequestId },
+    });
+    if (!deletionRequest) {
+      return res.status(404).json({ message: 'Deletion request not found' });
+    }
+    if (deletionRequest.status !== 'PENDING') {
+      return res.status(400).json({ message: 'This deletion request has already been processed' });
+    }
+    if (!deletionRequest.userId) {
+      return res.status(404).json({ message: 'User not found for this deletion request' });
+    }
+    if (deletionRequest.userId === adminUserId) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: deletionRequest.userId },
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await prisma.accountDeletionRequest.update({
+      where: { id: deletionRequest.id },
+      data: {
+        status: 'COMPLETED',
+        reviewedById: adminUserId,
+        reviewedAt: new Date(),
+      },
+    });
+
+    await performAccountDeletion(user);
+
+    return res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    console.error(err);
     next(err);
   }
 };

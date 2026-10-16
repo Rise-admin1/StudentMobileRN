@@ -82,22 +82,18 @@ const ParentHome = ({ firstName = 'there' }) => {
     }
   };
 
-  const handleUnlink = (linkId) => {
-    Alert.alert('Unlink student', 'They will no longer appear in your parent account.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Unlink',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await axiosWithAuth.delete(`${ipURL}/api/parent/links/${linkId}`);
-            await loadChildren();
-          } catch (error) {
-            Alert.alert('Error', 'Could not unlink this student.');
-          }
+  const handleUnlink = () => {
+    Alert.alert(
+      'Unlink student',
+      'To unlink from a student, please contact support.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Contact Support',
+          onPress: () => router.push('/(tabs)/profile/contact-us'),
         },
-      },
-    ]);
+      ]
+    );
   };
 
   return (

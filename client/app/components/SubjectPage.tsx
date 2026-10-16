@@ -1025,6 +1025,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       if (response.data) {
         setReviews(prevReviews => [response.data, ...prevReviews]);
       }
+      resetToHome(navigation);
       return true;
     } catch (error) {
       console.error("Error submitting review:", error);
@@ -1033,7 +1034,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [subjectId, usertoken]);
+  }, [subjectId, usertoken, navigation]);
 
   const handleViewAllReviews = () => {
     router.push(`/(tabs)/${stackTab}/subjectReviews/${subjectId}`);

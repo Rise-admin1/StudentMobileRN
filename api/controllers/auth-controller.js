@@ -6,11 +6,11 @@ import dotenv from "dotenv";
 import { Resend } from 'resend';
 dotenv.config();
 import { sendNotificationByType } from "../services/pushNotificationService.js";
-import { createZoomAccountForTeacher, deleteZoomUser } from "../services/zoomService.js";
+import { createZoomAccountForTeacher } from "../services/zoomService.js";
 import { publicCatalogFilter } from "../utils/upcomingCatalog.js";
 import { getViewerHiddenSubjects } from "../utils/subjectVisibility.js";
 import { getTeacherProfileStats, resolveTeacherProfileId } from "./bookingController.js";
-import { sendOpsNotifyEmail, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
+import { sendOpsNotifyEmail, ADMIN_CC_EMAIL, OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 
@@ -1391,7 +1391,6 @@ export const deleteAccount = async (req, res, next) => {
       return res.status(400).json({ message: "Please provide your password" });
     }
 
-    // Find the user
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -1400,33 +1399,83 @@ export const deleteAccount = async (req, res, next) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Verify password
     const isCorrect = bcrypt.compareSync(password, user.password);
     if (!isCorrect) {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    // Delete teacher's Zoom user if they have one
-    if (user.userType === 'TEACHER' && user.email) {
-      try {
-        await deleteZoomUser(user.email);
-      } catch (zoomErr) {
-        console.warn('Could not delete Zoom user on account deletion:', zoomErr.message);
-        // Continue with account deletion - don't block if Zoom fails
-      }
+    const existingPending = await prisma.accountDeletionRequest.findFirst({
+      where: { userId, status: 'PENDING' },
+    });
+    if (existingPending) {
+      return res.status(400).json({ message: 'You already have a pending account deletion request.' });
     }
 
-    // Delete the user - all related records will be deleted automatically due to onDelete: Cascade
-    await prisma.user.delete({
-      where: { id: userId },
+    const deletionRequest = await prisma.accountDeletionRequest.create({
+      data: {
+        userId,
+        userEmail: user.email,
+        userName: user.name,
+        userType: user.userType,
+        status: 'PENDING',
+      },
     });
 
-    res.status(200).json({ message: "Account deleted successfully" });
+    const from = `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`;
+
+    await Promise.all([
+      resend.emails.send({
+        from,
+        to: OPS_NOTIFY_EMAILS,
+        cc: ADMIN_CC_EMAIL,
+        subject: 'Account deletion request',
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
+            <div style="background-color: #1A2B4B; padding: 32px 20px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Account Deletion Request</h1>
+            </div>
+            <div style="padding: 32px 20px;">
+              <p style="color:#64748B;font-size:16px;line-height:1.6;">A user has requested account deletion. Please review in the admin app.</p>
+              <div style="background-color:#F8FAFC;padding:16px;border-left:4px solid #1A2B4B;">
+                <p style="margin:8px 0;color:#64748B;"><strong>Request ID:</strong> ${deletionRequest.id}</p>
+                <p style="margin:8px 0;color:#64748B;"><strong>User ID:</strong> ${user.id}</p>
+                <p style="margin:8px 0;color:#64748B;"><strong>Name:</strong> ${user.name}</p>
+                <p style="margin:8px 0;color:#64748B;"><strong>Email:</strong> ${user.email}</p>
+                <p style="margin:8px 0;color:#64748B;"><strong>User type:</strong> ${user.userType}</p>
+              </div>
+            </div>
+          </div>
+        `,
+      }),
+      resend.emails.send({
+        from,
+        to: user.email,
+        cc: ADMIN_CC_EMAIL,
+        subject: 'We received your account deletion request',
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
+            <div style="background-color: #1A2B4B; padding: 32px 20px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Deletion Request Received</h1>
+            </div>
+            <div style="padding: 32px 20px;">
+              <p style="color:#64748B;font-size:16px;line-height:1.6;">
+                Hi ${user.name}, we received your request to delete your Coach Academ account.
+                Our support team will review it and complete the deletion. You do not need to take any further action.
+              </p>
+              <p style="color:#64748B;font-size:14px;line-height:1.6;">
+                If you did not request this, contact us at <a href="mailto:support@coachacadem.ae" style="color:#1A2B4B;">support@coachacadem.ae</a>.
+              </p>
+            </div>
+          </div>
+        `,
+      }),
+    ]);
+
+    res.status(200).json({ message: 'Account deletion request submitted. Our team will review it.' });
   } catch (err) {
-    console.error('Error deleting account:', err);
+    console.error('Error requesting account deletion:', err);
     next(err);
   }
-
 };
 
 export const verifyPurchase = async (req, res, next) => {

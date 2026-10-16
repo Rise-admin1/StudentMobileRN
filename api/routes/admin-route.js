@@ -9,6 +9,8 @@ import {
   getAdminRefundRequests,
   acceptAdminRefundRequest,
   declineAdminRefundRequest,
+  getAdminDeletionRequests,
+  approveAdminDeletionRequest,
 } from '../controllers/admin-controller.js';
 
 const router = express.Router();
@@ -30,6 +32,13 @@ router.post(
   verifyToken,
   requireRole('ADMIN'),
   declineAdminRefundRequest
+);
+router.get('/deletion-requests', verifyToken, requireRole('ADMIN'), getAdminDeletionRequests);
+router.post(
+  '/deletion-requests/:deletionRequestId/approve',
+  verifyToken,
+  requireRole('ADMIN'),
+  approveAdminDeletionRequest
 );
 
 export default router;

@@ -6,7 +6,6 @@ import { FONT } from '../../../constants';
 import { horizontalScale, moderateScale, verticalScale } from '../../utils/metrics';
 import { ipURL } from '../../utils/utils';
 import { axiosWithAuth } from '../../utils/customAxios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DeleteAccountPage = () => {
   const [password, setPassword] = useState('');
@@ -20,15 +19,15 @@ const DeleteAccountPage = () => {
     }
 
     Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+      'Request Account Deletion',
+      'This submits a request for our team to review. Your account will not be deleted immediately.',
       [
         {
           text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: 'Submit Request',
           style: 'destructive',
           onPress: async () => {
             setIsLoading(true);
@@ -38,18 +37,16 @@ const DeleteAccountPage = () => {
               });
 
               if (response.status === 200) {
-                // Clear all stored data
-                await AsyncStorage.clear();
-                Alert.alert('Success', 'Your account has been deleted', [
-                  {
-                    text: 'OK',
-                    onPress: () => router.replace('/(authenticate)/login'),
-                  },
-                ]);
+                setPassword('');
+                Alert.alert(
+                  'Request submitted',
+                  response.data?.message ||
+                    'Your deletion request has been submitted. Our team will review it.'
+                );
               }
             } catch (error) {
-              console.error('Error deleting account:', error);
-              Alert.alert('Error', error.response?.data?.message || 'Failed to delete account');
+              console.error('Error requesting account deletion:', error);
+              Alert.alert('Error', error.response?.data?.message || 'Failed to submit deletion request');
             } finally {
               setIsLoading(false);
             }
@@ -69,7 +66,7 @@ const DeleteAccountPage = () => {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#1A2B4B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Delete Account</Text>
+        <Text style={styles.headerTitle}>Request Account Deletion</Text>
       </View>
       <ScrollView
         style={styles.scrollView}
@@ -82,7 +79,7 @@ const DeleteAccountPage = () => {
             <Ionicons name="warning" size={40} color="#DC2626" />
             <Text style={styles.warningTitle}>Warning</Text>
             <Text style={styles.warningText}>
-              Deleting your account will permanently remove all your data, including:
+              Submitting this request asks our support team to delete your account after review. Once approved, this permanently removes:
             </Text>
             <View style={styles.warningList}>
               <Text style={styles.warningItem}>• Your profile information</Text>
@@ -92,7 +89,7 @@ const DeleteAccountPage = () => {
               <Text style={styles.warningItem}>• All other associated data</Text>
             </View>
             <Text style={styles.warningText}>
-              This action cannot be undone. Please make sure you want to proceed.
+              Your account is not deleted instantly. You will receive an email confirming we received your request.
             </Text>
           </View>
 
@@ -126,7 +123,7 @@ const DeleteAccountPage = () => {
               disabled={isLoading}
             >
               <Text style={styles.deleteButtonText}>
-                {isLoading ? 'Deleting Account...' : 'Delete Account'}
+                {isLoading ? 'Submitting Request...' : 'Request Account Deletion'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -160,8 +157,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: FONT.bold,
-    fontSize: moderateScale(24),
+    fontSize: moderateScale(20),
     color: '#1A2B4B',
+    flexShrink: 1,
   },
   scrollView: {
     flex: 1,
@@ -242,4 +240,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DeleteAccountPage; 
+export default DeleteAccountPage;

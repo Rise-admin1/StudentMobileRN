@@ -274,18 +274,7 @@ export const revokeLinkAsParent = async (req, res, next) => {
       return res.status(400).json({ message: 'Parent profile not found' });
     }
 
-    const link = await prisma.parentStudentLink.findFirst({
-      where: { id: req.params.linkId, parentProfileId: parentProfile.id },
-    });
-    if (!link) {
-      return res.status(404).json({ message: 'Link not found' });
-    }
-
-    await prisma.parentStudentLink.update({
-      where: { id: link.id },
-      data: { status: 'REVOKED', respondedAt: new Date() },
-    });
-    return res.status(200).json({ message: 'Student unlinked' });
+    return res.status(403).json({ message: 'To unlink a student, please contact support.' });
   } catch (err) {
     next(err);
   }
@@ -651,18 +640,7 @@ export const revokeLinkAsStudent = async (req, res, next) => {
       return res.status(400).json({ message: 'Student profile not found' });
     }
 
-    const link = await prisma.parentStudentLink.findFirst({
-      where: { id: req.params.linkId, studentProfileId: studentProfile.id },
-    });
-    if (!link) {
-      return res.status(404).json({ message: 'Link not found' });
-    }
-
-    await prisma.parentStudentLink.update({
-      where: { id: link.id },
-      data: { status: 'REVOKED', respondedAt: new Date() },
-    });
-    return res.status(200).json({ message: 'Parent unlinked' });
+    return res.status(403).json({ message: 'To unlink a parent, please contact support.' });
   } catch (err) {
     next(err);
   }

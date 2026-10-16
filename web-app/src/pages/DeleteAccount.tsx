@@ -28,37 +28,39 @@ export default function DeleteAccountGuide() {
     },
     {
       title: "Click Delete Account",
-      description: "Select the 'Delete Account' option",
+      description: "Select the 'Delete Account' option to open the deletion request screen",
       icon: Trash2,
-      detail: "This button is typically highlighted in red to indicate its destructive nature"
+      detail: "This opens a request form — your account is not deleted immediately"
     },
     {
-      title: "Enter Password",
-      description: "Type your current password to confirm deletion",
+      title: "Enter Password & Submit Request",
+      description: "Type your current password and submit an account deletion request",
       icon: Shield,
-      detail: "This security step ensures only you can delete your account"
+      detail: "Our support team reviews your request and completes deletion after approval. You will receive a confirmation email."
     }
   ];
 
   const consequences = [
-    "All your personal data will be permanently deleted",
+    "Your request is reviewed by our support team before deletion",
+    "You receive an email confirming we received your request",
+    "After approval, all your personal data will be permanently deleted",
   ];
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white">
       <SEO
-        title="Delete Account - Step by Step Guide"
-        description="Learn how to safely delete your CoachAcadem account with our step-by-step guide. Understand the process and consequences before proceeding with account deletion."
+        title="Request Account Deletion - Step by Step Guide"
+        description="Learn how to request deletion of your CoachAcadem account. Submitting a request notifies support; deletion is completed after review."
         name="CoachAcadem"
         type="HowTo"
-        keywords="delete account, account deletion, remove account, CoachAcadem account, account settings"
+        keywords="delete account, account deletion request, remove account, CoachAcadem account, account settings"
         author="CoachAcadem"
         tags={["account management", "help", "tutorial", "account deletion"]}
         schema={{
           "@context": "https://schema.org",
           "@type": "HowTo",
-          "name": "How to Delete Your CoachAcadem Account",
-          "description": "Step-by-step guide to delete your CoachAcadem account safely",
+          "name": "How to Request Deletion of Your CoachAcadem Account",
+          "description": "Step-by-step guide to request account deletion; support reviews and completes deletion",
           "image": "https://coachacademic.s3.ap-southeast-1.amazonaws.com/dummy-image/iphone-community-portrait.png",
           "totalTime": "PT5M",
           "estimatedCost": {
@@ -88,13 +90,13 @@ export default function DeleteAccountGuide() {
             {
               "@type": "HowToStep",
               "name": "Click Delete Account",
-              "text": "Select the 'Delete Account' option",
+              "text": "Select the 'Delete Account' option to open the deletion request screen",
               "image": "https://coachacademic.s3.ap-southeast-1.amazonaws.com/dummy-image/iphone-community-portrait.png"
             },
             {
               "@type": "HowToStep",
-              "name": "Enter Password",
-              "text": "Type your current password to confirm deletion",
+              "name": "Enter Password and Submit Request",
+              "text": "Type your current password and submit an account deletion request for support review",
               "image": "https://coachacademic.s3.ap-southeast-1.amazonaws.com/dummy-image/iphone-community-portrait.png"
             }
           ],
@@ -132,15 +134,16 @@ export default function DeleteAccountGuide() {
             <AlertTriangle className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-red-900">Delete Your Account</h1>
-            <p className="text-red-700 mt-1">This action is permanent and cannot be undone</p>
+            <h1 className="text-3xl font-bold text-red-900">Request Account Deletion</h1>
+            <p className="text-red-700 mt-1">Your request is reviewed by support before deletion is completed</p>
           </div>
         </div>
         
         <div className="bg-red-100 border border-red-300 rounded-lg p-4">
           <p className="text-red-800 font-medium">
-            ⚠️ <strong>Warning:</strong> Once you delete your account, all your data will be permanently removed from our servers. 
-            Please make sure you've backed up any important information before proceeding.
+            ⚠️ <strong>Warning:</strong> Submitting a deletion request does not delete your account instantly.
+            After our team reviews and approves the request, your data will be permanently removed from our servers.
+            Please back up any important information before requesting deletion.
           </p>
         </div>
       </div>
@@ -209,7 +212,7 @@ export default function DeleteAccountGuide() {
                 {index === 4 && isActive && (
                   <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Enter your password to confirm deletion:
+                      Enter your password to submit a deletion request:
                     </label>
                     <div className="relative">
                       <input
@@ -227,7 +230,7 @@ export default function DeleteAccountGuide() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      This is a demonstration - your actual password would be required on the real page
+                      This is a demonstration — in the app, your password submits a request for support review
                     </p>
                   </div>
                 )}
@@ -258,7 +261,7 @@ export default function DeleteAccountGuide() {
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 mb-8">
         <h2 className="text-2xl font-bold text-orange-900 mb-4 flex items-center gap-3">
           <Trash2 className="h-7 w-7 text-orange-600" />
-          What Happens When You Delete Your Account
+          What Happens When You Request Deletion
         </h2>
         
         <div className="grid md:grid-cols-2 gap-4">
