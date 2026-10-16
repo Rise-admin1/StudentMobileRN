@@ -239,7 +239,6 @@ const BillingPage = () => {
 
     let content: React.ReactNode;
     let isEmpty = false;
-    const canRequestRefund = billing?.role === 'STUDENT';
 
     if (error) {
       isEmpty = true;
@@ -261,7 +260,7 @@ const BillingPage = () => {
           <PurchaseCard
             key={purchase.id}
             purchase={purchase}
-            canRequestRefund={canRequestRefund}
+            canRequestRefund
             onRequestRefund={setSelectedPurchase}
           />
         ));
@@ -285,7 +284,8 @@ const BillingPage = () => {
               <PurchaseCard
                 key={purchase.id}
                 purchase={purchase}
-                canRequestRefund={false}
+                canRequestRefund
+                onRequestRefund={setSelectedPurchase}
               />
             ))
           )}

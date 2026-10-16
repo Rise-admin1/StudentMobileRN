@@ -11,6 +11,7 @@ import {
   getTeacherProfileOpenPath,
   parseTeacherIdFromUrl,
 } from "./utils/teacherProfileLink";
+import { parseSubjectIdFromUrl } from "./utils/subjectShare";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -32,9 +33,12 @@ export default function Page() {
       try {
         const storedToken = await AsyncStorage.getItem('authToken');
         const initialUrl = await Linking.getInitialURL();
+        const subjectIdFromLink = parseSubjectIdFromUrl(initialUrl);
         const teacherIdFromLink = parseTeacherIdFromUrl(initialUrl);
 
-        if (teacherIdFromLink) {
+        if (subjectIdFromLink) {
+          setInitialHref(storedToken ? `/(tabs)/home/${subjectIdFromLink}` : `/(authenticate)/course/${subjectIdFromLink}`);
+        } else if (teacherIdFromLink) {
           if (storedToken) {
             setInitialHref(getTeacherProfileAppPath(teacherIdFromLink));
           } else {

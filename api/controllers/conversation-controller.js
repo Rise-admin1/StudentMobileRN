@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { isOnline } from '../utils/presence.js';
-const prisma = new PrismaClient();
 
 dotenv.config();
 

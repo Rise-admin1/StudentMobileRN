@@ -29,6 +29,7 @@ import { stripeWebhook } from './controllers/stripe-controller.js';
 import { zoomWebhook } from './controllers/zoomController.js';
 import { globalApiLimiter } from './middlewares/rateLimit.js';
 import { startClassReminderJob } from './services/classReminderService.js';
+import prisma from './lib/prisma.js';
 
 dotenv.config();
 
@@ -97,6 +98,26 @@ app.get('/health', (req, res) => {
 }
 );
 const port = process.env.PORT || 3000;
+const shutdown = async (signal) => {
+    console.log(`${signal} received, closing database connections`);
+    server.close();
+    try {
+        await prisma.$disconnect();
+    } finally {
+        process.exit(0);
+    }
+};
+
+process.once('SIGINT', () => {
+    shutdown('SIGINT');
+});
+process.once('SIGTERM', () => {
+    shutdown('SIGTERM');
+});
+process.once('SIGUSR2', () => {
+    shutdown('SIGUSR2');
+});
+
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     startClassReminderJob();

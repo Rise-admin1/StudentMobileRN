@@ -87,6 +87,14 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="students"
+        options={{
+          headerShown: false,
+          tabBarLabel: "Students",
+          href: isParent ? "/students" : null,
+        }}
+      />
+      <Tabs.Screen
         name="community"
         options={{
           headerShown: false,

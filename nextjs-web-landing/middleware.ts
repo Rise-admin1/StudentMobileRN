@@ -16,6 +16,7 @@ export function middleware(request: NextRequest) {
   const locale = isArPath(pathname) ? "ar" : "en";
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-locale", locale);
+  requestHeaders.set("x-pathname", pathname);
 
   if (locale === "ar" && pathname.startsWith("/ar/")) {
     const rest = pathname.slice(3);

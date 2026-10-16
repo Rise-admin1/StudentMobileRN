@@ -8,7 +8,7 @@ router.get('/', verifyToken, requireRole('STUDENT', 'PARENT'), getBilling);
 router.post(
   '/purchases/:purchaseId/refund-request',
   verifyToken,
-  requireRole('STUDENT'),
+  requireRole('STUDENT', 'PARENT'),
   requestPurchaseRefund
 );
 

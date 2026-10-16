@@ -1,27 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { axiosWithAuth } from '../../../utils/customAxios';
-import { ipURL } from '../../../utils/utils';
-import { FONT } from '../../../../constants';
-import { moderateScale, verticalScale } from '../../../utils/metrics';
+import { Ionicons } from '@expo/vector-icons';
+import { axiosWithAuth } from '../../utils/customAxios';
+import { ipURL } from '../../utils/utils';
+import { FONT } from '../../../constants';
+import { moderateScale, verticalScale } from '../../utils/metrics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ChildProgressPage = () => {
   const { studentId } = useLocalSearchParams();
   const [progress, setProgress] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [ratings, setRatings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [progressResp, classesResp] = await Promise.all([
+        const [progressResp, classesResp, ratingsData] = await Promise.all([
           axiosWithAuth.get(`${ipURL}/api/parent/children/${studentId}/progress`),
           axiosWithAuth.get(`${ipURL}/api/parent/children/${studentId}/upcoming-classes`),
+          axiosWithAuth.get(`${ipURL}/api/student-ratings/${studentId}`).then((response) => response.data).catch((error) => {
+            console.error('Error loading tutor reviews:', error);
+            return null;
+          }),
         ]);
         setProgress(progressResp.data);
         setClasses(classesResp.data || []);
+        setRatings(ratingsData);
       } catch (error) {
         console.error('Error loading child activity:', error);
       } finally {
@@ -40,6 +47,7 @@ const ChildProgressPage = () => {
   }
 
   const overview = progress?.overview || {};
+  const reviewCount = ratings?.count || 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -75,10 +83,41 @@ const ChildProgressPage = () => {
             </View>
           ))
         )}
+        <Text style={styles.section}>Tutor reviews</Text>
+        {reviewCount === 0 ? (
+          <Text style={styles.empty}>No tutor reviews yet.</Text>
+        ) : (
+          <View style={styles.classCard}>
+            <StarRow value={Math.round(ratings?.average || 0)} size={18} />
+            <Text style={styles.classMeta}>
+              {ratings.average} from {reviewCount} {reviewCount === 1 ? 'rating' : 'ratings'}
+            </Text>
+            {(ratings.ratings || []).map((rating) => (
+              <View key={rating.id} style={styles.ratingItem}>
+                <Text style={styles.classTitle}>{rating.teacher?.name || 'Tutor'}</Text>
+                <StarRow value={rating.rating} size={14} />
+                <Text style={styles.classMeta}>{rating.description}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+const StarRow = ({ value, size }) => (
+  <View style={styles.starRow}>
+    {[1, 2, 3, 4, 5].map((star) => (
+      <Ionicons
+        key={star}
+        name={star <= value ? 'star' : 'star-outline'}
+        size={size}
+        color={star <= value ? '#E6A817' : '#C5CDD6'}
+      />
+    ))}
+  </View>
+);
 
 const Stat = ({ label, value }) => (
   <View style={styles.stat}>
@@ -115,6 +154,8 @@ const styles = StyleSheet.create({
   },
   classTitle: { fontFamily: FONT.bold, color: '#12263A' },
   classMeta: { fontFamily: FONT.regular, color: '#5C6B76', marginTop: 4 },
+  starRow: { flexDirection: 'row', gap: 2, marginTop: 4 },
+  ratingItem: { marginTop: 12 },
 });
 
 export default ChildProgressPage;

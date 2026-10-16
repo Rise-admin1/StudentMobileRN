@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { Resend } from 'resend';
 import {
   createZoomMeeting,
@@ -9,7 +9,6 @@ import {
 import { createZoomMeetingsForTeacherBookings } from '../services/bookingZoomService.js';
 import { ADMIN_CC_EMAIL } from '../utils/opsNotify.js';
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 export const createMeeting = async (req, res) => {

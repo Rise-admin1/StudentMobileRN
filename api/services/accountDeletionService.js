@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { deleteZoomUser } from './zoomService.js';
-
-const prisma = new PrismaClient();
 
 export async function performAccountDeletion(user) {
   if (!user?.id) {

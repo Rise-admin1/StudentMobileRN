@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { EnrollmentStatus } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { resolveStudentProfileId } from './bookingController.js';
-
-const prisma = new PrismaClient();
 
 export const createEnrollment = async (req, res, next) => {
   try {

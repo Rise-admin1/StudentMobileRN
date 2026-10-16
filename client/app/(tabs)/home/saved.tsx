@@ -46,8 +46,14 @@ const SavedPage = () => {
       });
       setSavedSubjects(response.data);
     } catch (err) {
-      setError('Failed to fetch saved subjects. Please try again.');
-      console.error('Error fetching saved subjects:', err);
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) {
+        setSavedSubjects([]);
+        setError(null);
+      } else {
+        setError('Failed to fetch saved subjects. Please try again.');
+        console.error('Error fetching saved subjects:', err);
+      }
     } finally {
       setLoading(false);
     }

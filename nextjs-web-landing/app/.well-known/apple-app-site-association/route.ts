@@ -7,8 +7,8 @@ export function GET() {
         details: [
           {
             appIDs: ['46LHZT8BN9.com.rise.coachacadem'],
-            components: [{ '/': '/teacher/*' }],
-            paths: ['/teacher/*'],
+            components: [{ '/': '/teacher/*' }, { '/': '/course/*' }],
+            paths: ['/teacher/*', '/course/*'],
           },
         ],
       },

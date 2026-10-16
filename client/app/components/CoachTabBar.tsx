@@ -11,6 +11,7 @@ const ICON_SIZE = 26;
 
 const TAB_ICONS: Record<string, { focused: keyof typeof Ionicons.glyphMap; idle: keyof typeof Ionicons.glyphMap }> = {
   home: { focused: 'grid', idle: 'grid-outline' },
+  students: { focused: 'school', idle: 'school-outline' },
   community: { focused: 'people', idle: 'people-outline' },
   chat: { focused: 'chatbubble-ellipses', idle: 'chatbubble-ellipses-outline' },
   profile: { focused: 'person-circle', idle: 'person-circle-outline' },
@@ -35,6 +36,7 @@ const CoachTabBar = ({ state, descriptors, navigation, isAdmin = false, isParent
         if ((options as { href?: unknown }).href === null) return null;
         if (route.name === 'verification' && !isAdmin) return null;
         if (route.name === 'community' && isParent) return null;
+        if (route.name === 'students' && !isParent) return null;
 
         const focused = state.index === index;
         const color = focused ? ACTIVE : INACTIVE;

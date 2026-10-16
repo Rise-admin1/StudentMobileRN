@@ -1,4 +1,5 @@
-import { BookingStatus, PrismaClient } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 import dotenv from "dotenv";
 import { createZoomAccountForTeacher, createZoomMeeting } from "../services/zoomService.js";
 dotenv.config();
@@ -19,7 +20,6 @@ import {
 } from "./bookingController.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 export const getPublisherKey = async (req, res, next) => {
     try {

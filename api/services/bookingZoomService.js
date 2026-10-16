@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { createZoomMeeting } from './zoomService.js';
 import { bookingDateStr, fromUaeDateTime } from '../utils/uaeDateTime.js';
-
-const prisma = new PrismaClient();
 
 // Create Zoom meetings for any future bookings for this teacher that don't yet have Zoom details
 export const createZoomMeetingsForTeacherBookings = async (teacherEmail) => {

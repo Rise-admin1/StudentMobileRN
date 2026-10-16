@@ -1,10 +1,8 @@
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 
 dotenv.config();
-
-const prisma = new PrismaClient();
 
 const assertConversationParticipant = async (req, res) => {
     const conversation = await prisma.conversation.findUnique({

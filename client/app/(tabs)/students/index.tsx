@@ -16,10 +16,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { axiosWithAuth } from '../utils/customAxios';
-import { ipURL } from '../utils/utils';
-import { FONT } from '../../constants';
-import { horizontalScale, moderateScale, verticalScale } from '../utils/metrics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { axiosWithAuth } from '../../utils/customAxios';
+import { ipURL } from '../../utils/utils';
+import { FONT } from '../../../constants';
+import { horizontalScale, moderateScale, verticalScale } from '../../utils/metrics';
 
 const blurhash =
   '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
@@ -31,7 +32,8 @@ const getGreeting = (date: Date) => {
   return 'Good evening';
 };
 
-const ParentHome = ({ firstName = 'there' }) => {
+const StudentsPage = () => {
+  const [firstName, setFirstName] = useState('there');
   const [email, setEmail] = useState('');
   const [children, setChildren] = useState([]);
   const [pending, setPending] = useState([]);
@@ -47,6 +49,11 @@ const ParentHome = ({ firstName = 'there' }) => {
 
   const refresh = async () => {
     try {
+      const stored = await AsyncStorage.getItem('userDetails');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setFirstName(parsed.userName?.split(' ')[0] || 'there');
+      }
       await loadChildren();
     } catch (error) {
       console.error('Error loading children:', error);
@@ -140,7 +147,7 @@ const ParentHome = ({ firstName = 'there' }) => {
             <TouchableOpacity
               key={child.linkId}
               style={styles.childCard}
-              onPress={() => router.push(`/(tabs)/home/child/${child.studentUserId}`)}
+              onPress={() => router.push(`/(tabs)/students/${child.studentUserId}`)}
             >
               {child.profileImage ? (
                 <Image source={{ uri: child.profileImage }} style={styles.avatar} placeholder={blurhash} />
@@ -234,4 +241,4 @@ const styles = StyleSheet.create({
   childMeta: { fontFamily: FONT.regular, color: '#5C6B76', fontSize: moderateScale(12) },
 });
 
-export default ParentHome;
+export default StudentsPage;

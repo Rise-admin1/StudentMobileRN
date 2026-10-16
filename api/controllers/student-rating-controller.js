@@ -1,6 +1,5 @@
-import { PrismaClient, BookingStatus, EnrollmentStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { BookingStatus, EnrollmentStatus } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 
 const ratingInclude = {
   teacher: {

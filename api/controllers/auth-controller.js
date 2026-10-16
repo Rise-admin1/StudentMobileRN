@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import dotenv from "dotenv";
 import { Resend } from 'resend';
 dotenv.config();
@@ -13,8 +13,6 @@ import { getTeacherProfileStats, resolveTeacherProfileId } from "./bookingContro
 import { sendOpsNotifyEmail, ADMIN_CC_EMAIL, OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
-
-const prisma = new PrismaClient();
 
 const omitSensitiveUserFields = (user) => {
   if (!user || typeof user !== 'object') return user;

@@ -75,6 +75,12 @@ const MainLayout = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name='course/[subjectId]'
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </View>
     </RevenueCatProvider>

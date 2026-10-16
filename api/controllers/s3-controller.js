@@ -1,12 +1,10 @@
 import dotenv from "dotenv";
 import { Upload } from '@aws-sdk/lib-storage';
 import { S3 } from '@aws-sdk/client-s3';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import path from 'path';
 
 dotenv.config();
-
-const prisma = new PrismaClient();
 
 const s3 = new S3({
   credentials: {

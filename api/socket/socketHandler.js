@@ -1,11 +1,9 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { userIsParentConversationParticipant } from '../controllers/parent-controller.js';
 import { normalizeDirectChatMessage, toConversationMessageCreate } from '../utils/chatMessages.js';
 import { attachIo, handleConnect, handleDisconnect } from '../utils/presence.js';
-
-const prisma = new PrismaClient();
 
 let count = 0;
 

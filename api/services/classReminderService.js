@@ -1,9 +1,7 @@
 import { BookingStatus, CourseType, EnrollmentStatus, Prisma } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { bookingDateStr, fromUaeDateTime } from '../utils/uaeDateTime.js';
 import { sendNotificationByType } from './pushNotificationService.js';
-
-const prisma = new PrismaClient();
 
 const POLL_MS = 60 * 1000;
 const WINDOW_START_MS = 4 * 60 * 1000;

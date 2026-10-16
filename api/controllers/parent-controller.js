@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { Resend } from 'resend';
 import { ADMIN_CC_EMAIL } from '../utils/opsNotify.js';
 import {
@@ -8,7 +8,6 @@ import {
 } from './bookingController.js';
 import { isOnline } from '../utils/presence.js';
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 const userSelect = {

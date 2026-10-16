@@ -29,7 +29,6 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/en';
 import { axiosWithAuth } from "../../utils/customAxios";
-import ParentHome from "../../components/ParentHome";
 import CreateCourseCTA from "../../components/CreateCourseCTA";
 
 dayjs.extend(relativeTime);
@@ -253,7 +252,7 @@ const HomePage = () => {
 
   const firstName = userDetails.userName?.split(' ')[0] || 'there';
   const roleLabel = user.isTeacher ? 'Tutor' : user.isParent || user.userType === 'PARENT' ? 'Parent' : 'Student';
-  const isStudent = user.userType === 'STUDENT' || !!user.isStudent;
+  const isStudent = user.userType === 'STUDENT' || !!user.isStudent || user.userType === 'PARENT' || !!user.isParent;
   const featuredCourses = useMemo(
     () => (isStudent ? featuredSubjectData : subjectData.slice(0, 6)),
     [isStudent, featuredSubjectData, subjectData]
@@ -286,17 +285,17 @@ const HomePage = () => {
     try {
       const userResponse = await axiosWithAuth.get(`${ipURL}/api/auth/metadata`);
       setUser(userResponse.data);
-      if (userResponse.data?.isParent || userResponse.data?.userType === 'PARENT') {
-        return;
-      }
       const subjectsResponse = await axiosWithAuth.get(`${ipURL}/api/subjects/search?subjectGrade=${subjectGrade}&subjectBoard=${subjectBoard}&subjectTags=${subjectTags}`);
       setSubjectData(subjectsResponse.data);
 
       const isStudentUser = userResponse.data?.isStudent || userResponse.data?.userType === 'STUDENT';
-      if (isStudentUser) {
-        const recommendedSubjects = Array.isArray(userResponse.data?.reccomendedSubjects)
-          ? userResponse.data.reccomendedSubjects
-          : [];
+      const isParentUser = userResponse.data?.isParent || userResponse.data?.userType === 'PARENT';
+      if (isStudentUser || isParentUser) {
+        const recommendedSubjects = isParentUser
+          ? []
+          : Array.isArray(userResponse.data?.reccomendedSubjects)
+            ? userResponse.data.reccomendedSubjects
+            : [];
         const featuredResponse = await axiosWithAuth.post(`${ipURL}/api/subjects/get-recommended-subjects`, {
           recommendedSubjects,
         });
@@ -438,10 +437,6 @@ const HomePage = () => {
         <Text style={styles.loadingText}>Loading your home</Text>
       </SafeAreaView>
     );
-  }
-
-  if (user.isParent || user.userType === 'PARENT') {
-    return <ParentHome firstName={firstName} />;
   }
 
   return (

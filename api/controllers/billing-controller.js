@@ -1,11 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import {
   createRefundRequest,
   getPurchaseRefundContext,
   mapPurchaseForBilling,
 } from '../services/refundService.js';
-
-const prisma = new PrismaClient();
 
 const billingPurchaseSelect = {
   id: true,
@@ -145,7 +143,7 @@ export const getBilling = async (req, res, next) => {
         students.push({
           studentProfileId: link.student.id,
           studentName: link.student.user?.name || 'Student',
-          purchases: await mapPurchases(link.student.stripePurchases || [], { canSubmit: false }),
+          purchases: await mapPurchases(link.student.stripePurchases || [], { canSubmit: true }),
         });
       }
 
@@ -163,28 +161,87 @@ export const getBilling = async (req, res, next) => {
 
 export const requestPurchaseRefund = async (req, res, next) => {
   try {
-    if (req.userType !== 'STUDENT') {
-      return res.status(403).json({ message: 'Only students can request a refund' });
+    if (req.userType === 'STUDENT') {
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: {
+          name: true,
+          email: true,
+          studentProfile: { select: { id: true } },
+        },
+      });
+      if (!user?.studentProfile) {
+        return res.status(400).json({ message: 'Student profile not found' });
+      }
+
+      const refundRequest = await createRefundRequest({
+        purchaseId: req.params.purchaseId,
+        studentProfileId: user.studentProfile.id,
+        reason: req.body?.reason,
+        requestedBy: {
+          role: 'STUDENT',
+          name: user.name,
+          email: user.email,
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Refund request submitted',
+        refundRequest,
+      });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      select: { studentProfile: { select: { id: true } } },
-    });
-    if (!user?.studentProfile) {
-      return res.status(400).json({ message: 'Student profile not found' });
+    if (req.userType === 'PARENT') {
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: {
+          name: true,
+          email: true,
+          parentProfile: { select: { id: true } },
+        },
+      });
+      if (!user?.parentProfile) {
+        return res.status(400).json({ message: 'Parent profile not found' });
+      }
+
+      const purchase = await prisma.stripePurchases.findUnique({
+        where: { id: req.params.purchaseId },
+        select: { id: true, studentId: true },
+      });
+      if (!purchase) {
+        return res.status(404).json({ message: 'Purchase not found' });
+      }
+
+      const link = await prisma.parentStudentLink.findFirst({
+        where: {
+          parentProfileId: user.parentProfile.id,
+          studentProfileId: purchase.studentId,
+          status: 'ACCEPTED',
+        },
+        select: { id: true },
+      });
+      if (!link) {
+        return res.status(403).json({ message: 'You can only request refunds for linked students' });
+      }
+
+      const refundRequest = await createRefundRequest({
+        purchaseId: purchase.id,
+        studentProfileId: purchase.studentId,
+        reason: req.body?.reason,
+        requestedBy: {
+          role: 'PARENT',
+          name: user.name,
+          email: user.email,
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Refund request submitted',
+        refundRequest,
+      });
     }
 
-    const refundRequest = await createRefundRequest({
-      purchaseId: req.params.purchaseId,
-      studentProfileId: user.studentProfile.id,
-      reason: req.body?.reason,
-    });
-
-    return res.status(201).json({
-      message: 'Refund request submitted',
-      refundRequest,
-    });
+    return res.status(403).json({ message: 'You are not allowed to request a refund' });
   } catch (err) {
     if (err.statusCode) {
       return res.status(err.statusCode).json({ message: err.message });

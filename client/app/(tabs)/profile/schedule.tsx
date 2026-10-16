@@ -42,6 +42,12 @@ const SchedulePage = () => {
         setEvents(formattedEvents);
         setLoading(false);
       } catch (error) {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (status === 400) {
+          setEvents([]);
+          setLoading(false);
+          return;
+        }
         console.error("Error fetching data:", error);
         Alert.alert("Error", "Failed to fetch schedule data");
         setLoading(false);

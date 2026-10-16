@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Cairo, Figtree, Montserrat, Lora } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -80,6 +81,9 @@ export default async function RootLayout({
 }>) {
   const locale = await getRequestLocale();
   const isAr = locale === "ar";
+  const headerList = await headers();
+  const pathname = headerList.get("x-pathname") ?? "";
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
     <html
@@ -100,13 +104,17 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full bg-white">
-        <div className="min-h-screen bg-white flex flex-col">
-          <Header locale={locale} />
-          <main className="flex-1">{children}</main>
-          <Footer locale={locale} />
-          <LanguageFloater />
-          <WhatsAppFloater />
-        </div>
+        {isAdmin ? (
+          children
+        ) : (
+          <div className="min-h-screen bg-white flex flex-col">
+            <Header locale={locale} />
+            <main className="flex-1">{children}</main>
+            <Footer locale={locale} />
+            <LanguageFloater />
+            <WhatsAppFloater />
+          </div>
+        )}
       </body>
     </html>
   );

@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "../lib/prisma.js";
 
 export const getTeacherAvailability = async (req, res, next) => {
   try {
@@ -44,8 +43,6 @@ export const getTeacherAvailability = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -132,8 +129,6 @@ export const createBooking = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -179,8 +174,6 @@ export const getTeacherBookings = async (req, res, next) => {
     res.status(200).json(bookings);
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -226,8 +219,6 @@ export const getStudentBookings = async (req, res, next) => {
     res.status(200).json(bookings);
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -291,8 +282,6 @@ export const updateBookingStatus = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -336,7 +325,5 @@ export const setTeacherAvailability = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
-  } finally {
-    await prisma.$disconnect();
   }
 }; 

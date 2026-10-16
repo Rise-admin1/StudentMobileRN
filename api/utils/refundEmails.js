@@ -58,29 +58,49 @@ async function sendRefundEmail({ to, subject, title, intro, rows }) {
   }
 }
 
-const purchaseRows = (details) => [
-  ['Student', details.studentName],
-  ['Course', details.subjectName],
-  ['Amount', formatPurchaseAmount(details.purchaseAmount, details.purchaseCurrency)],
-  ['Class starts', formatClassStart(details.classStartsAt)],
-  ['Reason', details.reason],
-];
+const purchaseRows = (details) => {
+  const rows = [
+    ['Student', details.studentName],
+    ['Course', details.subjectName],
+    ['Amount', formatPurchaseAmount(details.purchaseAmount, details.purchaseCurrency)],
+    ['Class starts', formatClassStart(details.classStartsAt)],
+    ['Reason', details.reason],
+  ];
+  if (details.requestedByRole === 'PARENT' && details.requestedByName) {
+    rows.splice(1, 0, ['Requested by parent', details.requestedByName]);
+  }
+  return rows;
+};
 
 export async function sendRefundSubmittedEmails(prisma, details) {
   const adminEmails = await getRefundAdminEmails(prisma);
   const rows = purchaseRows(details);
+  const parentRequested = details.requestedByRole === 'PARENT';
   await sendRefundEmail({
     to: details.studentEmail,
     subject: 'Refund request sent',
     title: 'Refund request sent',
-    intro: 'Your refund request was sent. An admin will review it.',
+    intro: parentRequested
+      ? 'A parent requested a refund for this course. An admin will review it.'
+      : 'Your refund request was sent. An admin will review it.',
     rows,
   });
+  if (parentRequested && details.requestedByEmail) {
+    await sendRefundEmail({
+      to: details.requestedByEmail,
+      subject: 'Refund request sent',
+      title: 'Refund request sent',
+      intro: `Your refund request for ${details.studentName} was sent. An admin will review it.`,
+      rows,
+    });
+  }
   await sendRefundEmail({
     to: adminEmails,
     subject: `Refund request to review: ${details.subjectName}`,
     title: 'Please review this refund request',
-    intro: 'A student asked for a refund. Review the request in the admin app.',
+    intro: parentRequested
+      ? 'A parent asked for a refund on behalf of a student. Review the request in the admin app.'
+      : 'A student asked for a refund. Review the request in the admin app.',
     rows,
   });
 }

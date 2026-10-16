@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 import { Resend } from "resend";
 import { sendNotificationByType } from "../services/pushNotificationService.js";
 import { getTeacherBlockedSlotsForDate } from "./bookingController.js";
@@ -9,7 +9,6 @@ import { withUpcomingCatalog, upcomingCatalogFilter, isPublicCatalogSubject } fr
 import { OPS_NOTIFY_EMAILS, ADMIN_CC_EMAIL } from "../utils/opsNotify.js";
 import { viewerCatalogExclusion, isSubjectHiddenFromUser } from "../utils/subjectVisibility.js";
 
-const prisma = new PrismaClient();
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 export const createSubject = async (req, res, next) => {

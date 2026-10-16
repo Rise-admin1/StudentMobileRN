@@ -1,7 +1,5 @@
 import { getNotificationConfig, getEnabledPlatforms } from '../config/pushNotifications.config.js';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 const sendToExpo = async (token, { title, body, data }) => {
   try {

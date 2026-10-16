@@ -67,6 +67,26 @@
             "BROWSABLE",
             "DEFAULT"
           ]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "www.coachacadem.ae",
+              "pathPrefix": "/course"
+            },
+            {
+              "scheme": "https",
+              "host": "coachacadem.ae",
+              "pathPrefix": "/course"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

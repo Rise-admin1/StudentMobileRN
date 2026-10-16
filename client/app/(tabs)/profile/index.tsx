@@ -64,9 +64,6 @@ const ProfilePage = () => {
   const [profileImageVersion, setProfileImageVersion] = useState<string>('0');
   const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [parentInvites, setParentInvites] = useState([]);
-  const [linkedChildren, setLinkedChildren] = useState([]);
-  const [pendingChildren, setPendingChildren] = useState([]);
-  const [childrenLoading, setChildrenLoading] = useState(false);
   const [studentRatings, setStudentRatings] = useState(null);
   const [acceptingLinkId, setAcceptingLinkId] = useState<string | null>(null);
 
@@ -94,26 +91,6 @@ const ProfilePage = () => {
       } else {
         setParentInvites([]);
         setStudentRatings(null);
-      }
-
-      const userIsParent = !!(apiUser.data?.isParent || apiUser.data?.userType === 'PARENT');
-      if (userIsParent) {
-        setChildrenLoading(true);
-        try {
-          const childrenResp = await axiosWithAuth.get(`${ipURL}/api/parent/children`);
-          setLinkedChildren(childrenResp.data.children || []);
-          setPendingChildren(childrenResp.data.pending || []);
-        } catch (error) {
-          console.error('Error fetching linked students:', error);
-          setLinkedChildren([]);
-          setPendingChildren([]);
-        } finally {
-          setChildrenLoading(false);
-        }
-      } else {
-        setLinkedChildren([]);
-        setPendingChildren([]);
-        setChildrenLoading(false);
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -157,20 +134,6 @@ const ProfilePage = () => {
 
   const handleSettingsPress = () => {
     router.push('/(tabs)/profile/settings');
-  };
-
-  const handleUnlinkChild = () => {
-    Alert.alert(
-      'Unlink student',
-      'To unlink from a student, please contact support.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Contact Support',
-          onPress: () => router.push('/(tabs)/profile/contact-us'),
-        },
-      ]
-    );
   };
 
   const handleUnlinkParent = () => {
@@ -472,58 +435,7 @@ const ProfilePage = () => {
         </View>
         )}
 
-        {userDetails?.isParent || userDetails?.userType === 'PARENT' ? (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>Linked students</Text>
-            <Text style={styles.childrenHelper}>
-              Invite students from Home. Parent accounts cannot create courses or join organizations.
-            </Text>
-            {childrenLoading ? (
-              <ActivityIndicator color="#1A4C6E" />
-            ) : linkedChildren.length === 0 ? (
-              <Text style={styles.childrenEmpty}>No linked students yet.</Text>
-            ) : (
-              linkedChildren.map((child) => (
-                <TouchableOpacity
-                  key={child.linkId}
-                  style={styles.childCard}
-                  onPress={() => router.push(`/(tabs)/home/child/${child.studentUserId}`)}
-                >
-                  {child.profileImage ? (
-                    <Image source={{ uri: child.profileImage }} style={styles.childAvatar} placeholder={blurhash} />
-                  ) : (
-                    <View style={[styles.childAvatar, styles.childAvatarFallback]}>
-                      <Ionicons name="person" size={20} color="#1A4C6E" />
-                    </View>
-                  )}
-                  <View style={styles.childInfo}>
-                    <Text style={styles.childName}>{child.name}</Text>
-                    <Text style={styles.childMeta}>{child.email}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => handleUnlinkChild(child.linkId)} hitSlop={8}>
-                    <Ionicons name="unlink-outline" size={20} color="#8B1E1E" />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))
-            )}
-
-            {pendingChildren.length > 0 && (
-              <>
-                <Text style={[styles.sectionTitle, styles.sectionTitleSpaced, { marginTop: verticalScale(12) }]}>
-                  Pending invites
-                </Text>
-                {pendingChildren.map((child) => (
-                  <View key={child.linkId} style={styles.childCard}>
-                    <View style={styles.childInfo}>
-                      <Text style={styles.childName}>{child.name}</Text>
-                      <Text style={styles.childMeta}>Waiting for the student to accept</Text>
-                    </View>
-                  </View>
-                ))}
-              </>
-            )}
-          </View>
-        ) : (
+        {!(userDetails?.isParent || userDetails?.userType === 'PARENT') && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Courses</Text>

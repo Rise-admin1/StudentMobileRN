@@ -1,4 +1,5 @@
-import { BookingStatus, EnrollmentStatus, PaymentStatus, PrismaClient, RefundRequestStatus } from '@prisma/client';
+import { BookingStatus, EnrollmentStatus, PaymentStatus, RefundRequestStatus } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import Stripe from 'stripe';
 import { canRequestRefund, earliestUpcomingStart } from '../utils/refundEligibility.js';
 import {
@@ -7,7 +8,6 @@ import {
   sendRefundSubmittedEmails,
 } from '../utils/refundEmails.js';
 
-const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const purchaseRefundInclude = {
@@ -128,7 +128,7 @@ export function mapPurchaseForBilling(purchase, context, { canSubmit = false } =
   };
 }
 
-export async function createRefundRequest({ purchaseId, studentProfileId, reason }) {
+export async function createRefundRequest({ purchaseId, studentProfileId, reason, requestedBy }) {
   const trimmedReason = String(reason || '').trim();
   if (!trimmedReason) {
     const error = new Error('A refund reason is required');
@@ -175,6 +175,9 @@ export async function createRefundRequest({ purchaseId, studentProfileId, reason
     purchaseCurrency: purchase.purchaseCurrency,
     classStartsAt: context.classStartsAt,
     reason: trimmedReason,
+    requestedByRole: requestedBy?.role || 'STUDENT',
+    requestedByName: requestedBy?.name || null,
+    requestedByEmail: requestedBy?.email || null,
   };
   await sendRefundSubmittedEmails(prisma, emailDetails);
 

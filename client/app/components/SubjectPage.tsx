@@ -10,7 +10,8 @@ import {
   Modal,
   ActivityIndicator,
   Animated,
-  Easing
+  Easing,
+  Share,
 } from "react-native";
 import { Image } from 'expo-image';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
@@ -28,6 +29,7 @@ import BookingCalendar from './BookingCalendar';
 import CoverImage from './CoverImage';
 import BookingSummaryModal from './BookingSummaryModal';
 import { axiosWithAuth } from "../utils/customAxios";
+import { getSubjectShareUrl } from "../utils/subjectShare";
 import { SafeAreaView } from "react-native-safe-area-context";
 interface Review {
   id: string;
@@ -798,6 +800,24 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
     }
   };
 
+  const handleShareSubject = async () => {
+    const id = Array.isArray(subjectId) ? subjectId[0] : subjectId;
+    if (!id) return;
+
+    setShowMenu(false);
+    const name = singleSubjectData.subjectName || 'this course';
+    const url = getSubjectShareUrl(String(id));
+    const message = `Check out ${name} on Coach Academ\n${url}`;
+
+    try {
+      await Share.share({ message, url, title: name });
+    } catch (error: any) {
+      if (error?.message !== 'User did not share') {
+        alert('Could not open share sheet.');
+      }
+    }
+  };
+
   useEffect(() => {
     const getSubjects = async () => {
       try {
@@ -1070,7 +1090,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          guestPreview && styles.scrollContentGuest,
+          (guestPreview || isUserType === 'PARENT') && styles.scrollContentGuest,
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -1096,7 +1116,6 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
                   color={isSaved ? "#1A4C6E" : "#FFFFFF"}
                 />
               </TouchableOpacity>
-              {canReportOrBlock && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={handleMenuPress}
@@ -1105,12 +1124,11 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
               >
                 <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
               </TouchableOpacity>
-              )}
             </View>
           )}
         </Animated.View>
 
-        {!guestPreview && canReportOrBlock && showMenu && (
+        {!guestPreview && showMenu && (
           <TouchableOpacity
             style={styles.menuBackdrop}
             activeOpacity={1}
@@ -1118,8 +1136,17 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
           />
         )}
 
-        {!guestPreview && canReportOrBlock && showMenu && (
+        {!guestPreview && showMenu && (
           <Animated.View style={[styles.menuContainer, menuStyle]}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleShareSubject}
+            >
+              <Ionicons name="share-outline" size={20} color="#12263A" />
+              <Text style={styles.menuItemText}>Share Subject</Text>
+            </TouchableOpacity>
+            {canReportOrBlock && (
+              <>
             <TouchableOpacity 
               style={styles.menuItem}
               onPress={() => {
@@ -1137,6 +1164,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
               <Ionicons name="ban-outline" size={20} color="#E74C3C" />
               {isLoading ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Text style={styles.menuItemText}>Block User</Text>}
             </TouchableOpacity>
+              </>
+            )}
           </Animated.View>
         )}
 
@@ -1407,7 +1436,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         </Animated.View>
       </Animated.ScrollView>
 
-      {!guestPreview && (
+      {!guestPreview && isUserType !== 'PARENT' && (
         <Animated.View style={[styles.footer, buttonStyle]}>
           <TouchableOpacity 
             style={[

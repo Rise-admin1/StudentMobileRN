@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { acceptRefundRequest, declineRefundRequest } from '../services/refundService.js';
 import { performAccountDeletion } from '../services/accountDeletionService.js';
 import { formatClassStart, formatPurchaseAmount } from '../utils/refundEligibility.js';
-
-const prisma = new PrismaClient();
 
 const parsePaging = (req) => {
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
