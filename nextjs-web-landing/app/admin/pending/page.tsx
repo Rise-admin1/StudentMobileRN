@@ -23,7 +23,7 @@ export default function PendingVerificationPage() {
 
   useEffect(() => {
     let active = true;
-    adminFetch<PendingSubject[]>("/subjects/verify")
+    adminFetch<PendingSubject[]>("/api/subjects/verify")
       .then((data) => {
         if (active) setSubjects(Array.isArray(data) ? data : []);
       })

@@ -19,7 +19,7 @@ export default function TeachersPage() {
     <div>
       <h1 className="mb-3 text-xl font-semibold">Teachers</h1>
       <AdminList<TeacherRow>
-        endpoint="/admin/teachers"
+        endpoint="/api/admin/teachers"
         dataKey="teachers"
         searchPlaceholder="Search teachers"
         emptyText="No teachers found"

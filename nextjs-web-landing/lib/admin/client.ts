@@ -20,7 +20,8 @@ export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const apiPath = path.startsWith("/api/") ? path : `/api${path.startsWith("/") ? path : `/${path}`}`;
+  const response = await fetch(`${API_BASE_URL}${apiPath}`, {
     ...init,
     headers,
     cache: "no-store",

@@ -33,7 +33,7 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     let active = true;
-    adminFetch<AdminStats>("/admin/stats")
+    adminFetch<AdminStats>("/api/admin/stats")
       .then((data) => {
         if (active) setStats(data);
       })

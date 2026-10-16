@@ -55,7 +55,7 @@ export default function SubjectVerificationPage() {
 
   useEffect(() => {
     let active = true;
-    adminFetch<SubjectDetail>(`/subjects/${subjectId}`)
+    adminFetch<SubjectDetail>(`/api/subjects/${subjectId}`)
       .then((data) => {
         if (active) setSubject(data);
       })
@@ -76,7 +76,7 @@ export default function SubjectVerificationPage() {
     try {
       setActing(true);
       setActionError(null);
-      await adminFetch(`/subjects/verify/${subjectId}`, { method: "PUT", body: "{}" });
+      await adminFetch(`/api/subjects/verify/${subjectId}`, { method: "PUT", body: "{}" });
       router.replace("/admin/pending");
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to verify subject");
@@ -94,7 +94,7 @@ export default function SubjectVerificationPage() {
     try {
       setActing(true);
       setActionError(null);
-      await adminFetch(`/subjects/reject/${subjectId}`, {
+      await adminFetch(`/api/subjects/reject/${subjectId}`, {
         method: "PUT",
         body: JSON.stringify({ reason: trimmed }),
       });

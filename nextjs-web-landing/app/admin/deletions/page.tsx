@@ -26,7 +26,7 @@ export default function DeletionRequestsPage() {
     try {
       setActingId(pending.item.id);
       setError(null);
-      await adminFetch(`/admin/deletion-requests/${pending.item.id}/approve`, {
+      await adminFetch(`/api/admin/deletion-requests/${pending.item.id}/approve`, {
         method: "POST",
         body: "{}",
       });
@@ -44,7 +44,7 @@ export default function DeletionRequestsPage() {
       <h1 className="mb-3 text-xl font-semibold">Deletion requests</h1>
       {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <AdminList<DeletionRequestRow>
-        endpoint="/admin/deletion-requests"
+        endpoint="/api/admin/deletion-requests"
         dataKey="deletionRequests"
         extraParams={PENDING}
         searchPlaceholder="Search name or email"

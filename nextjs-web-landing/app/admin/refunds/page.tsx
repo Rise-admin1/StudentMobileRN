@@ -32,7 +32,7 @@ export default function RefundsPage() {
     try {
       setActingId(pending.item.id);
       setError(null);
-      await adminFetch(`/admin/refund-requests/${pending.item.id}/${pending.action}`, {
+      await adminFetch(`/api/admin/refund-requests/${pending.item.id}/${pending.action}`, {
         method: "POST",
         body: "{}",
       });
@@ -54,7 +54,7 @@ export default function RefundsPage() {
       <h1 className="mb-3 text-xl font-semibold">Refund requests</h1>
       {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <AdminList<RefundRequestRow>
-        endpoint="/admin/refund-requests"
+        endpoint="/api/admin/refund-requests"
         dataKey="refundRequests"
         extraParams={PENDING}
         searchPlaceholder="Search student, course, or reason"
