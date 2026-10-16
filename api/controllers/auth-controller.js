@@ -400,10 +400,7 @@ export const register = async (req, res, next) => {
         }
 
         // Send the verification email
-        const isTeacher = userTypeEnum === 'TEACHER' || userTypeEnum === 'ADMIN';
-        
-        
-        sendVerificationEmail(newUser.email, verificationToken, name, isTeacher);
+        sendVerificationEmail(newUser.email, verificationToken, name, userTypeEnum);
 
         const registeredType = isOrganization ? 'ORGANIZATION' : userTypeEnum;
         sendOpsNotifyEmail({
@@ -445,11 +442,11 @@ export const register = async (req, res, next) => {
 }
 
 // not a route controller, function to send verification email
-const sendVerificationEmail = async (email, verificationToken, name, isTeacher) => {
-
-
-    const welcomeMessage = isTeacher 
+const sendVerificationEmail = async (email, verificationToken, name, userType) => {
+    const welcomeMessage = userType === 'TEACHER' || userType === 'ADMIN'
         ? "Welcome to Coach Academ! We're excited to have you join our community of educators. As a teacher, you'll be able to share your expertise and help students achieve their academic goals."
+        : userType === 'PARENT'
+        ? "Welcome to Coach Academ! We are pleased to have you as part of our community. As a parent, you'll have access to your child's or children's progress so you can stay on top of their performance and stay in touch with tutors."
         : "Welcome to Coach Academ! We're thrilled to have you join our community of learners. As a student, you'll have access to expert teachers and comprehensive learning resources.";
 
     const mailOptions = {
