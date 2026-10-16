@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/constants";
+import { setAdminSession } from "@/lib/admin/token";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -19,16 +21,22 @@ export default function LoginForm() {
     }
     try {
       setSubmitting(true);
-      const response = await fetch("/api/admin-session", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/super-admin/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
-      if (!response.ok) {
+      const data = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        token?: string;
+        userType?: string;
+        email?: string;
+      };
+      if (!response.ok || data.userType !== "ADMIN" || typeof data.token !== "string") {
         setError(data.message || "Invalid email or password");
         return;
       }
+      setAdminSession(data.token, data.email || email.trim());
       router.replace("/admin");
     } catch {
       setError("Could not reach the admin service");

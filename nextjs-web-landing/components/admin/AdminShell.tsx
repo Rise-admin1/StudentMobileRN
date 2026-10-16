@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { API_BASE_URL } from "@/lib/constants";
+import { clearAdminSession, getAdminEmail, getAdminToken } from "@/lib/admin/token";
 import {
   Building2,
   CreditCard,
@@ -38,27 +40,33 @@ export default function AdminShell({ children }: { children: ReactNode }) {
     let active = true;
     const check = async () => {
       try {
-        const response = await fetch("/api/admin-session", { cache: "no-store" });
+        const token = getAdminToken();
+        if (!token) {
+          if (!isLogin) router.replace("/admin/login");
+          else setReady(true);
+          return;
+        }
+        const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          cache: "no-store",
+        });
         if (!active) return;
         if (response.ok) {
-          const data = (await response.json()) as { email?: string | null };
           if (isLogin) {
             router.replace("/admin");
             return;
           }
-          setEmail(data.email ?? null);
+          setEmail(getAdminEmail());
           setReady(true);
           return;
         }
-        if (response.status === 503) {
-          setGateError("Could not reach the admin service.");
-          setReady(true);
+        if (response.status === 401 || response.status === 403) {
+          clearAdminSession();
+          if (!isLogin) router.replace("/admin/login");
+          else setReady(true);
           return;
         }
-        if (!isLogin) {
-          router.replace("/admin/login");
-          return;
-        }
+        setGateError("Could not reach the admin service.");
         setReady(true);
       } catch {
         if (!active) return;
@@ -73,7 +81,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   }, [isLogin, router]);
 
   const logout = async () => {
-    await fetch("/api/admin-session", { method: "DELETE" });
+    clearAdminSession();
     router.replace("/admin/login");
   };
 

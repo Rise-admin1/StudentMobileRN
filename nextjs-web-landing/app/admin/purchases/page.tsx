@@ -19,7 +19,7 @@ export default function PurchasesPage() {
     <div>
       <h1 className="mb-3 text-xl font-semibold">Purchases</h1>
       <AdminList<PurchaseRow>
-        endpoint="/api/admin-proxy/admin/purchases"
+        endpoint="/admin/purchases"
         dataKey="purchases"
         searchPlaceholder="Search student or course"
         emptyText="No confirmed purchases"

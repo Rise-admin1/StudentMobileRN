@@ -16,7 +16,7 @@ export default function ParentsPage() {
     <div>
       <h1 className="mb-3 text-xl font-semibold">Parents</h1>
       <AdminList<ParentRow>
-        endpoint="/api/admin-proxy/admin/parents"
+        endpoint="/admin/parents"
         dataKey="parents"
         searchPlaceholder="Search parents"
         emptyText="No parents found"

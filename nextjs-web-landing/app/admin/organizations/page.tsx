@@ -19,7 +19,7 @@ export default function OrganizationsPage() {
     <div>
       <h1 className="mb-3 text-xl font-semibold">Organizations</h1>
       <AdminList<OrgRow>
-        endpoint="/api/admin-proxy/admin/organizations"
+        endpoint="/admin/organizations"
         dataKey="organizations"
         searchPlaceholder="Search organizations"
         emptyText="No organizations found"
