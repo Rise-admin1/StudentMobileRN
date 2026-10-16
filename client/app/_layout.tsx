@@ -7,6 +7,7 @@ import  StripeProviderWrapper  from './components/StripeProviderWrapper';
 import * as Sentry from '@sentry/react-native';
 import  RevenueCatProvider  from './providers/RevenueCatProvider';
 import AppUpdatePrompt from './components/AppUpdatePrompt';
+import './utils/customAxios';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

@@ -7,6 +7,16 @@ export const attachIo = (server) => {
   io = server;
 };
 
+export const endUserSessionSockets = (userId) => {
+  if (!io || !userId) return;
+  io.to(`user:${userId}`).emit('session-ended');
+  const sockets = socketsByUser.get(userId);
+  if (!sockets) return;
+  for (const id of [...sockets]) {
+    io.sockets.sockets.get(id)?.disconnect(true);
+  }
+};
+
 export const isOnline = (userId) => {
   const sockets = socketsByUser.get(userId);
   return Boolean(sockets && sockets.size > 0);

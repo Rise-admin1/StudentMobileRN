@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken'
+import { sessionIsCurrent } from '../utils/session.js';
 
 const KNOWN_USER_TYPES = ['STUDENT', 'TEACHER', 'ADMIN', 'PARENT'];
 
-export const verifyToken = (req,res,next)=>{
+export const verifyToken = async (req,res,next)=>{
     const authHeader = req.headers.authorization;
     if (!authHeader || typeof authHeader !== 'string') {
       return res.status(401).json({ message: "You are not authenticated!" });
@@ -10,9 +11,12 @@ export const verifyToken = (req,res,next)=>{
     const token = authHeader.split(" ")[1];
     if (!token) return res.status(401).json({ message: "You are not authenticated!" });
 
-    jwt.verify(token,process.env.SECRET_KEY,async(err,payload)=>{
-       
-        if(err) return res.status(403).json({ message: "Token is not valid" });
+    try {
+        const payload = jwt.verify(token, process.env.SECRET_KEY);
+        const current = await sessionIsCurrent(payload);
+        if (!current) {
+            return res.status(401).json({ message: "Session ended", code: "SESSION_ENDED" });
+        }
         req.userId = payload.userId;
         req.userType = payload.userType;
         // Derive isTeacher and isAdmin from userType for backward compatibility
@@ -21,7 +25,9 @@ export const verifyToken = (req,res,next)=>{
         req.isParent = payload.userType === 'PARENT';
         req.email = payload.email;
         next()
-    });
+    } catch {
+        return res.status(403).json({ message: "Token is not valid" });
+    }
 }
 
 export const optionalVerifyToken = (req, res, next) => {

@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { ipURL } from './utils';
+import { endLocalSession } from './session';
 
 export const BaseUrl = () =>
   Platform.OS === 'android' ? 'http://10.0.2.2:8081' : 'http://localhost:8081';
@@ -35,8 +36,11 @@ export async function connectSocket() {
       cleanup();
       resolve(void 0);
     };
-    const onError = () => {
+    const onError = (error) => {
       cleanup();
+      if (error?.message === 'Session ended') {
+        endLocalSession();
+      }
       resolve(void 0);
     };
     const cleanup = () => {
@@ -55,6 +59,10 @@ export function disconnectSocket() {
     socket.disconnect();
   }
 }
+
+socket.on('session-ended', () => {
+  endLocalSession();
+});
 
 const socketUrl = {};
 

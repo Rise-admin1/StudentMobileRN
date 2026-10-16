@@ -110,6 +110,7 @@ model User {
   failedLoginCount    Int      @default(0)
   lockUntil           DateTime?
   lastSeenAt          DateTime?
+  activeSessionId     String?
   createdAt           DateTime @default(now())
   
   // Relations - one of these will be populated based on userType

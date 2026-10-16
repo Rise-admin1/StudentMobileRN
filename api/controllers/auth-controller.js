@@ -11,6 +11,7 @@ import { publicCatalogFilter } from "../utils/upcomingCatalog.js";
 import { getViewerHiddenSubjects } from "../utils/subjectVisibility.js";
 import { getTeacherProfileStats, resolveTeacherProfileId } from "./bookingController.js";
 import { sendOpsNotifyEmail, ADMIN_CC_EMAIL, OPS_NOTIFY_EMAILS } from "../utils/opsNotify.js";
+import { revokeUserSession, startUserSession } from "../utils/session.js";
 const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 
@@ -721,6 +722,24 @@ export const verifyEmail = async (req, res, next) => {
 
       await clearFailedLogins(user.id);
 
+      const previousToken = typeof req.body?.previousToken === 'string' ? req.body.previousToken.trim() : '';
+      if (previousToken) {
+        try {
+          const previous = jwt.verify(previousToken, process.env.SECRET_KEY);
+          if (
+            previous?.userId &&
+            previous.userId !== user.id &&
+            previous.userType !== 'ADMIN'
+          ) {
+            await revokeUserSession(previous.userId);
+          }
+        } catch {
+          // A bad previous token does not block login.
+        }
+      }
+
+      const sessionId = await startUserSession(user.id);
+
       // Determine user type and get profile-specific data
       const isTeacher = user.userType === 'TEACHER';
       const isAdmin = user.userType === 'ADMIN';
@@ -738,6 +757,7 @@ export const verifyEmail = async (req, res, next) => {
           userId: user.id, 
           userType: user.userType,
           email: user.email,
+          sessionId,
         },
         process.env.SECRET_KEY
       );
@@ -1167,7 +1187,12 @@ export const updateMetadata = async (req, res, next) => {
     });
 
     const token = jwt.sign(
-      { userId: updatedUser.id, isTeacher: updatedUser.isTeacher, isAdmin: updatedUser.isAdmin, email: updatedUser.email },
+      {
+        userId: updatedUser.id,
+        userType: updatedUser.userType,
+        email: updatedUser.email,
+        sessionId: updatedUser.activeSessionId,
+      },
       process.env.SECRET_KEY
     );
 

@@ -152,8 +152,12 @@ export const zoomWebhook = async (req, res) => {
       console.warn('Zoom webhook: signature verification skipped (ZOOM_SKIP_VERIFY=true)');
     }
 
-    // Handle user activation / updated event (user.created, user.activated, etc.)
-    if (event.event && event.event.startsWith('user.')) {
+    const isInvitationAcceptedOrActivated =
+      event.event === 'user.invitation_accepted' ||
+      event.event === 'user.activated';
+
+    // Handle other user.* events (skip invitation/activated — handled below with post-ack backfill)
+    if (event.event && event.event.startsWith('user.') && !isInvitationAcceptedOrActivated) {
       const userObject = event.payload?.object || {};
       const email = userObject.email || userObject.login || null;
 
@@ -169,10 +173,7 @@ export const zoomWebhook = async (req, res) => {
       }
     }
 
-    // Handle user invitation accepted or activated (send "Zoom account ready" email)
-    const isInvitationAcceptedOrActivated =
-      event.event === 'user.invitation_accepted' ||
-      event.event === 'user.activated';
+    // Handle user invitation accepted or activated (send "Zoom account ready" email at most once)
     if (isInvitationAcceptedOrActivated) {
       const payload = event.payload || {};
       const userObject = payload.object || payload || {};
@@ -193,49 +194,61 @@ export const zoomWebhook = async (req, res) => {
             });
 
             if (teacherProfile) {
-              await prisma.teacherProfile.update({
-                where: { id: teacherProfile.id },
+              // Atomic claim: only the first webhook delivery flips false → true
+              const claim = await prisma.teacherProfile.updateMany({
+                where: { id: teacherProfile.id, zoomUserAcceptedInvite: false },
                 data: { zoomUserAcceptedInvite: true },
               });
-              console.log('Updated zoomUserAcceptedInvite for user:', user.id);
 
-              await resend.emails.send({
-                from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
-                to: user.email,
-                cc: ADMIN_CC_EMAIL,
-                subject: 'Your Zoom account is ready – start creating courses',
-                html: `
-                  <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
-                    <div style="background-color: #1A2B4B; padding: 40px 20px; text-align: center; position: relative; overflow: hidden;">
-                      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1;">
-                        <div style="position: absolute; top: 20px; left: 20px; width: 60px; height: 60px; border: 4px solid #ffffff; transform: rotate(45deg);"></div>
-                        <div style="position: absolute; bottom: 20px; right: 20px; width: 40px; height: 40px; border: 4px solid #ffffff; border-radius: 50%;"></div>
+              if (claim.count === 1) {
+                console.log('Zoom ready email claimed for user:', user.id);
+                await resend.emails.send({
+                  from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+                  to: user.email,
+                  cc: ADMIN_CC_EMAIL,
+                  subject: 'Your Zoom account is ready – start creating courses',
+                  html: `
+                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
+                      <div style="background-color: #1A2B4B; padding: 40px 20px; text-align: center; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.1;">
+                          <div style="position: absolute; top: 20px; left: 20px; width: 60px; height: 60px; border: 4px solid #ffffff; transform: rotate(45deg);"></div>
+                          <div style="position: absolute; bottom: 20px; right: 20px; width: 40px; height: 40px; border: 4px solid #ffffff; border-radius: 50%;"></div>
+                        </div>
+                        <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 2px;">Zoom Account Ready</h1>
                       </div>
-                      <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 2px;">Zoom Account Ready</h1>
-                    </div>
-                    <div style="padding: 40px 20px; background-color: #ffffff;">
-                      <p style="font-size: 20px; color: #1A2B4B; font-weight: 700;">Hello ${user.name},</p>
-                      <p style="font-size: 16px; margin-top: 20px; color: #64748B;">Your Zoom account has been successfully created and linked to Coach Academ.</p>
-                      <p style="font-size: 16px; margin-top: 20px; color: #64748B;"><strong>Account details:</strong></p>
-                      <ul style="font-size: 16px; line-height: 1.6; color: #64748B;">
-                        <li>Email: ${user.email}</li>
-                        <li>Zoom account: ${zoomFirstName || zoomLastName ? [zoomFirstName, zoomLastName].filter(Boolean).join(' ') : user.name}</li>
-                      </ul>
-                      <p style="font-size: 16px; margin-top: 20px; color: #64748B;">You can now start creating courses and scheduling live sessions with your students. Your Zoom meetings will be created automatically when you add subjects and students book with you.</p>
-                      <p style="font-size: 16px; margin-top: 20px; color: #64748B;">If you have any questions, contact us at <a href="mailto:support@coachacadem.ae" style="color: #1A2B4B; text-decoration: underline;">support@coachacadem.ae</a>.</p>
-                      <div style="text-align: center; padding-top: 30px; border-top: 2px solid #F8FAFC;">
-                        <p style="color: #64748B; font-size: 14px; margin: 0;">The Coach Academ Team</p>
+                      <div style="padding: 40px 20px; background-color: #ffffff;">
+                        <p style="font-size: 20px; color: #1A2B4B; font-weight: 700;">Hello ${user.name},</p>
+                        <p style="font-size: 16px; margin-top: 20px; color: #64748B;">Your Zoom account has been successfully created and linked to Coach Academ.</p>
+                        <p style="font-size: 16px; margin-top: 20px; color: #64748B;"><strong>Account details:</strong></p>
+                        <ul style="font-size: 16px; line-height: 1.6; color: #64748B;">
+                          <li>Email: ${user.email}</li>
+                          <li>Zoom account: ${zoomFirstName || zoomLastName ? [zoomFirstName, zoomLastName].filter(Boolean).join(' ') : user.name}</li>
+                        </ul>
+                        <p style="font-size: 16px; margin-top: 20px; color: #64748B;">You can now start creating courses and scheduling live sessions with your students. Your Zoom meetings will be created automatically when you add subjects and students book with you.</p>
+                        <p style="font-size: 16px; margin-top: 20px; color: #64748B;">If you have any questions, contact us at <a href="mailto:support@coachacadem.ae" style="color: #1A2B4B; text-decoration: underline;">support@coachacadem.ae</a>.</p>
+                        <div style="text-align: center; padding-top: 30px; border-top: 2px solid #F8FAFC;">
+                          <p style="color: #64748B; font-size: 14px; margin: 0;">The Coach Academ Team</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                `,
-              });
-              console.log('Sent Zoom account ready email to:', user.email);
+                  `,
+                });
+                console.log('Sent Zoom account ready email to:', user.email);
+              } else {
+                console.log('Zoom ready email skipped (already accepted) for user:', user.id);
+              }
             }
           }
         } catch (err) {
           console.error('Error updating zoomUserAcceptedInvite for email:', zoomEmail, err);
         }
+
+        // Ack Zoom promptly; backfill meetings without blocking the response
+        Promise.resolve()
+          .then(() => createZoomMeetingsForTeacherBookings(zoomEmail))
+          .catch((handlerErr) => {
+            console.error('Error handling Zoom user activation for email:', zoomEmail, handlerErr);
+          });
       }
     }
 

@@ -4,6 +4,7 @@ import prisma from '../lib/prisma.js';
 import { userIsParentConversationParticipant } from '../controllers/parent-controller.js';
 import { normalizeDirectChatMessage, toConversationMessageCreate } from '../utils/chatMessages.js';
 import { attachIo, handleConnect, handleDisconnect } from '../utils/presence.js';
+import { sessionIsCurrent } from '../utils/session.js';
 
 let count = 0;
 
@@ -74,7 +75,7 @@ export const initializeSocket = (server, allowedOrigins = []) => {
 
   attachIo(io);
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token =
       socket.handshake.auth?.token ||
       (typeof socket.handshake.headers?.authorization === 'string'
@@ -85,14 +86,29 @@ export const initializeSocket = (server, allowedOrigins = []) => {
       return next(new Error('Authentication required'));
     }
 
-    jwt.verify(token, process.env.SECRET_KEY, (err, payload) => {
-      if (err || !payload?.userId) {
-        return next(new Error('Invalid token'));
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.SECRET_KEY);
+    } catch {
+      return next(new Error('Invalid token'));
+    }
+
+    if (!payload?.userId) {
+      return next(new Error('Invalid token'));
+    }
+
+    try {
+      const current = await sessionIsCurrent(payload);
+      if (!current) {
+        return next(new Error('Session ended'));
       }
-      socket.userId = payload.userId;
-      socket.userType = payload.userType;
-      next();
-    });
+    } catch {
+      return next(new Error('Invalid token'));
+    }
+
+    socket.userId = payload.userId;
+    socket.userType = payload.userType;
+    next();
   });
 
   io.on('connection', (socket) => {

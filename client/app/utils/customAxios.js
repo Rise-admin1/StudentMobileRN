@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { endLocalSession } from './session';
 
 // Custom Axios instance with no headers or credentials
 export const axiosNoHeaders = axios.create({
@@ -45,6 +46,16 @@ axiosWithAuth.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+const rejectEndedSession = async (error) => {
+  if (error?.response?.data?.code === 'SESSION_ENDED') {
+    await endLocalSession();
+  }
+  return Promise.reject(error);
+};
+
+axios.interceptors.response.use((response) => response, rejectEndedSession);
+axiosWithAuth.interceptors.response.use((response) => response, rejectEndedSession);
 
 // Usage: Some API needs credentials (Bearer and cookies), some don't. This is where customAxios comes in handy.
 

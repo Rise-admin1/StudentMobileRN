@@ -21,6 +21,7 @@ import { COLORS } from '../../constants';
 import { horizontalScale, moderateScale, verticalScale } from '../utils/metrics';
 import { ipURL } from '../utils/utils';
 import { getPostAuthHref } from '../utils/teacherProfileLink';
+import { beginLogin, finishLogin } from '../utils/session';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginPage = () => {
@@ -60,13 +61,14 @@ const LoginPage = () => {
     setIsLoading(true);
     setError('');
 
-    const user = {
-      email: trimmedEmail,
-      password,
-    };
-
+    beginLogin();
     try {
-      const resp = await axios.post(`${ipURL}/api/auth/login`, user);
+      const previousToken = await AsyncStorage.getItem('authToken');
+      const resp = await axios.post(`${ipURL}/api/auth/login`, {
+        email: trimmedEmail,
+        password,
+        ...(previousToken ? { previousToken } : {}),
+      });
 
       await AsyncStorage.setItem('authToken', resp.data.token);
       await AsyncStorage.setItem('userDetails', JSON.stringify({
@@ -109,6 +111,7 @@ const LoginPage = () => {
         null;
       setError(msg || 'Unable to sign in. Please check your email and password and try again.');
     } finally {
+      finishLogin();
       setIsLoading(false);
     }
   };
