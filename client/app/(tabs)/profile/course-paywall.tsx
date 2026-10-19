@@ -50,9 +50,9 @@ const CoursePaywallPage = () => {
       case 'MULTI_STUDENT':
       default:
         return {
-          title: 'Multi-Student Subscription',
+          title: 'Multi-students subscription',
           description:
-            'Unlock the ability to create multi-student courses and host classes for multiple students at once.',
+            'Unlock the ability to create courses and teach to multiple students at once',
         };
     }
   }, [courseType]);
@@ -247,9 +247,17 @@ const CoursePaywallPage = () => {
               >
                 <View style={styles.packageHeader}>
                   <View>
-                    <Text style={styles.packageTitle}>{storeProductTitle(pkg.product.title, 'Plan')}</Text>
-                    {!!pkg.product.description && (
-                      <Text style={styles.packageSubtitle}>{pkg.product.description}</Text>
+                    <Text style={styles.packageTitle}>
+                      {courseType === 'MULTI_STUDENT'
+                        ? '10 students teaching capacity.'
+                        : storeProductTitle(pkg.product.title, 'Plan')}
+                    </Text>
+                    {courseType === 'MULTI_STUDENT' ? (
+                      <Text style={styles.packageSubtitle}>Teach up to 10 students at one go</Text>
+                    ) : (
+                      !!pkg.product.description && (
+                        <Text style={styles.packageSubtitle}>{pkg.product.description}</Text>
+                      )
                     )}
                   </View>
 
