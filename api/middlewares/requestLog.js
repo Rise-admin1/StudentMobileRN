@@ -47,7 +47,10 @@ function captureErrorMessage(res) {
 
 export function requestLogMiddleware(req, res, next) {
   const path = redactPath(req.originalUrl || req.url || '/');
-  if (req.method === 'GET' && path === '/api/admin/request-logs') {
+  if (
+    path === '/health' ||
+    (req.method === 'GET' && path === '/api/admin/request-logs')
+  ) {
     return next();
   }
 
