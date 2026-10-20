@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { sendOpsNotifyEmail } from '../utils/opsNotify.js';
 
 const FLUSH_MS = 2000;
 const FLUSH_SIZE = 50;
@@ -18,7 +19,27 @@ export function redactPath(rawUrl) {
     .slice(0, 300);
 }
 
+function emailRequestLog(entry) {
+  sendOpsNotifyEmail({
+    subject: `Coach Academ ${entry.statusCode} ${entry.method} ${entry.path}`,
+    title: 'API error',
+    intro: 'An API request failed on Coach Academ.',
+    rows: [
+      ['Method', entry.method],
+      ['Path', entry.path],
+      ['Status', String(entry.statusCode)],
+      ['Duration', `${entry.durationMs} ms`],
+      ['IP', entry.ip || ''],
+      ['User', entry.actorUserId || ''],
+      ['Email', entry.email || ''],
+      ['Account type', entry.accountType || ''],
+      ['Error', entry.errorMessage || ''],
+    ],
+  });
+}
+
 export function enqueueRequestLog(entry) {
+  emailRequestLog(entry);
   buffer.push(entry);
   if (buffer.length > MAX_BUFFER) {
     buffer.splice(0, buffer.length - MAX_BUFFER);

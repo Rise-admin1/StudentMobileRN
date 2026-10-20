@@ -87,12 +87,15 @@ export function requestLogMiddleware(req, res, next) {
   };
 
   res.on('finish', () => {
+    const statusCode = res.statusCode || 0;
+    if (statusCode < 400) return;
+
     const durationMs = Math.max(0, Math.round(Number(process.hrtime.bigint() - started) / 1e6));
     const authFields = copyAuthFields(req, path);
     enqueueRequestLog({
       method: String(req.method || 'GET').slice(0, 16),
       path,
-      statusCode: res.statusCode || 0,
+      statusCode,
       durationMs,
       ip: clientIp(req),
       actorUserId: actorUserId(req),
