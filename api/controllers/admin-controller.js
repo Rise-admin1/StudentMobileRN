@@ -55,6 +55,33 @@ export const getAdminStats = async (req, res, next) => {
   }
 };
 
+export const getAdminRequestLogs = async (req, res, next) => {
+  try {
+    const { page, pageSize, skip } = parsePaging(req);
+    const outcome = typeof req.query.outcome === 'string' ? req.query.outcome : 'all';
+    const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 200) : '';
+    const where = {};
+    if (outcome === 'failed') where.statusCode = { gte: 400 };
+    else if (outcome === 'ok') where.statusCode = { lt: 400 };
+    if (q) where.path = { contains: q };
+
+    const [total, logs] = await Promise.all([
+      prisma.apiRequestLog.count({ where }),
+      prisma.apiRequestLog.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return res.status(200).json({ total, page, pageSize, logs });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
 export const getAdminTeachers = async (req, res, next) => {
   try {
     const { page, pageSize, skip } = parsePaging(req);

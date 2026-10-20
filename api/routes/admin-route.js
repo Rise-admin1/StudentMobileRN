@@ -2,6 +2,7 @@ import express from 'express';
 import { verifyToken, requireRole } from '../middlewares/jwt.js';
 import {
   getAdminStats,
+  getAdminRequestLogs,
   getAdminTeachers,
   getAdminTeacherDetail,
   getAdminOrganizations,
@@ -21,6 +22,7 @@ import {
 const router = express.Router();
 
 router.get('/stats', verifyToken, requireRole('ADMIN'), getAdminStats);
+router.get('/request-logs', verifyToken, requireRole('ADMIN'), getAdminRequestLogs);
 router.get('/teachers', verifyToken, requireRole('ADMIN'), getAdminTeachers);
 router.get('/teachers/:userId', verifyToken, requireRole('ADMIN'), getAdminTeacherDetail);
 router.get('/organizations', verifyToken, requireRole('ADMIN'), getAdminOrganizations);

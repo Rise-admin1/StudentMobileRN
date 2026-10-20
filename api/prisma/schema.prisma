@@ -623,3 +623,21 @@ model ClassReminderDispatch {
   @@unique([sourceType, sourceId, startsAt])
   @@index([startsAt])
 }
+
+model ApiRequestLog {
+  id           String   @id @default(cuid())
+  method       String   @db.VarChar(16)
+  path         String   @db.VarChar(300)
+  statusCode   Int
+  durationMs   Int
+  ip           String?  @db.VarChar(64)
+  actorUserId  String?  @db.VarChar(64)
+  email        String?  @db.VarChar(255)
+  accountType  String?  @db.VarChar(32)
+  errorMessage String?  @db.VarChar(200)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([statusCode, createdAt])
+  @@map("api_request_logs")
+}

@@ -28,7 +28,9 @@ import { initializeSocket } from './socket/socketHandler.js';
 import { stripeWebhook } from './controllers/stripe-controller.js';
 import { zoomWebhook } from './controllers/zoomController.js';
 import { globalApiLimiter } from './middlewares/rateLimit.js';
+import { requestLogMiddleware } from './middlewares/requestLog.js';
 import { startClassReminderJob } from './services/classReminderService.js';
+import { flushRequestLogs, startRequestLogRetention } from './services/requestLog.js';
 import prisma from './lib/prisma.js';
 
 dotenv.config();
@@ -68,6 +70,7 @@ const io = initializeSocket(server, allowedOrigins);
 
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(requestLogMiddleware);
 app.use('/api/stripe-webhook', express.raw({type: 'application/json'}), stripeWebhook);
 app.post('/api/zoom/webhook', express.raw({ type: 'application/json' }), zoomWebhook);
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -102,6 +105,7 @@ const shutdown = async (signal) => {
     console.log(`${signal} received, closing database connections`);
     server.close();
     try {
+        await flushRequestLogs();
         await prisma.$disconnect();
     } finally {
         process.exit(0);
@@ -121,4 +125,5 @@ process.once('SIGUSR2', () => {
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     startClassReminderJob();
+    startRequestLogRetention();
 })
