@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { askRequestLogAi } from '../services/requestLog.js';
 import { acceptRefundRequest, declineRefundRequest } from '../services/refundService.js';
 import { performAccountDeletion } from '../services/accountDeletionService.js';
 import { formatClassStart, formatPurchaseAmount } from '../utils/refundEligibility.js';
@@ -77,6 +78,22 @@ export const getAdminRequestLogs = async (req, res, next) => {
 
     return res.status(200).json({ total, page, pageSize, logs });
   } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const askAdminRequestLog = async (req, res, next) => {
+  try {
+    const log = await prisma.apiRequestLog.findUnique({
+      where: { id: req.params.logId },
+    });
+    if (!log) return res.status(404).json({ message: 'Log not found' });
+    const aiMessages = await askRequestLogAi(log, req.body?.message);
+    return res.status(200).json({ aiMessages });
+  } catch (err) {
+    const status = err?.status || 500;
+    if (status !== 500) return res.status(status).json({ message: err.message });
     console.error(err);
     next(err);
   }

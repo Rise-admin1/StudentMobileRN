@@ -39,6 +39,75 @@ function copyAuthFields(req, path) {
   };
 }
 
+const SECRET_HEADERS = new Set([
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'x-api-key',
+  'proxy-authorization',
+]);
+const SECRET_KEY = /password|token|secret|authorization|cookie/i;
+const MAX_JSON_CHARS = 12000;
+
+function redactDeep(key, value) {
+  if (SECRET_KEY.test(key)) return '[redacted]';
+  if (Array.isArray(value)) return value.slice(0, 50).map((item) => redactDeep('', item));
+  if (value && typeof value === 'object') {
+    if (Buffer.isBuffer(value)) return `[binary, ${value.length} bytes]`;
+    const out = {};
+    for (const [childKey, childValue] of Object.entries(value)) {
+      out[childKey] = redactDeep(childKey, childValue);
+    }
+    return out;
+  }
+  if (typeof value === 'string' && value.length > 2000) return `${value.slice(0, 2000)}…`;
+  return value ?? null;
+}
+
+function fitJson(value) {
+  if (value == null) return null;
+  const json = JSON.stringify(value);
+  if (!json || json === '{}' || json === 'null') return null;
+  if (json.length <= MAX_JSON_CHARS) return value;
+  return { _truncated: true, preview: json.slice(0, MAX_JSON_CHARS) };
+}
+
+function captureHeaders(req) {
+  const headers = {};
+  for (const [key, value] of Object.entries(req.headers || {})) {
+    if (SECRET_HEADERS.has(key.toLowerCase())) {
+      headers[key] = '[redacted]';
+      continue;
+    }
+    const text = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+    headers[key] = text.length > 500 ? `${text.slice(0, 500)}…` : text;
+  }
+  return fitJson(headers);
+}
+
+function captureBody(req) {
+  const query = req.query && typeof req.query === 'object' && Object.keys(req.query).length
+    ? redactDeep('query', req.query)
+    : null;
+  let body = null;
+  if (Buffer.isBuffer(req.body)) {
+    body = `[binary, ${req.body.length} bytes]`;
+  } else if (typeof req.body === 'string' && req.body.trim()) {
+    try {
+      body = redactDeep('body', JSON.parse(req.body));
+    } catch {
+      body = req.body.slice(0, 4000);
+    }
+  } else if (req.body && typeof req.body === 'object' && !Array.isArray(req.body) && Object.keys(req.body).length) {
+    body = redactDeep('body', req.body);
+  } else if (Array.isArray(req.body)) {
+    body = redactDeep('body', req.body);
+  }
+
+  if (query == null && body == null) return null;
+  return fitJson({ query, body });
+}
+
 function captureErrorMessage(res) {
   if ((res.statusCode || 0) < 400) return null;
   const message = res.locals.requestLogMessage;
@@ -102,6 +171,8 @@ export function requestLogMiddleware(req, res, next) {
       email: authFields.email,
       accountType: authFields.accountType,
       errorMessage: captureErrorMessage(res),
+      requestHeaders: captureHeaders(req),
+      requestBody: captureBody(req),
     });
   });
 
