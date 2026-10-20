@@ -38,6 +38,10 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
+// Cloudflare connects to Render, and Render connects to this process.
+// Trust those two proxies so req.ip is the visitor, which is what the rate limiter counts.
+app.set('trust proxy', 2);
+
 const allowedOrigins = [
   'https://coachacadem.ae',
   'https://www.coachacadem.ae',
