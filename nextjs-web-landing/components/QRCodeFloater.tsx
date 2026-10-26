@@ -1,13 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import {
-  APP_DOWNLOAD_QR,
-  APP_STORE_URL,
-} from '@/lib/constants';
+import { APP_DOWNLOAD_QR } from '@/lib/constants';
 import StoreDownloadLink from '@/components/StoreDownloadLink';
-import { getPreferredStoreUrl } from '@/lib/store';
 import { getLocaleFromPath } from '@/lib/i18n/locale';
 import { t } from '@/lib/i18n/messages';
 
@@ -16,11 +12,6 @@ export default function QRCodeFloater() {
   const locale = getLocaleFromPath(pathname);
   const copy = t(locale);
   const [visible, setVisible] = useState(true);
-  const [downloadUrl, setDownloadUrl] = useState(APP_STORE_URL);
-
-  useEffect(() => {
-    setDownloadUrl(getPreferredStoreUrl());
-  }, []);
 
   if (!visible) return null;
 
@@ -36,22 +27,17 @@ export default function QRCodeFloater() {
       <span className="hidden md:block text-sm font-semibold text-white mb-2">
         {copy.qr.getTheApp}
       </span>
-      <StoreDownloadLink className="rounded-lg border border-white/30 bg-white p-1.5 shadow-md md:p-2">
+      <StoreDownloadLink className="hidden md:block rounded-lg border border-white/30 bg-white p-2 shadow-md">
         <img
           src={APP_DOWNLOAD_QR}
           alt="Scan to download app"
-          className="w-16 h-16 md:w-24 md:h-24"
+          className="w-24 h-24"
         />
       </StoreDownloadLink>
 
-      <a
-        href={downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="md:hidden mt-1.5 text-sm font-semibold text-white hover:text-white/90 underline underline-offset-2"
-      >
+      <StoreDownloadLink className="md:hidden rounded-lg px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-white no-underline hover:text-white/90 hover:no-underline">
         {copy.qr.getTheApp}
-      </a>
+      </StoreDownloadLink>
     </div>
   );
 }
