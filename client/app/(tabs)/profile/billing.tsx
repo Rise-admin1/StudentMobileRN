@@ -190,7 +190,10 @@ const BillingPage = () => {
         `${ipURL}/api/billing/purchases/${selectedPurchase.id}/refund-request`,
         { reason: trimmed }
       );
-      Alert.alert('Refund requested', 'Your refund request was sent for admin review.');
+      Alert.alert(
+        'Refund requested',
+        'Your refund request was sent for admin review. Please allow 5–10 business days for the amount to appear in your original payment account after an admin accepts it.'
+      );
       setSelectedPurchase(null);
       setReason('');
       await fetchBilling(true);

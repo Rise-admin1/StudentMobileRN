@@ -15,7 +15,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, FONT, SIZES } from '../../constants';
 import { horizontalScale, verticalScale, moderateScale } from '../utils/metrics';
-import useSafeAreaInsets, { addBasePaddingToInset } from '../hooks/useSafeAreaInsets';
+import useSafeAreaInsets, { addBasePaddingToInset, addBasePaddingToTopInset } from '../hooks/useSafeAreaInsets';
 import { getPostAuthHref } from '../utils/teacherProfileLink';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -152,7 +152,7 @@ const OnboardingScreen = () => {
 
   const Slide = ({ item }) => {
     return (
-      <View style={styles.slide}>
+      <View style={[styles.slide, { paddingTop: addBasePaddingToTopInset(16, insets.top), paddingBottom: addBasePaddingToInset(160, insets.bottom) }]}>
         <View style={styles.imageContainer}>
           <Image source={item.image} style={styles.image} />
         </View>
@@ -246,13 +246,13 @@ const styles = StyleSheet.create({
     width,
     height,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   imageContainer: {
     flex: 0.6,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: verticalScale(40),
+    marginTop: verticalScale(8),
   },
   image: {
     width: width * 0.8,

@@ -18,11 +18,13 @@ import { ipURL } from '../utils/utils';
 import { FONT } from '../../constants';
 import { horizontalScale, moderateScale, verticalScale } from '../utils/metrics';
 import { goBack } from '../utils/navigation';
+import useSafeAreaInsets, { addBasePaddingToInset, addBasePaddingToTopInset } from '../hooks/useSafeAreaInsets';
 
 const blurhash =
   '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
 const RegisterTutors = () => {
+  const insets = useSafeAreaInsets();
   const [teachers, setTeachers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -52,8 +54,8 @@ const RegisterTutors = () => {
   }, [search]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <View style={[styles.header, { paddingTop: addBasePaddingToTopInset(8, insets.top) }]}>
         <TouchableOpacity onPress={goBack} style={styles.back}>
           <Ionicons name="arrow-back" size={22} color="#1A2B4B" />
           <Text style={styles.backText}>Back</Text>
@@ -75,7 +77,7 @@ const RegisterTutors = () => {
         <ActivityIndicator style={{ marginTop: 24 }} color="#1A2B4B" />
       ) : (
         <ScrollView
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: addBasePaddingToInset(24, insets.bottom) }]}
           refreshControl={<RefreshControl refreshing={false} onRefresh={() => fetchTeachers(search)} />}
         >
           {teachers.length === 0 ? (
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontFamily: FONT.regular, paddingVertical: 8, color: '#12263A' },
-  list: { paddingHorizontal: horizontalScale(20), paddingBottom: verticalScale(24) },
+  list: { paddingHorizontal: horizontalScale(20) },
   empty: { textAlign: 'center', color: '#5C6B76', marginTop: 24 },
   card: {
     flexDirection: 'row',

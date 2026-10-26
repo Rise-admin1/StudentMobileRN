@@ -32,7 +32,7 @@ const omitSensitiveUserFields = (user) => {
 
 const INVALID_LOGIN_MESSAGE = "Invalid email or password";
 const MAX_FAILED_LOGINS = 5;
-const LOCK_DURATION_MS = 15 * 60 * 1000;
+const LOCK_DURATION_MS = 2 * 60 * 1000;
 const BCRYPT_COST = 12;
 const MIN_PASSWORD_LENGTH = 10;
 const MAX_OTP_ATTEMPTS = 5;

@@ -31,8 +31,6 @@ const StudentRatingPage = () => {
     try {
       const response = await axiosWithAuth.get(`${ipURL}/api/student-ratings/${profileId}`);
       setData(response.data);
-      setRating(response.data?.myRating?.rating || 0);
-      setDescription(response.data?.myRating?.description || '');
       setError('');
     } catch (err) {
       setError(err?.response?.data?.message || 'Could not load this student rating');
@@ -64,8 +62,6 @@ const StudentRatingPage = () => {
         rating,
       });
       setData(response.data);
-      setRating(response.data?.myRating?.rating || rating);
-      setDescription(response.data?.myRating?.description || description.trim());
       Alert.alert('Saved', 'The student rating is stored.');
     } catch (err) {
       Alert.alert('Could not save', err?.response?.data?.message || 'Please try again.');

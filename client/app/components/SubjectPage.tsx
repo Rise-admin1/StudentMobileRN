@@ -31,6 +31,7 @@ import BookingSummaryModal from './BookingSummaryModal';
 import { axiosWithAuth } from "../utils/customAxios";
 import { getSubjectShareUrl } from "../utils/subjectShare";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useSafeAreaInsets, { addBasePaddingToInset } from "../hooks/useSafeAreaInsets";
 interface Review {
   id: string;
   description: string;
@@ -308,8 +309,8 @@ const CapacityCard = React.memo(({ availableSpots, maxCapacity, isFull }: Capaci
 });
 
 const StudentRateCard = ({ student }) => {
-  const [rating, setRating] = useState(student.rating || 0);
-  const [description, setDescription] = useState(student.description || '');
+  const [rating, setRating] = useState(0);
+  const [description, setDescription] = useState('');
   const [hasRating, setHasRating] = useState(Boolean(student.rating));
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -384,6 +385,8 @@ const StudentRateCard = ({ student }) => {
 const SubjectPage = ({ subjectId, guestPreview = false }) => {
   const navigation = useNavigation();
   const segments = useSegments() as string[];
+  const insets = useSafeAreaInsets();
+  const resolvedSubjectId = Array.isArray(subjectId) ? subjectId[0] : subjectId;
   const stackTab = segments.includes('profile') ? 'profile' : 'home';
   const [singleSubjectData, setSingleSubjectData] = React.useState<SubjectData>({});
   const [capacityInfo, setCapacityInfo] = React.useState<{
@@ -716,29 +719,30 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
   };
 
   const handleSaveSubject = async () => {
+    const previousSaved = isSaved;
     try {
       setIsSaving(true);
       const token = await AsyncStorage.getItem("authToken");
-      const userDetails = await AsyncStorage.getItem("userDetails");
-      const userId = JSON.parse(userDetails).userId;
+      if (!token) {
+        alert("Please log in to save courses.");
+        return;
+      }
 
       if (isSaved) {
         setIsSaved(false);
-        // Unsave the subject
-        await axios.delete(`${ipURL}/api/subjects/saved/${subjectId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        await axios.delete(`${ipURL}/api/subjects/saved/${resolvedSubjectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        
       } else {
         setIsSaved(true);
-        // Save the subject
         await axios.post(
-          `${ipURL}/api/subjects/save/${subjectId}`,
+          `${ipURL}/api/subjects/save/${resolvedSubjectId}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
     } catch (error) {
+      setIsSaved(previousSaved);
       console.error("Error saving/unsaving subject:", error);
       alert("Failed to save/unsave subject. Please try again.");
     } finally {
@@ -892,8 +896,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
         });
         const savedSubjects = Array.isArray(response.data) ? response.data : [];
         // Check if subjectId matches either subjectId field or subject.id
-        setIsSaved(savedSubjects.some((saved: any) => 
-          saved.subjectId === subjectId || saved.subject?.id === subjectId
+        setIsSaved(savedSubjects.some((saved: any) =>
+          saved.subjectId === resolvedSubjectId || saved.subject?.id === resolvedSubjectId
         ));
       } catch (error) {
         console.error("Error checking saved status:", error);
@@ -1077,6 +1081,8 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
     );
   }
 
+  const scrollBottomBase = (guestPreview || isUserType === 'PARENT') ? 32 : 112;
+
   return (
    isPageLoading ? (
     <View style={styles.loadingWrap}>
@@ -1084,13 +1090,12 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       <Text style={styles.loadingText}>Loading course</Text>
     </View>
    ) : (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <StatusBar barStyle="dark-content" />
       <Animated.ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[
-          styles.scrollContent,
-          (guestPreview || isUserType === 'PARENT') && styles.scrollContentGuest,
+          { paddingBottom: addBasePaddingToInset(scrollBottomBase, insets.bottom) },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -1437,7 +1442,7 @@ const SubjectPage = ({ subjectId, guestPreview = false }) => {
       </Animated.ScrollView>
 
       {!guestPreview && isUserType !== 'PARENT' && (
-        <Animated.View style={[styles.footer, buttonStyle]}>
+        <Animated.View style={[styles.footer, buttonStyle, { paddingBottom: addBasePaddingToInset(12, insets.bottom) }]}>
           <TouchableOpacity 
             style={[
               styles.primaryButton,
@@ -1603,12 +1608,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: verticalScale(112),
-  },
-  scrollContentGuest: {
-    paddingBottom: verticalScale(32),
   },
   headerImageContainer: {
     position: 'relative',
@@ -2020,7 +2019,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E6EBF0',

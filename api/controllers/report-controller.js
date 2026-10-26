@@ -12,9 +12,13 @@ const findSubjectTutor = async (subjectId) => {
         where: { id: subjectId },
         select: {
             id: true,
+            subjectName: true,
             teacherId: true,
             teacherProfile: {
-                select: { userId: true },
+                select: {
+                    userId: true,
+                    user: { select: { name: true } },
+                },
             },
         },
     });
@@ -62,6 +66,14 @@ export const reportSubject = async (req, res, next) => {
             }
         });
 
+        const reporter = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+        });
+        const reporterName = reporter?.name || 'Unknown';
+        const subjectName = subject.subjectName || 'Unknown';
+        const teacherName = subject.teacherProfile?.user?.name || 'Unknown';
+
         // Send emails after successful report creation
         await Promise.all([
             resend.emails.send({
@@ -82,6 +94,9 @@ export const reportSubject = async (req, res, next) => {
                     <div style="padding: 40px 20px; background-color: #ffffff;">
                         <div style="background-color: #F8FAFC; padding: 30px; margin-bottom: 30px; position: relative; border-left: 4px solid #1A2B4B;">
                             <h3 style="color: #1A2B4B; font-size: 18px; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px;">Report Details</h3>
+                            <p style="margin: 10px 0; color: #64748B;"><strong>Reporter name:</strong> ${reporterName}</p>
+                            <p style="margin: 10px 0; color: #64748B;"><strong>Subject name:</strong> ${subjectName}</p>
+                            <p style="margin: 10px 0; color: #64748B;"><strong>Teacher name:</strong> ${teacherName}</p>
                             <p style="margin: 10px 0; color: #64748B;"><strong>User ID:</strong> ${userId}</p>
                             <p style="margin: 10px 0; color: #64748B;"><strong>Subject ID:</strong> ${subjectId}</p>
                             <p style="margin: 10px 0; color: #64748B;"><strong>Reason:</strong> ${cleanedReason}</p>

@@ -318,8 +318,19 @@ const CapacitySubscriptionPage = () => {
     }
   };
 
-  const handleOpenPrivacyPolicy = () => {
-    router.push('/(tabs)/profile/privacy-policy');
+  const handleOpenPrivacyPolicy = async () => {
+    try {
+      const url = 'https://www.coachacadem.ae/privacy-policy';
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Unable to open Privacy Policy');
+      }
+    } catch (err) {
+      console.error('Error opening Privacy Policy:', err);
+      Alert.alert('Error', 'Unable to open Privacy Policy');
+    }
   };
 
   const availablePlans = getAvailablePlans();

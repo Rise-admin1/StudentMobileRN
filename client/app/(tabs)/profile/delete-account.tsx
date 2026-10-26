@@ -20,7 +20,7 @@ const DeleteAccountPage = () => {
 
     Alert.alert(
       'Request Account Deletion',
-      'This submits a request for our team to review. Your account will not be deleted immediately.',
+      'This submits a request to our team for review. You will contacted with further details regarding the deletion of your account.',
       [
         {
           text: 'Cancel',

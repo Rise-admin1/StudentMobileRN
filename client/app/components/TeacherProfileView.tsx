@@ -5,6 +5,7 @@ import { FONT } from "../../constants";
 import { horizontalScale, moderateScale, verticalScale } from "../utils/metrics";
 import SubjectCards from "./SubjectCards";
 import StatusBarComponent from "./StatusBarComponent";
+import useSafeAreaInsets, { addBasePaddingToInset } from "../hooks/useSafeAreaInsets";
 
 interface SubjectItem {
   id: string;
@@ -63,6 +64,7 @@ const TeacherProfileView = ({
   showTutorStats,
   footer,
 }: TeacherProfileViewProps) => {
+  const insets = useSafeAreaInsets();
   const role = roleLabel ?? (userDetails?.isTeacher ? 'Tutor' : 'Student');
   const displayTutorStats = showTutorStats ?? !!userDetails?.isTeacher;
   const stats = user.stats;
@@ -70,7 +72,10 @@ const TeacherProfileView = ({
   return (
     <View style={styles.mainContainer}>
       <StatusBarComponent />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: addBasePaddingToInset(24, insets.bottom) }}
+      >
         <View style={styles.header}>
           <View style={styles.profileSection}>
             <Image

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StatusBar, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FONT } from '../../../constants';
@@ -165,7 +165,7 @@ const SettingsPage = () => {
           <View style={styles.divider} />
           <SettingsRow label="Contact Us" onPress={() => router.push('/(tabs)/profile/contact-us')} />
           <View style={styles.divider} />
-          <SettingsRow label="Privacy Policy" onPress={() => router.push('/(tabs)/profile/privacy-policy')} />
+          <SettingsRow label="Privacy Policy" onPress={() => { void Linking.openURL('https://www.coachacadem.ae/privacy-policy'); }} />
         </View>
 
         <Text style={styles.sectionTitle}>Developer</Text>

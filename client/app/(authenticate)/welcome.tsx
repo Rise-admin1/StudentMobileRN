@@ -5,8 +5,10 @@ import {welcomeCOLOR} from '../../constants/theme';
 import Button from '../components/Button';
 import { router } from 'expo-router';
 import { verticalScale,horizontalScale,moderateScale } from '../utils/metrics';
+import useSafeAreaInsets, { addBasePaddingToInset, addBasePaddingToTopInset } from '../hooks/useSafeAreaInsets';
 
 const Welcome = () => {
+    const insets = useSafeAreaInsets();
 
     return (
         <LinearGradient
@@ -16,7 +18,7 @@ const Welcome = () => {
             colors={[welcomeCOLOR.secondary, welcomeCOLOR.primary]}
             
         >
-            <View style={{ flex: 1, marginTop: verticalScale(20) }}>
+            <View style={{ flex: 1, paddingTop: addBasePaddingToTopInset(20, insets.top) }}>
                 <View>
                     <Image
                          source={require("../../assets/images/hero1.jpg")}
@@ -91,8 +93,10 @@ const Welcome = () => {
                 <View style={{
                     paddingHorizontal: horizontalScale(22),
                     position: "absolute",
-                    top: moderateScale(400),
-                    width: "100%"
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    paddingBottom: addBasePaddingToInset(24, insets.bottom),
                 }}>
                     <Text style={{
                         fontSize: moderateScale(50),
