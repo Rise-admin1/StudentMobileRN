@@ -12,9 +12,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { FONT } from '../../../constants/theme';
 import { horizontalScale, verticalScale, moderateScale } from '../../utils/metrics';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getHelpItem } from './helpContent';
 
 const HelpItem = () => {
-  const { title, content } = useLocalSearchParams();
+  const { id, title: titleParam, content: contentParam } = useLocalSearchParams();
+  const article = getHelpItem(id);
+  const title = article?.title || titleParam;
+  const content = article?.content || contentParam;
+  const paragraphs = String(content || '')
+    .split('\n')
+    .filter((line) => line.length > 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -37,7 +44,11 @@ const HelpItem = () => {
       >
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.content}>{content}</Text>
+          {paragraphs.map((paragraph, index) => (
+            <Text key={`${index}-${paragraph.slice(0, 24)}`} style={styles.content}>
+              {paragraph}
+            </Text>
+          ))}
         </View>
 
         {/* Developer Credit */}
@@ -85,6 +96,7 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     color: '#1A4C6E',
     lineHeight: verticalScale(24),
+    marginBottom: verticalScale(12),
   },
   developerCreditContainer: {
     alignItems: 'center',

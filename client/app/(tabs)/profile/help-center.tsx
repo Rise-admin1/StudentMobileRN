@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,140 +13,33 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FONT } from '../../../constants/theme';
 import { horizontalScale, verticalScale, moderateScale } from '../../utils/metrics';
-import * as Linking from 'expo-linking';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { helpCategories } from './helpContent';
 
 
 const HelpCenter = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCategories, setFilteredCategories] = useState([]);
 
-  const [helpCategories, setHelpCategories] = useState([
-    {
-      title: 'Account & Security',
-      icon: 'shield-checkmark-outline',
-      items: [
-        {
-          id: 'change-password',
-          title: 'How to change your password',
-          content: 'To change your password, go to Settings > Change Password under Account. Enter your current password and your new password twice to confirm.'
-        },
-        {
-          id: 'account-security',
-          title: 'Account security tips',
-          content: 'Keep your account secure by using a strong password and never sharing your login credentials.'
-        },
-        {
-          id: 'manage-profile',
-          title: 'Managing your profile',
-          content: 'You can update your profile information by going to Settings > Edit Profile. Here you can change your name and bio. For any other changes, please contact support.'
-        },
-        
-      ],
-    },
-    {
-      title: 'Learning & Courses',
-      icon: 'book-outline',
-      items: [
-        {
-          id: 'enroll-courses',
-          title: 'How to enroll in courses',
-          content: 'Browse available courses in the Courses section. Click on a course to view details and click "Enroll Now", book your slot, complete payment and you will be able to access the course on the day of the slot.'
-        },
-        {
-          id: 'access-materials',
-          title: 'What to do after enrolling in a course',
-          content: 'Once payment is completed, you can click on the "Your Bookings" tab on the home page and you will be able to see the course details and the date of the slot. Clicking on the course details will give you the zoom link to join the course.'
-        },
-        // {
-        //   id: 'track-progress',
-        //   title: 'Tracking your progress',
-        //   content: 'Your progress is automatically tracked in the course dashboard. You can see completed lessons and overall course progress.'
-        // },
-        // {
-        //   id: 'completion-certificates',
-        //   title: 'Course completion certificates',
-        //   content: 'Upon completing all course requirements, you can download your certificate from the course dashboard.'
-        // },
-      ],
-    },
-    {
-      title: 'Technical Support',
-      icon: 'construct-outline',
-      items: [
-        {
-          id: 'app-troubleshooting',
-          title: 'App troubleshooting',
-          content: 'If you experience issues, try clearing the app cache, updating to the latest version, or reinstalling the app.'
-        },
-        {
-          id: 'video-playback',
-          title: 'Video playback issues',
-          content: 'Check your internet connection. If nothing works, please contact support.'
-        },
-        {
-          id: 'connection-problems',
-          title: 'Connection problems',
-          content: 'Ensure you have a stable internet connection. Try switching between WiFi and mobile data if issues persist.'
-        },
-      ],
-    },
-    {
-      title: 'Billing & Payments',
-      icon: 'card-outline',
-      items: [
-        {
-          id: 'payment-methods',
-          title: 'Payment methods',
-          content: 'We accept credit cards and debit cards for now. We will be adding more payment methods soon. If you have any issues with payment, please contact support.'
-        },
-        {
-          id: 'refund-policy',
-          title: 'Refund policy',
-          content: 'Please contact support for any issues with payment.'
-        },
-        // {
-        //   id: 'subscription-management',
-        //   title: 'Subscription management',
-        //   content: 'Manage your subscription in Settings > Billing. You can upgrade, downgrade, or cancel your subscription.'
-        // },
-        // {
-        //   id: 'billing-history',
-        //   title: 'Billing history',
-        //   content: 'View your complete billing history and download invoices in Settings > Billing > History.'
-        // },
-      ],
-    },
-  ]);
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return helpCategories;
 
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredCategories(helpCategories);
-      return;
-    }
-
-    const searchResults = helpCategories.map(category => {
-      const filteredItems = category.items.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-      if (filteredItems.length > 0) {
-        return {
-          ...category,
-          items: filteredItems
-        };
-      }
-      return null;
-    }).filter(Boolean);
-
-    setFilteredCategories(searchResults);
+    return helpCategories
+      .map((category) => {
+        const items = category.items.filter((item) =>
+          item.title.toLowerCase().includes(query) ||
+          item.content.toLowerCase().includes(query) ||
+          category.title.toLowerCase().includes(query)
+        );
+        return items.length > 0 ? { ...category, items } : null;
+      })
+      .filter(Boolean);
   }, [searchQuery]);
 
   const handleHelpItemPress = (item) => {
     router.push({
       pathname: '/(tabs)/profile/help-item',
-      params: { id: item.id, title: item.title, content: item.content }
+      params: { id: item.id },
     });
   };
 
@@ -183,6 +76,9 @@ const HelpCenter = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Help Center</Text>
       </View>
+      <Text style={styles.headerSubtitle}>
+        Guides for students, tutors, organizations, and parents.
+      </Text>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -255,6 +151,13 @@ const styles = StyleSheet.create({
     fontFamily: FONT.bold,
     color: '#1A4C6E',
     marginLeft: horizontalScale(12),
+  },
+  headerSubtitle: {
+    fontSize: moderateScale(14),
+    fontFamily: FONT.regular,
+    color: '#64748B',
+    paddingHorizontal: moderateScale(16),
+    paddingTop: verticalScale(12),
   },
   searchContainer: {
     flexDirection: 'row',

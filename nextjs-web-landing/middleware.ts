@@ -9,6 +9,7 @@ const AR_REWRITE_ROOTS = new Set([
   "parent-guides",
   "exam-preparation",
   "blog",
+  "help",
 ]);
 
 export function middleware(request: NextRequest) {

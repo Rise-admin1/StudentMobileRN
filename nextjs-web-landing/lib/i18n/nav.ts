@@ -104,6 +104,7 @@ export function getMainNav(locale: Locale): NavItem[] {
         { label: copy.nav.studyTips, href: L("/study-tips") },
         { label: copy.nav.examPreparation, href: L("/exam-preparation") },
         { label: copy.nav.blog, href: L("/blog") },
+        { label: copy.nav.helpCenter, href: L("/help") },
       ],
     },
     {
@@ -142,6 +143,7 @@ export function getFooterColumns(locale: Locale): {
           { label: copy.nav.studyTips, href: L("/study-tips") },
           { label: copy.nav.examPreparation, href: L("/exam-preparation") },
           { label: copy.nav.blog, href: L("/blog") },
+          { label: copy.nav.helpCenter, href: L("/help") },
           { label: copy.footer.faq, href: L("/#faq") },
         ],
       },

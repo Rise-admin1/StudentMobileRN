@@ -53,6 +53,7 @@ export type UiMessages = {
     studyTips: string;
     examPreparation: string;
     blog: string;
+    helpCenter: string;
   };
   footer: {
     tagline: string;
@@ -95,6 +96,8 @@ export type UiMessages = {
     examLead: string;
     blogTitle: string;
     blogLead: string;
+    helpTitle: string;
+    helpLead: string;
     published: string;
     updated: string;
     englishBodyNote: string;
@@ -276,6 +279,7 @@ export const messages: Record<Locale, UiMessages> = {
       studyTips: "Study Tips",
       examPreparation: "Exam Preparation",
       blog: "Blog",
+      helpCenter: "Help Center",
     },
     footer: {
       tagline: "Learn and grow with CoachAcadem.",
@@ -365,6 +369,9 @@ export const messages: Record<Locale, UiMessages> = {
       blogTitle: "Blog",
       blogLead:
         "Guides for UAE parents on finding tutors, choosing curricula, and supporting students through exam season.",
+      helpTitle: "Help Center",
+      helpLead:
+        "What students, tutors, organizations, and parents can do in the Coach Academ app, and how to do it.",
       published: "Published {date}",
       updated: "Last updated {date}",
       englishBodyNote: "The full article below is in English.",
@@ -538,6 +545,7 @@ export const messages: Record<Locale, UiMessages> = {
       studyTips: "نصائح دراسية",
       examPreparation: "التحضير للامتحانات",
       blog: "المدونة",
+      helpCenter: "مركز المساعدة",
     },
     footer: {
       tagline: "تعلّم وتقدّم مع كوتش أكاديم.",
@@ -627,6 +635,9 @@ export const messages: Record<Locale, UiMessages> = {
       blogTitle: "المدونة",
       blogLead:
         "أدلة لأهالي الإمارات حول إيجاد المعلمين واختيار المناهج ودعم الطلاب في موسم الامتحانات.",
+      helpTitle: "مركز المساعدة",
+      helpLead:
+        "ما يمكن للطلاب والمعلمين والمؤسسات وأولياء الأمور فعله في تطبيق كوتش أكاديم، وكيف يتم ذلك.",
       published: "نُشر في {date}",
       updated: "آخر تحديث {date}",
       englishBodyNote: "نص المقال الكامل أدناه بالإنجليزية.",
