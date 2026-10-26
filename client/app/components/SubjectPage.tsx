@@ -99,7 +99,47 @@ interface ReviewFormProps {
   purchaseStatus: boolean;
 }
 
-const votesInFlight = new Set<string>();
+type UserVote = 'up' | 'down' | null;
+
+type VoteState = {
+  upvotes: number;
+  downvotes: number;
+  userVote: UserVote;
+};
+
+const clampCount = (value: number) => Math.max(0, value);
+
+const nextVoteState = (current: VoteState, voteType: 'up' | 'down'): VoteState => {
+  if (current.userVote === voteType) {
+    return {
+      upvotes: clampCount(current.upvotes - (voteType === 'up' ? 1 : 0)),
+      downvotes: clampCount(current.downvotes - (voteType === 'down' ? 1 : 0)),
+      userVote: null,
+    };
+  }
+
+  if (current.userVote === 'up') {
+    return {
+      upvotes: clampCount(current.upvotes - 1),
+      downvotes: current.downvotes + 1,
+      userVote: 'down',
+    };
+  }
+
+  if (current.userVote === 'down') {
+    return {
+      upvotes: current.upvotes + 1,
+      downvotes: clampCount(current.downvotes - 1),
+      userVote: 'up',
+    };
+  }
+
+  return {
+    upvotes: current.upvotes + (voteType === 'up' ? 1 : 0),
+    downvotes: current.downvotes + (voteType === 'down' ? 1 : 0),
+    userVote: voteType,
+  };
+};
 
 const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   <View style={styles.starRow}>
@@ -171,43 +211,72 @@ const ReviewForm = React.memo(({ onSubmit, isSubmitting, purchaseStatus }: Revie
 });
 
 const ReviewItem = ({ review, guestPreview }: { review: Review; guestPreview: boolean }) => {
-  const [voteState, setVoteState] = useState({
+  const [voteState, setVoteState] = useState<VoteState>({
     upvotes: review?.upvotes || 0,
     downvotes: review?.downvotes || 0,
     userVote: review?.userVote || null
   });
-  const [isVoting, setIsVoting] = useState(() => votesInFlight.has(review?.id));
+  const confirmedRef = useRef(voteState);
+  const desiredRef = useRef<UserVote>(voteState.userVote);
+  const inFlightRef = useRef(false);
+  const voteStateRef = useRef(voteState);
 
-  const handleVote = async (voteType: 'up' | 'down') => {
-    if (!review?.id || votesInFlight.has(review.id)) {
+  const flushVote = async () => {
+    if (!review?.id || inFlightRef.current) {
       return;
     }
 
-    votesInFlight.add(review.id);
-    setIsVoting(true);
+    inFlightRef.current = true;
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      const response = await axios.post(
-        `${ipURL}/api/reviews/${review.id}/vote`,
-        { voteType },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setVoteState({
-        upvotes: response.data.upvotes,
-        downvotes: response.data.downvotes,
-        userVote: response.data.userVote
-      });
-    } catch (error) {
-      const status = error?.response?.status;
-      if (status !== 409) {
-        console.error("Error voting:", error);
-        alert('Failed to vote. Please try again.');
+      while (desiredRef.current !== confirmedRef.current.userVote) {
+        const target = desiredRef.current;
+        try {
+          const token = await AsyncStorage.getItem("authToken");
+          const response = await axios.post(
+            `${ipURL}/api/reviews/${review.id}/vote`,
+            { voteType: target },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const confirmed: VoteState = {
+            upvotes: response.data.upvotes,
+            downvotes: response.data.downvotes,
+            userVote: response.data.userVote ?? null,
+          };
+          confirmedRef.current = confirmed;
+          if (desiredRef.current === target) {
+            voteStateRef.current = confirmed;
+            setVoteState(confirmed);
+          }
+        } catch (error) {
+          if (desiredRef.current !== target) {
+            continue;
+          }
+          desiredRef.current = confirmedRef.current.userVote;
+          voteStateRef.current = confirmedRef.current;
+          setVoteState(confirmedRef.current);
+          console.error("Error voting:", error);
+          alert('Failed to vote. Please try again.');
+          break;
+        }
       }
     } finally {
-      votesInFlight.delete(review.id);
-      setIsVoting(false);
+      inFlightRef.current = false;
+      if (desiredRef.current !== confirmedRef.current.userVote) {
+        void flushVote();
+      }
     }
+  };
+
+  const handleVote = (voteType: 'up' | 'down') => {
+    if (!review?.id) {
+      return;
+    }
+
+    const next = nextVoteState(voteStateRef.current, voteType);
+    voteStateRef.current = next;
+    desiredRef.current = next.userVote;
+    setVoteState(next);
+    void flushVote();
   };
 
   if (!review || !review.user) {
@@ -237,9 +306,8 @@ const ReviewItem = ({ review, guestPreview }: { review: Review; guestPreview: bo
       {!guestPreview && (
         <View style={styles.voteContainer}>
           <TouchableOpacity
-            style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote, isVoting && styles.voteButtonDisabled]}
+            style={[styles.voteButton, voteState.userVote === 'up' && styles.activeUpVote]}
             onPress={() => handleVote('up')}
-            disabled={isVoting}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons
@@ -253,9 +321,8 @@ const ReviewItem = ({ review, guestPreview }: { review: Review; guestPreview: bo
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote, isVoting && styles.voteButtonDisabled]}
+            style={[styles.voteButton, voteState.userVote === 'down' && styles.activeDownVote]}
             onPress={() => handleVote('down')}
-            disabled={isVoting}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons
@@ -2082,9 +2149,6 @@ const styles = StyleSheet.create({
   },
   activeDownVote: {
     backgroundColor: '#FDECEC',
-  },
-  voteButtonDisabled: {
-    opacity: 0.5,
   },
   voteCount: {
     fontSize: moderateScale(13),
