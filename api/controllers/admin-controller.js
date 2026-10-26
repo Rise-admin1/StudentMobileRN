@@ -1,7 +1,11 @@
+import { Resend } from 'resend';
 import prisma from '../lib/prisma.js';
 import { acceptRefundRequest, declineRefundRequest } from '../services/refundService.js';
 import { performAccountDeletion } from '../services/accountDeletionService.js';
 import { formatClassStart, formatPurchaseAmount } from '../utils/refundEligibility.js';
+import { ADMIN_CC_EMAIL } from '../utils/opsNotify.js';
+
+const resend = new Resend(process.env.COACH_ACADEM_RESEND_API_KEY);
 
 const parsePaging = (req) => {
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
@@ -561,6 +565,9 @@ export const approveAdminDeletionRequest = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const recipientEmail = (user.email || deletionRequest.userEmail || '').trim();
+    const recipientName = user.name || deletionRequest.userName || '';
+
     await prisma.accountDeletionRequest.update({
       where: { id: deletionRequest.id },
       data: {
@@ -571,6 +578,35 @@ export const approveAdminDeletionRequest = async (req, res, next) => {
     });
 
     await performAccountDeletion(user);
+
+    if (recipientEmail) {
+      try {
+        await resend.emails.send({
+          from: `"Support - Coach Academ" <${process.env.COACH_ACADEM_RESEND_EMAIL}>`,
+          to: recipientEmail,
+          cc: ADMIN_CC_EMAIL,
+          subject: 'Your Coach Academ account has been deleted',
+          html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff;">
+            <div style="background-color: #1A2B4B; padding: 32px 20px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Account Deleted</h1>
+            </div>
+            <div style="padding: 32px 20px;">
+              <p style="color:#64748B;font-size:16px;line-height:1.6;">
+                Hi ${recipientName}, your Coach Academ account has been deleted and your deletion request is complete.
+                You no longer have access to the account.
+              </p>
+              <p style="color:#64748B;font-size:14px;line-height:1.6;">
+                If you have questions, contact us at <a href="mailto:support@coachacadem.ae" style="color:#1A2B4B;">support@coachacadem.ae</a>.
+              </p>
+            </div>
+          </div>
+        `,
+        });
+      } catch (emailErr) {
+        console.error('Deletion confirmation email failed:', emailErr);
+      }
+    }
 
     return res.status(200).json({ message: 'Account deleted successfully' });
   } catch (err) {
